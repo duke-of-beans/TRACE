@@ -23,9 +23,12 @@ DCS is a federated system for volunteer crime-watch organizations that track sus
     │ Local DB    │   │ Local DB    │   │ Local DB     │
     │ Local LLM   │   │ Local LLM   │   │ Local LLM    │
     │ Processing  │   │ Processing  │   │ Processing   │
-    └──────┬──────┘   └──────┬──────┘   └──┬──────────┘
+    │ [VIGIL]*    │   │             │   │ [VIGIL]*     │
+    └──────┬──────┘   └──────┴──────┘   └──┬──────────┘
            │                  │              │
        Reporters          Reporters      Reporters
+
+* VIGIL module — toggled per cell
 ```
 
 **Cell** — Each chapter runs a self-contained processing node with its own database, local AI (Llama via Ollama), and pattern engine. Fully operational offline.
@@ -44,11 +47,44 @@ DCS is a federated system for volunteer crime-watch organizations that track sus
 | **Case Package Builder** | Integrity-verified reports for attorneys and partner organizations |
 | **National Mesh** | Cross-region matching, corridor analysis, federated intelligence |
 
+## Toggleable Modules
+
+The cell architecture supports optional processing modules. These are disabled by default and carry zero overhead when off. Chapter admins enable them in cell config when their workflow requires it.
+
+### VIGIL — Video Intelligence Gathering & Indexing Layer
+
+**Status:** Planned module
+**Toggle:** Cell-level, admin-controlled
+**Hardware:** Requires GPU-capable cell hardware (dedicated or upgraded)
+
+Adapted from an existing internal tool. VIGIL adds a video processing pipeline to the cell for chapters that receive dashcam footage, surveillance clips, or other video evidence.
+
+**Pipeline:**
+1. Video ingestion (reporter uploads or batch folder drop)
+2. Scene change detection via ffmpeg
+3. Keyframe extraction at vehicle-present moments
+4. Frame analysis via local vision model (Llama Vision / LLaVA on Ollama — no cloud APIs)
+5. Vehicle feature extraction from each keyframe (color, make, model, body type, plate if visible)
+6. Candidate sighting generation — each extracted frame becomes a pre-populated sighting record
+7. Candidate sightings appear in the operator's triage queue tagged `video-extracted` with source footage link and timestamp
+
+**Batch mode:** Reporter drops a folder of dashcam files, VIGIL processes overnight, operator has a queue of extracted sightings the next morning.
+
+**Visual-heavy mode:** Auto-detects silent or music-only video and shifts to frame-first analysis (skips transcription).
+
+**Why toggleable:**
+- Video processing is compute-heavy — chapters on modest hardware don't need this overhead
+- Not every chapter's workflow involves video — many work with photos only
+- Chapters that need it can invest in a beefier cell machine or add a GPU node
+- The reporter PWA only exposes the video upload path when VIGIL is enabled for that cell
+
+**Future modules** will follow this same plugin pattern — disabled by default, zero overhead when off, admin-toggled, hardware requirements documented.
+
 ## Roles
 
 - **Reporter** — Field volunteer. Submit-only access + personal history.
 - **Operator** — Daily workflow. Triage, review, map, patterns, case packages.
-- **Admin** — Chapter management. Reporters, config, identity vault, audit logs.
+- **Admin** — Chapter management. Reporters, config, identity vault, audit logs, module toggles.
 
 ## Security
 
@@ -65,6 +101,7 @@ DCS is a federated system for volunteer crime-watch organizations that track sus
 - **Cell**: Docker · PostgreSQL + PostGIS · Ollama (local LLM) · Node.js
 - **National Mesh**: PostgreSQL + TimescaleDB · Redis pub/sub · WireGuard VPN
 - **Frontend**: React — utilitarian/government design language
+- **VIGIL Module**: ffmpeg · Whisper (local) · Llama Vision via Ollama
 
 ## Design Philosophy
 
