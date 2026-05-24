@@ -1,12 +1,12 @@
-# DCS — Decentralized Crime Stoppers
+# TRACE — Tracking, Reporting, Analysis & Community Evidence
 
-**Vehicle Tracking & Pattern Analysis System**
+**Community-Driven Vehicle Pattern Analysis System**
 
 > Confidential — Do not distribute
 
 ## Overview
 
-DCS is a federated system for volunteer crime-watch organizations that track suspicious vehicles swapping license plates across neighborhoods. It replaces manual workflows with automated ingestion, pattern detection, and case reporting — built for nationwide scale from day one.
+TRACE is a federated system for volunteer community-watch organizations that track suspicious vehicles swapping license plates across neighborhoods. It replaces manual workflows with automated ingestion, pattern detection, and case reporting — built for nationwide scale from day one.
 
 ## Architecture
 
@@ -24,7 +24,7 @@ DCS is a federated system for volunteer crime-watch organizations that track sus
     │ Local LLM   │   │ Local LLM   │   │ Local LLM    │
     │ Processing  │   │ Processing  │   │ Processing   │
     │ [VIGIL]*    │   │             │   │ [VIGIL]*     │
-    └──────┬──────┘   └──────┴──────┘   └──┬──────────┘
+    └──────┬──────┘   └──────┬──────┘   └──┬──────────┘
            │                  │              │
        Reporters          Reporters      Reporters
 
@@ -42,9 +42,12 @@ DCS is a federated system for volunteer crime-watch organizations that track sus
 | **Reporter PWA** | Mobile upload app — camera-first, offline-capable, per-chapter branding |
 | **Processing Cell** | Local ingestion, EXIF extraction, vehicle feature analysis, pattern detection |
 | **Vehicle Identity** | Persistent dossiers built on visual features, not plates |
+| **Suspicion Engine** | Graduated, criteria-based vehicle escalation with admin-defined levels |
+| **Actor Database** | Driver/criminal profiles with risk classification, linked to vehicles |
 | **Pattern Engine** | Plate swaps, spatiotemporal clustering, co-occurrence, anomaly detection |
+| **Geospatial Intelligence** | Area heatmaps, corridor visualization, temporal layers, co-occurrence zones |
 | **Operator Interface** | Triage queue, live map, dossier management, keyboard-driven workflows |
-| **Case Package Builder** | Integrity-verified reports for attorneys and partner organizations |
+| **Case Package Builder** | Legal-grade, integrity-verified reports for attorneys and partner organizations |
 | **National Mesh** | Cross-region matching, corridor analysis, federated intelligence |
 
 ## Toggleable Modules
@@ -72,12 +75,6 @@ Adapted from an existing internal tool. VIGIL adds a video processing pipeline t
 
 **Visual-heavy mode:** Auto-detects silent or music-only video and shifts to frame-first analysis (skips transcription).
 
-**Why toggleable:**
-- Video processing is compute-heavy — chapters on modest hardware don't need this overhead
-- Not every chapter's workflow involves video — many work with photos only
-- Chapters that need it can invest in a beefier cell machine or add a GPU node
-- The reporter PWA only exposes the video upload path when VIGIL is enabled for that cell
-
 **Future modules** will follow this same plugin pattern — disabled by default, zero overhead when off, admin-toggled, hardware requirements documented.
 
 ## Roles
@@ -102,6 +99,7 @@ Adapted from an existing internal tool. VIGIL adds a video processing pipeline t
 - **National Mesh**: PostgreSQL + TimescaleDB · Redis pub/sub · WireGuard VPN
 - **Frontend**: React — utilitarian/government design language
 - **VIGIL Module**: ffmpeg · Whisper (local) · Llama Vision via Ollama
+- **Maps**: OpenStreetMap + Leaflet.js (self-hosted tiles, no usage cost)
 
 ## Design Philosophy
 
@@ -109,8 +107,8 @@ Government-utilitarian. Typography creates hierarchy. Color is functional only. 
 
 ## Status
 
-**Phase: Pre-engagement** — System designed, client questionnaire issued, awaiting answers before spec finalization.
+**Phase: Spec finalization** — Requirements synthesis complete, all client questions resolved, security architecture pending.
 
 ## License
 
-Proprietary. All rights reserved.
+Open source with controlled distribution. Architecture documentation shared with trusted associates only.
