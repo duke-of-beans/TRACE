@@ -14,6 +14,7 @@ import {
 } from "../../db/schema/vault-a.js";
 import { reporterIdentities } from "../../db/schema/vault-b.js";
 import { eq } from "drizzle-orm";
+import { generateCasePackage } from "../../services/case-package.js";
 
 export const adminRouter = new Hono();
 
@@ -89,4 +90,22 @@ adminRouter.post("/notifications/channels", async (c) => {
     .values({ chapterId, ...body })
     .returning();
   return c.json(ch, 201);
+});
+
+// --- Case Packages ---
+adminRouter.post("/case-packages", async (c) => {
+  const { title, description, vehicleId, actorId } = await c.req.json();
+  const chapterId = c.req.header("x-chapter-id") || "";
+  const generatedBy = c.req.header("x-reporter-id") || "";
+
+  const result = await generateCasePackage({
+    chapterId,
+    vehicleId,
+    actorId,
+    title,
+    description,
+    generatedBy,
+  });
+
+  return c.json(result, 201);
 });

@@ -12,6 +12,7 @@ import { ingest } from "./ingest.js";
 import { autoMap } from "./mapper.js";
 import { normalizeRow, decomposeVehicle } from "./normalizer.js";
 import { detectDuplicates } from "./deduplicator.js";
+import { importRows } from "./importer.js";
 import type { ImportRow, ImportReport, ColumnMapping } from "./types.js";
 
 /**
@@ -102,20 +103,50 @@ export async function preview(
 export async function runImport(
   filePath: string,
   sheet?: string,
-  mappingOverrides?: ColumnMapping[]
+  mappingOverrides?: ColumnMapping[],
+  chapterId?: string,
+  operatorId?: string
 ): Promise<ImportReport> {
   const report = await preview(filePath, sheet, mappingOverrides);
+
+  if (!chapterId || !operatorId) {
+    console.log("\nchapterId and operatorId required for database import.");
+    return report;
+  }
 
   if (report.errorRows > 0) {
     console.log(`\n${report.errorRows} rows have errors. Importing valid rows only.`);
   }
 
-  // TODO: insert valid rows into database
-  // - create vehicle dossiers from unique plate+make+model combos
-  // - create sighting records from each row
-  // - link photos if photoPath present
-  // - create actor profiles if driver data present
-  console.log("\nDatabase import not yet wired - preview only.");
+  // get valid rows from the full pipeline run
+  const raw = await ingest(filePath, sheet);
+  const { mappings } = mappingOverrides
+    ? { mappings: mappingOverrides }
+    : autoMap(raw.headers);
+
+  let rows: ImportRow[] = raw.rows.map((rawRow, i) => {
+    const { normalized, errors } = normalizeRow(rawRow, mappings);
+    if (normalized.vehicleDescription && !normalized.make) {
+      const decomposed = decomposeVehicle(String(normalized.vehicleDescription));
+      if (decomposed.make) normalized.make = decomposed.make;
+      if (decomposed.model) normalized.model = decomposed.model;
+      if (decomposed.year) normalized.year = decomposed.year;
+      if (decomposed.color && !normalized.color) normalized.color = decomposed.color;
+    }
+    return { rowNumber: i + 2, raw: rawRow, normalized, errors, isDuplicate: false };
+  });
+  rows = detectDuplicates(rows);
+
+  const result = await importRows(rows, chapterId, operatorId);
+  console.log(`\n--- Import Complete ---`);
+  console.log(`Vehicles created: ${result.vehiclesCreated}`);
+  console.log(`Sightings created: ${result.sightingsCreated}`);
+  console.log(`Actors created: ${result.actorsCreated}`);
+  console.log(`Skipped: ${result.skipped}`);
+  if (result.errors.length > 0) {
+    console.log(`Errors: ${result.errors.length}`);
+    result.errors.forEach((e) => console.log(`  ${e}`));
+  }
 
   return report;
 }

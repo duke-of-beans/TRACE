@@ -9,6 +9,9 @@ import { z } from "zod";
 import { opsDb } from "../../db/connection.js";
 import { sightings, sightingPhotos } from "../../db/schema/vault-a.js";
 import { eq, desc, and } from "drizzle-orm";
+import { emitNewSighting } from "../../services/realtime.js";
+import { dispatch } from "../../services/notification.js";
+import { applyJitter, shouldApplyJitter } from "../../services/jitter.js";
 
 export const sightingsRouter = new Hono();
 
@@ -36,19 +39,31 @@ sightingsRouter.post("/", async (c) => {
   const chapterId = c.req.header("x-chapter-id") || "";
   const reporterId = c.req.header("x-reporter-id") || "";
 
+  const role = c.req.header("x-role") || "reporter";
+  const observedAt = shouldApplyJitter(role)
+    ? applyJitter(new Date(parsed.data.observedAt))
+    : new Date(parsed.data.observedAt);
+
   const [sighting] = await opsDb
     .insert(sightings)
     .values({
       chapterId,
       reporterId,
       ...parsed.data,
-      observedAt: new Date(parsed.data.observedAt),
-      jitterApplied: false, // TODO: apply ±30s jitter
+      observedAt,
+      jitterApplied: shouldApplyJitter(role),
     })
     .returning();
 
-  // TODO: emit WebSocket event for operator triage queue
-  // TODO: evaluate notification rules
+  // real-time: push to operator triage queue
+  emitNewSighting(chapterId, sighting);
+
+  // push notifications
+  dispatch({
+    event: "new_sighting",
+    chapterId,
+    data: { vehicleId: parsed.data.vehicleId },
+  }).catch(() => {}); // fire and forget
 
   return c.json(sighting, 201);
 });

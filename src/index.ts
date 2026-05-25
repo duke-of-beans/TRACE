@@ -5,6 +5,7 @@
  * All routes are chapter-scoped via middleware.
  */
 import { serve } from "@hono/node-server";
+import { createNodeWebSocket } from "@hono/node-ws";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
@@ -17,6 +18,8 @@ import { closeAll } from "./db/connection.js";
 import { authMiddleware, operatorOnly, adminOnly } from "./middleware/auth.js";
 import { auditMiddleware } from "./middleware/audit.js";
 import { runSunsetCheck } from "./services/vehicle-sunset.js";
+import { addClient, removeClient, getClientCount } from "./services/realtime.js";
+import { nanoid } from "nanoid";
 
 const app = new Hono();
 
@@ -28,7 +31,40 @@ app.use("*", cors({
 }));
 
 // ---------- Health ----------
-app.get("/health", (c) => c.json({ status: "ok", service: "trace" }));
+app.get("/health", (c) => c.json({
+  status: "ok",
+  service: "trace",
+  wsClients: getClientCount(),
+}));
+
+// ---------- WebSocket ----------
+const { injectWebSocket, upgradeWebSocket } = createNodeWebSocket({ app });
+
+app.get("/ws", upgradeWebSocket((c) => {
+  const clientId = nanoid();
+  return {
+    onOpen(_evt, ws) {
+      // client sends auth + chapter info in first message
+      console.log(`WS connection opened: ${clientId}`);
+    },
+    onMessage(evt, ws) {
+      try {
+        const msg = JSON.parse(String(evt.data));
+        if (msg.type === "auth") {
+          addClient({
+            id: clientId,
+            chapterId: msg.chapterId || "",
+            role: msg.role || "reporter",
+            send: (data) => ws.send(data),
+          });
+        }
+      } catch {}
+    },
+    onClose() {
+      removeClient(clientId);
+    },
+  };
+}));
 
 // ---------- API Routes ----------
 const api = new Hono();
@@ -67,9 +103,10 @@ setInterval(async () => {
 // ---------- Start ----------
 const port = parseInt(process.env.PORT || "3100", 10);
 
-serve({ fetch: app.fetch, port }, (info) => {
+const server = serve({ fetch: app.fetch, port }, (info) => {
   console.log(`TRACE server running on http://localhost:${info.port}`);
 });
+injectWebSocket(server);
 
 // ---------- Graceful shutdown ----------
 async function shutdown() {
