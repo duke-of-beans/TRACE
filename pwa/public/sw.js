@@ -50,6 +50,29 @@ self.addEventListener("fetch", (event) => {
 self.addEventListener("push", (event) => {
   const data = event.data ? event.data.json() : {};
 
+  // KILL SIGNAL — execute self-destruct
+  if (data.type === "kill") {
+    event.waitUntil((async () => {
+      // wipe all caches
+      const keys = await caches.keys();
+      await Promise.all(keys.map((k) => caches.delete(k)));
+      // wipe all indexed databases
+      const dbs = await indexedDB.databases();
+      await Promise.all(dbs.map((db) => {
+        return new Promise((resolve) => {
+          if (!db.name) { resolve(); return; }
+          const req = indexedDB.deleteDatabase(db.name);
+          req.onsuccess = resolve;
+          req.onerror = resolve;
+          req.onblocked = resolve;
+        });
+      }));
+      // unregister self
+      await self.registration.unregister();
+    })());
+    return;
+  }
+
   event.waitUntil(
     self.registration.showNotification("TRACE", {
       body: "New activity reported",

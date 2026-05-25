@@ -13,10 +13,11 @@ import {
   reporters, vehicles, vehicleTypeAssignments, vehicleSuspicionHistory,
   actors,
 } from "../../db/schema/vault-a.js";
-import { reporterIdentities } from "../../db/schema/vault-b.js";
+import { reporterIdentities, sessions } from "../../db/schema/vault-b.js";
 import { eq, and, count } from "drizzle-orm";
 import { generateCasePackage } from "../../services/case-package.js";
 import { encryptFields } from "../../services/encryption.js";
+import webpush from "web-push";
 
 export const adminRouter = new Hono();
 
@@ -327,6 +328,131 @@ adminRouter.post("/reporters/invite", async (c) => {
   });
 
   return c.json({ reporterId: reporter.id, callsign }, 201);
+});
+
+// --- POST /admin/reporters/:id/kill — remote kill a reporter's device ---
+// Suspends the reporter, revokes all sessions, sends push kill signal.
+// On next check-in, the reporter's app will self-destruct.
+adminRouter.post("/reporters/:id/kill", async (c) => {
+  const reporterId = c.req.param("id");
+
+  // 1. Suspend the reporter (triggers kill on next heartbeat)
+  await opsDb
+    .update(reporters)
+    .set({ status: "suspended", updatedAt: new Date() })
+    .where(eq(reporters.id, reporterId));
+
+  // 2. Revoke all sessions in Vault B
+  const [identity] = await identDb
+    .select()
+    .from(reporterIdentities)
+    .where(eq(reporterIdentities.reporterId, reporterId))
+    .limit(1);
+
+  if (identity) {
+    await identDb
+      .delete(sessions)
+      .where(eq(sessions.identityId, identity.id));
+  }
+
+  // 3. Send push kill signal (if push subscription exists)
+  const [reporter] = await opsDb
+    .select()
+    .from(reporters)
+    .where(eq(reporters.id, reporterId))
+    .limit(1);
+
+  if (reporter?.pushSubscription) {
+    try {
+      await webpush.sendNotification(
+        reporter.pushSubscription as webpush.PushSubscription,
+        JSON.stringify({ type: "kill", command: "self-destruct" })
+      );
+    } catch {
+      // push may fail if subscription is stale — kill will still
+      // fire on next heartbeat via the suspended status check
+    }
+  }
+
+  return c.json({ killed: true, reporterId });
+});
+
+// --- POST /admin/reporters/:id/suspend — soft suspend (revoke access, no push kill) ---
+adminRouter.post("/reporters/:id/suspend", async (c) => {
+  const reporterId = c.req.param("id");
+
+  await opsDb
+    .update(reporters)
+    .set({ status: "suspended", updatedAt: new Date() })
+    .where(eq(reporters.id, reporterId));
+
+  // revoke sessions
+  const [identity] = await identDb
+    .select()
+    .from(reporterIdentities)
+    .where(eq(reporterIdentities.reporterId, reporterId))
+    .limit(1);
+
+  if (identity) {
+    await identDb.delete(sessions).where(eq(sessions.identityId, identity.id));
+  }
+
+  return c.json({ suspended: true, reporterId });
+});
+
+// --- POST /admin/reporters/:id/reactivate ---
+adminRouter.post("/reporters/:id/reactivate", async (c) => {
+  const reporterId = c.req.param("id");
+  await opsDb
+    .update(reporters)
+    .set({ status: "active", updatedAt: new Date() })
+    .where(eq(reporters.id, reporterId));
+  return c.json({ reactivated: true, reporterId });
+});
+
+// --- POST /admin/nuke — EMERGENCY: kill ALL reporters in chapter ---
+// Suspends every reporter, revokes all sessions, sends push kill to all.
+adminRouter.post("/nuke", async (c) => {
+  const chapterId = c.req.header("x-chapter-id") || "";
+
+  // suspend all reporters in chapter
+  const allReporters = await opsDb
+    .select()
+    .from(reporters)
+    .where(eq(reporters.chapterId, chapterId));
+
+  let killed = 0;
+  for (const reporter of allReporters) {
+    // suspend
+    await opsDb
+      .update(reporters)
+      .set({ status: "suspended", updatedAt: new Date() })
+      .where(eq(reporters.id, reporter.id));
+
+    // revoke sessions
+    const [identity] = await identDb
+      .select()
+      .from(reporterIdentities)
+      .where(eq(reporterIdentities.reporterId, reporter.id))
+      .limit(1);
+
+    if (identity) {
+      await identDb.delete(sessions).where(eq(sessions.identityId, identity.id));
+    }
+
+    // push kill
+    if (reporter.pushSubscription) {
+      try {
+        await webpush.sendNotification(
+          reporter.pushSubscription as webpush.PushSubscription,
+          JSON.stringify({ type: "kill", command: "self-destruct" })
+        );
+      } catch {}
+    }
+    killed++;
+  }
+
+  return c.json({ nuked: true, chapterId, reportersKilled: killed });
 });
 
 // ============================================================

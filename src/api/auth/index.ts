@@ -7,11 +7,10 @@
  */
 import { Hono } from "hono";
 import { z } from "zod";
-import { identDb } from "../../db/connection.js";
-import {
-  reporterIdentities, magicLinkTokens, sessions, totpSecrets,
-} from "../../db/schema/vault-b.js";
-import { eq } from "drizzle-orm";
+import { identDb, opsDb } from "../../db/connection.js";
+import { reporterIdentities, magicLinkTokens, sessions, totpSecrets } from "../../db/schema/vault-b.js";
+import { reporters } from "../../db/schema/vault-a.js";
+import { eq, and } from "drizzle-orm";
 import { createHash, randomBytes } from "node:crypto";
 
 export const authRouter = new Hono();
@@ -148,4 +147,28 @@ authRouter.post("/dev-login", async (c) => {
     role: identity.role,
     chapterId: "lookup-from-reporter", // client resolves from first API call
   });
+});
+
+// --- GET /auth/status — heartbeat + kill signal check ---
+// Reporter's app calls this periodically. If the reporter has been
+// suspended by the operator, response includes x-trace-kill header.
+authRouter.get("/status", async (c) => {
+  const reporterId = c.req.header("x-reporter-id");
+  if (!reporterId) return c.json({ status: "unknown" }, 401);
+
+  const [reporter] = await opsDb
+    .select()
+    .from(reporters)
+    .where(eq(reporters.id, reporterId))
+    .limit(1);
+
+  if (!reporter) return c.json({ status: "unknown" }, 404);
+
+  if (reporter.status === "suspended") {
+    // KILL SIGNAL: reporter has been suspended by operator
+    c.header("x-trace-kill", "true");
+    return c.json({ status: "suspended", kill: true });
+  }
+
+  return c.json({ status: reporter.status });
 });
