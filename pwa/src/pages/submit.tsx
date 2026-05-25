@@ -10,8 +10,10 @@
  * 3. Add plate, description, notes -> Submit
  */
 import { useState, useRef } from "preact/hooks";
-import { api, queueSighting, type QueuedSighting } from "../lib/api.js";
+import { api } from "../lib/api.js";
+import { enqueue } from "../lib/queue.js";
 import { applyJitter } from "../lib/jitter.js";
+import { DirectCamera } from "../components/camera.js";
 
 type SightingDraft = {
   photos: File[];
@@ -45,6 +47,7 @@ export function Submit() {
   const [draft, setDraft] = useState<SightingDraft>(emptyDraft());
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [showCamera, setShowCamera] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const handlePhotos = async (e: Event) => {
@@ -98,14 +101,13 @@ export function Submit() {
       await api.submitSighting(payload);
       setSubmitted(true);
     } catch {
-      // offline - queue for later
-      const queued: QueuedSighting = {
+      // offline or server unreachable - encrypt and queue
+      await enqueue({
         id: crypto.randomUUID(),
         payload,
-        photos: [], // TODO: base64 encode photos for queue
+        photos: [],
         queuedAt: new Date().toISOString(),
-      };
-      await queueSighting(queued);
+      });
       setSubmitted(true);
     }
 
@@ -131,27 +133,55 @@ export function Submit() {
     <div>
       <h2 style={{ fontSize: 20, marginBottom: 16 }}>Report Sighting</h2>
 
-      {/* Photo capture - TAP 1 */}
+      {/* Direct Camera (no gallery copies) */}
+      {showCamera && (
+        <DirectCamera
+          onCapture={(result) => {
+            setDraft((d) => ({
+              ...d,
+              photos: [...d.photos, new File([result.blob], `capture-${Date.now()}.jpg`)],
+              photoUrls: [...d.photoUrls, result.url],
+              lat: result.lat || d.lat,
+              lng: result.lng || d.lng,
+            }));
+            setShowCamera(false);
+          }}
+          onClose={() => setShowCamera(false)}
+        />
+      )}
+
+      {/* Photo capture buttons */}
       <input
         ref={fileRef}
         type="file"
         accept="image/*"
-        capture="environment"
         multiple
         onChange={handlePhotos}
         style={{ display: "none" }}
       />
-      <button
-        onClick={() => fileRef.current?.click()}
-        style={{
-          width: "100%", padding: "20px", marginBottom: 16,
-          background: "#1a1a2e", border: "2px dashed #2a2a3e",
-          borderRadius: 12, color: "#4fc3f7", fontSize: 16,
-          cursor: "pointer",
-        }}
-      >
-        📷 {draft.photos.length > 0 ? `${draft.photos.length} photo(s)` : "Tap to capture"}
-      </button>
+      <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
+        <button
+          onClick={() => setShowCamera(true)}
+          style={{
+            flex: 2, padding: "16px", background: "#1a1a2e",
+            border: "2px dashed #4fc3f7", borderRadius: 12,
+            color: "#4fc3f7", fontSize: 15, cursor: "pointer",
+          }}
+        >
+          📷 {draft.photos.length > 0 ? `${draft.photos.length} photo(s)` : "Camera"}
+        </button>
+        <button
+          onClick={() => fileRef.current?.click()}
+          style={{
+            flex: 1, padding: "16px", background: "#1a1a2e",
+            border: "2px dashed #2a2a3e", borderRadius: 12,
+            color: "#666", fontSize: 12, cursor: "pointer",
+          }}
+          title="⚠ File picker may save to gallery"
+        >
+          Files
+        </button>
+      </div>
 
       {/* Photo thumbnails */}
       {draft.photoUrls.length > 0 && (
