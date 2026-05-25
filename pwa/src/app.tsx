@@ -39,7 +39,8 @@ export function App() {
   const [ttlHours] = useState(() =>
     parseInt(localStorage.getItem("trace_ttl_hours") || String(DEFAULT_TTL_HOURS))
   );
-  const token = getToken();
+  const [authed, setAuthed] = useState(() => !!getToken());
+  const token = authed ? getToken() : null;
 
   // determine initial state
   useEffect(() => {
@@ -84,7 +85,7 @@ export function App() {
   }
 
   // --- Gate: not logged in ---
-  if (!token) return <LoginPrompt />;
+  if (!token) return <LoginPrompt onAuth={() => setAuthed(true)} />;
 
   // --- Main app ---
   return (
@@ -196,7 +197,7 @@ function NavBtn(props: { label: string; active: boolean; badge?: number; onClick
   );
 }
 
-function LoginPrompt() {
+function LoginPrompt({ onAuth }: { onAuth: () => void }) {
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "sent" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
@@ -206,7 +207,6 @@ function LoginPrompt() {
     setStatus("loading");
 
     try {
-      // try dev-login first (development mode)
       const devRes = await fetch("/api/v1/auth/dev-login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -217,7 +217,7 @@ function LoginPrompt() {
         const data = await devRes.json();
         if (data.sessionToken) {
           setToken(data.sessionToken);
-          window.location.reload();
+          onAuth();
           return;
         }
       }

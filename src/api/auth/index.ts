@@ -9,7 +9,7 @@ import { Hono } from "hono";
 import { z } from "zod";
 import { identDb, opsDb } from "../../db/connection.js";
 import { reporterIdentities, magicLinkTokens, sessions, totpSecrets } from "../../db/schema/vault-b.js";
-import { reporters } from "../../db/schema/vault-a.js";
+import { reporters, chapters } from "../../db/schema/vault-a.js";
 import { eq, and } from "drizzle-orm";
 import { createHash, randomBytes } from "node:crypto";
 
@@ -123,13 +123,33 @@ authRouter.post("/dev-login", async (c) => {
   const { email } = await c.req.json();
   if (!email) return c.json({ error: "Email required" }, 400);
 
-  const [identity] = await identDb
+  let [identity] = await identDb
     .select()
     .from(reporterIdentities)
     .where(eq(reporterIdentities.email, email))
     .limit(1);
 
-  if (!identity) return c.json({ error: "Identity not found" }, 404);
+  // DEV MODE: auto-create reporter if email doesn't exist
+  if (!identity) {
+    // find first chapter
+    const [chapter] = await opsDb.select().from(chapters).limit(1);
+    if (!chapter) return c.json({ error: "No chapter exists. Run seed first." }, 500);
+
+    // create reporter in Vault A
+    const callsign = email.split("@")[0].toUpperCase().replace(/[^A-Z0-9]/g, "-");
+    const [reporter] = await opsDb
+      .insert(reporters)
+      .values({ chapterId: chapter.id, callsign: `RPT-${callsign}` })
+      .returning();
+
+    // create identity in Vault B
+    [identity] = await identDb
+      .insert(reporterIdentities)
+      .values({ reporterId: reporter.id, email, role: "reporter" })
+      .returning();
+
+    console.log(`[DEV] Auto-created reporter "${callsign}" for ${email}`);
+  }
 
   const sessionToken = randomBytes(32).toString("hex");
   const sessionHash = createHash("sha256").update(sessionToken).digest("hex");

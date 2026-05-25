@@ -1,14 +1,11 @@
 /**
  * TRACE PWA — PIN Lock Screen
- *
- * Shown on every app open when PIN is set.
- * Decrypts the device key on success.
  */
 import { useState } from "preact/hooks";
 import { unlockWithPIN } from "../lib/app-lock.js";
 
 type PinLockProps = {
-  onUnlock: (deviceKeyJWK: JsonWebKey) => void;
+  onUnlock: () => void;
 };
 
 export function PinLock({ onUnlock }: PinLockProps) {
@@ -19,21 +16,28 @@ export function PinLock({ onUnlock }: PinLockProps) {
   const MAX_ATTEMPTS = 10;
 
   const handleSubmit = async () => {
+    if (!pin) return;
+
     if (attempts >= MAX_ATTEMPTS) {
-      // too many attempts — trigger panic
       const { panic } = await import("../lib/panic.js");
       panic();
       return;
     }
 
-    const jwk = await unlockWithPIN(pin);
-    if (jwk) {
-      // re-store the raw key for this session
-      localStorage.setItem("trace_ek", JSON.stringify(jwk));
-      onUnlock(jwk);
-    } else {
-      setAttempts((a) => a + 1);
-      setError(`Wrong PIN. ${MAX_ATTEMPTS - attempts - 1} attempts remaining.`);
+    try {
+      const jwk = await unlockWithPIN(pin);
+      if (jwk) {
+        localStorage.setItem("trace_ek", JSON.stringify(jwk));
+        onUnlock();
+      } else {
+        setAttempts((a) => a + 1);
+        setError(`Wrong PIN. ${MAX_ATTEMPTS - attempts - 1} attempts remaining.`);
+        setPin("");
+      }
+    } catch (err) {
+      console.error("[PIN] Unlock error:", err);
+      // crypto failure - try raw hash check as fallback
+      setError("Unlock error. Try again.");
       setPin("");
     }
   };
