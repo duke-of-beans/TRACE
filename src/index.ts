@@ -20,6 +20,7 @@ import { authMiddleware, operatorOnly, adminOnly } from "./middleware/auth.js";
 import { auditMiddleware } from "./middleware/audit.js";
 import { runSunsetCheck } from "./services/vehicle-sunset.js";
 import { addClient, removeClient, getClientCount } from "./services/realtime.js";
+import { mountStatic } from "./static.js";
 import { nanoid } from "nanoid";
 
 const app = new Hono();
@@ -87,6 +88,9 @@ api.use("/admin/*", adminOnly);
 api.route("/admin", adminRouter);
 
 app.route("/api/v1", api);
+
+// ---------- Static Files (PWA + Operator) ----------
+mountStatic(app);
 
 // ---------- Scheduled Tasks ----------
 // Vehicle sunset check - runs every hour

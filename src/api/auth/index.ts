@@ -113,3 +113,39 @@ authRouter.post("/verify", async (c) => {
     role: identity!.role,
   });
 });
+
+// --- POST /auth/dev-login — DEV ONLY: login by email without magic link ---
+// Remove this endpoint before production deployment.
+authRouter.post("/dev-login", async (c) => {
+  if (process.env.NODE_ENV === "production") {
+    return c.json({ error: "Dev login disabled in production" }, 403);
+  }
+
+  const { email } = await c.req.json();
+  if (!email) return c.json({ error: "Email required" }, 400);
+
+  const [identity] = await identDb
+    .select()
+    .from(reporterIdentities)
+    .where(eq(reporterIdentities.email, email))
+    .limit(1);
+
+  if (!identity) return c.json({ error: "Identity not found" }, 404);
+
+  const sessionToken = randomBytes(32).toString("hex");
+  const sessionHash = createHash("sha256").update(sessionToken).digest("hex");
+
+  await identDb.insert(sessions).values({
+    identityId: identity.id,
+    tokenHash: sessionHash,
+    expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+  });
+
+  return c.json({
+    status: "authenticated",
+    sessionToken,
+    reporterId: identity.reporterId,
+    role: identity.role,
+    chapterId: "lookup-from-reporter", // client resolves from first API call
+  });
+});
