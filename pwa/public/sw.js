@@ -9,15 +9,15 @@ const CACHE_NAME = "trace-v1";
 const SHELL_URLS = ["/", "/index.html"];
 
 // Install: cache app shell
-self.addEventListener("install", (event: any) => {
+self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => cache.addAll(SHELL_URLS))
   );
-  (self as any).skipWaiting();
+  self.skipWaiting();
 });
 
 // Activate: clean old caches
-self.addEventListener("activate", (event: any) => {
+self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys().then((names) =>
       Promise.all(
@@ -25,11 +25,11 @@ self.addEventListener("activate", (event: any) => {
       )
     )
   );
-  (self as any).clients.claim();
+  self.clients.claim();
 });
 
 // Fetch: network-first for API, cache-first for shell
-self.addEventListener("fetch", (event: any) => {
+self.addEventListener("fetch", (event) => {
   const url = new URL(event.request.url);
 
   // API requests: network only (offline queue handles failures)
@@ -47,24 +47,23 @@ self.addEventListener("fetch", (event: any) => {
 });
 
 // Push notifications: signal only, no intelligence in payload
-self.addEventListener("push", (event: any) => {
-  const data = event.data?.json() || {};
+self.addEventListener("push", (event) => {
+  const data = event.data ? event.data.json() : {};
 
   event.waitUntil(
-    (self as any).registration.showNotification("TRACE", {
+    self.registration.showNotification("TRACE", {
       body: "New activity reported",
       icon: "/icon-192.png",
       badge: "/icon-192.png",
       tag: data.type || "trace-alert",
-      // NO sensitive data in notification body
     })
   );
 });
 
 // Notification click: open app
-self.addEventListener("notificationclick", (event: any) => {
+self.addEventListener("notificationclick", (event) => {
   event.notification.close();
   event.waitUntil(
-    (self as any).clients.openWindow("/")
+    self.clients.openWindow("/")
   );
 });
