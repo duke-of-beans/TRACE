@@ -16,6 +16,7 @@ import { Security } from "./pages/security.js";
 import {
   ToastProvider, ConfirmProvider, ErrorBoundary, KeyboardOverlay, Tooltip,
 } from "./components/ux/index.js";
+import { LoginScreen, logout } from "./lib/auth-gate.js";
 
 type Page = "dashboard" | "triage" | "intel" | "vehicles" | "actors" | "admin" | "security";
 
@@ -31,6 +32,7 @@ const NAV: { key: Page; label: string; shortcut: string; icon: string; desc: str
 
 export function App() {
   const [page, setPage] = useState<Page>("triage");
+  const [authed, setAuthed] = useState(() => !!localStorage.getItem("trace_op_token"));
 
   // keyboard nav: 1-6 switches sections
   useEffect(() => {
@@ -49,6 +51,11 @@ export function App() {
     <ToastProvider>
       <ConfirmProvider>
         <KeyboardOverlay />
+
+        {!authed ? (
+          <LoginScreen onAuth={() => setAuthed(true)} />
+        ) : (
+
         <div className="flex h-screen">
           {/* Sidebar */}
           <aside className="w-52 bg-trace-surface border-r border-trace-border flex flex-col">
@@ -74,10 +81,14 @@ export function App() {
                 </Tooltip>
               ))}
             </nav>
-            <div className="px-4 py-3 border-t border-trace-border">
+            <div className="px-4 py-3 border-t border-trace-border space-y-2">
               <div className="text-[10px] text-gray-600">
                 Press <kbd className="px-1 py-0.5 bg-trace-bg rounded text-[9px] text-gray-500 border border-trace-border">?</kbd> for shortcuts
               </div>
+              <button onClick={logout}
+                className="w-full text-left text-xs text-gray-500 hover:text-trace-danger transition-colors py-1">
+                Sign Out
+              </button>
             </div>
           </aside>
 
@@ -94,6 +105,8 @@ export function App() {
             </ErrorBoundary>
           </main>
         </div>
+
+        )}
       </ConfirmProvider>
     </ToastProvider>
   );
