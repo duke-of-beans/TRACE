@@ -5,32 +5,21 @@
  * from the same Hono server.
  *
  * Routes:
- *   /          -> PWA (reporter)
- *   /operator  -> Operator dashboard
- *   /api/v1/*  -> API
- *   /ws        -> WebSocket
+ *   /operator/* -> Operator dashboard (base: /operator/)
+ *   /*          -> PWA (reporter)
+ *   /api/v1/*   -> API (handled before static)
+ *   /ws         -> WebSocket (handled before static)
  */
 import { Hono } from "hono";
 import { serveStatic } from "@hono/node-server/serve-static";
 
 export function mountStatic(app: Hono) {
-  // Operator dashboard (check first - more specific path)
+  // Operator dashboard assets (must come before PWA catch-all)
   app.use("/operator/*", serveStatic({
     root: "./operator/dist",
     rewriteRequestPath: (path) => path.replace(/^\/operator/, ""),
   }));
-  app.get("/operator", serveStatic({
-    root: "./operator/dist",
-    path: "/index.html",
-  }));
 
-  // Reporter PWA (root)
-  app.use("/*", serveStatic({
-    root: "./pwa/dist",
-  }));
-  // PWA fallback for SPA routing
-  app.get("*", serveStatic({
-    root: "./pwa/dist",
-    path: "/index.html",
-  }));
+  // Reporter PWA
+  app.use("/*", serveStatic({ root: "./pwa/dist" }));
 }
