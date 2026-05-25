@@ -2,8 +2,7 @@
  * TRACE PWA — App Root
  *
  * Gate flow: Wiped → Onboarding → PIN lock → Invite code → Main app
- * Search removed: reporters don't need vehicle lookup (incriminating data).
- * No biometrics: PIN only, globally.
+ * Design system: Slate + Indigo, light mode default.
  */
 import { useState, useEffect } from "preact/hooks";
 import { Submit } from "./pages/submit.js";
@@ -12,11 +11,13 @@ import { Onboarding } from "./components/onboarding.js";
 import { PinLock } from "./components/pin-lock.js";
 import { PanicButton } from "./components/panic-button.js";
 import { SecurityInfo } from "./components/security-info.js";
+import { Icon } from "./components/icon.js";
 import { getToken, setToken, clearToken } from "./lib/api.js";
 import { getQueueCount } from "./lib/queue.js";
 import { isWiped } from "./lib/panic.js";
 import { hasPIN, isLocked, lock, setupAutoLock } from "./lib/app-lock.js";
 import { startDeadManSwitch, startHeartbeat } from "./lib/deadman.js";
+import { toggleTheme, getTheme } from "../../shared/design/theme.js";
 
 const DEFAULT_TTL_HOURS = 24;
 type Page = "submit" | "history" | "settings" | "security";
@@ -28,9 +29,8 @@ export function App() {
   const [needsOnboarding, setNeedsOnboarding] = useState(false);
   const [authed, setAuthed] = useState(() => !!getToken());
   const token = authed ? getToken() : null;
-  const [ttlHours] = useState(() =>
-    parseInt(localStorage.getItem("trace_ttl_hours") || String(DEFAULT_TTL_HOURS))
-  );
+  const [ttlHours] = useState(() => parseInt(localStorage.getItem("trace_ttl_hours") || String(DEFAULT_TTL_HOURS)));
+  const [theme, setThemeState] = useState(() => getTheme("light"));
 
   useEffect(() => {
     if (isWiped()) return;
@@ -51,12 +51,8 @@ export function App() {
     return () => { clearInterval(interval); clearTimeout(lockTimer); };
   }, [locked]);
 
-  const handleSignOut = () => {
-    clearToken();
-    lock();
-    setAuthed(false);
-    setLocked(true);
-  };
+  const handleSignOut = () => { clearToken(); lock(); setAuthed(false); setLocked(true); };
+  const handleToggleTheme = () => { const t = toggleTheme("light"); setThemeState(t); };
 
   if (isWiped() && !token) return <WipedState />;
   if (needsOnboarding) return <Onboarding onComplete={() => { setNeedsOnboarding(false); setLocked(false); }} />;
@@ -64,91 +60,100 @@ export function App() {
   if (!token) return <LoginPrompt onAuth={() => setAuthed(true)} />;
 
   return (
-    <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
-      <main style={{ flex: 1, padding: 16, paddingBottom: 80 }}>
+    <div class="app-shell">
+      <main class="app-main">
         {page === "submit" && <Submit />}
         {page === "history" && <History />}
         {page === "security" && <SecurityInfo ttlHours={ttlHours} onBack={() => setPage("settings")} />}
-        {page === "settings" && <SettingsPage ttlHours={ttlHours} onShowSecurity={() => setPage("security")} onSignOut={handleSignOut} />}
+        {page === "settings" && (
+          <SettingsPage
+            ttlHours={ttlHours}
+            theme={theme}
+            onShowSecurity={() => setPage("security")}
+            onSignOut={handleSignOut}
+            onToggleTheme={handleToggleTheme}
+          />
+        )}
       </main>
-      <nav style={{
-        position: "fixed", bottom: 0, left: 0, right: 0,
-        display: "flex", borderTop: "1px solid #2a2a3e",
-        background: "#1a1a2e", padding: "8px 0", zIndex: 50,
-      }}>
-        <NavBtn label="Report" active={page === "submit"} badge={queueCount > 0 ? queueCount : undefined} onClick={() => setPage("submit")} />
-        <NavBtn label="History" active={page === "history"} onClick={() => setPage("history")} />
-        <NavBtn label="⚙" active={page === "settings" || page === "security"} onClick={() => setPage("settings")} />
+
+      <nav class="bottom-nav" role="navigation" aria-label="Main navigation">
+        <button class={`nav-btn ${page === "submit" ? "active" : ""}`} onClick={() => setPage("submit")} aria-label="Report a sighting">
+          <Icon name="send" size={20} />
+          <span>Report</span>
+          {queueCount > 0 && <span class="badge">{queueCount}</span>}
+        </button>
+        <button class={`nav-btn ${page === "history" ? "active" : ""}`} onClick={() => setPage("history")} aria-label="Submission history">
+          <Icon name="clock" size={20} />
+          <span>History</span>
+        </button>
+        <button class={`nav-btn ${page === "settings" || page === "security" ? "active" : ""}`} onClick={() => setPage("settings")} aria-label="Settings">
+          <Icon name="sliders" size={20} />
+          <span>Settings</span>
+        </button>
       </nav>
     </div>
   );
 }
 
-function SettingsPage({ ttlHours, onShowSecurity, onSignOut }: { ttlHours: number; onShowSecurity: () => void; onSignOut: () => void }) {
+function SettingsPage({ ttlHours, theme, onShowSecurity, onSignOut, onToggleTheme }: {
+  ttlHours: number; theme: string; onShowSecurity: () => void; onSignOut: () => void; onToggleTheme: () => void;
+}) {
   const [queueCount, setQueueCount] = useState(0);
   useEffect(() => { getQueueCount().then(setQueueCount); }, []);
 
   return (
     <div>
-      <h2 style={{ fontSize: 20, marginBottom: 16 }}>Settings</h2>
-      <InfoCard label="Connection" value={navigator.onLine ? "● Online" : "● Offline"} color={navigator.onLine ? "#27ae60" : "#e74c3c"} />
-      <InfoCard label="Queued Reports" value={queueCount > 0 ? `${queueCount} pending upload` : "All synced"} color={queueCount > 0 ? "#f39c12" : "#27ae60"} />
-      <InfoCard label="Device Encryption" value="● AES-256-GCM active" color="#27ae60" detail="All queued data encrypted. Photos bypass gallery." />
-      <InfoCard label="Check-In Window" value={`${ttlHours} hours`} color="#4fc3f7" detail="App auto-clears if no server contact within this window." />
+      <h1 class="page-title">Settings</h1>
 
-      <button onClick={onShowSecurity} style={{
-        width: "100%", padding: 14, marginBottom: 12,
-        background: "#1a1a2e", border: "1px solid #2a2a3e",
-        borderRadius: 8, color: "#4fc3f7", fontSize: 14, cursor: "pointer", textAlign: "left",
-      }}>🛡 How TRACE Protects You →</button>
+      <div class="info-card">
+        <div class="info-card-label">Connection</div>
+        <div class="info-card-value" style={{ color: navigator.onLine ? "var(--success)" : "var(--danger)" }}>
+          {navigator.onLine ? "Online" : "Offline"}
+        </div>
+      </div>
 
-      <button onClick={onSignOut} style={{
-        width: "100%", padding: 14, marginBottom: 12,
-        background: "#1a1a2e", border: "1px solid #2a2a3e",
-        borderRadius: 8, color: "#e0e0e0", fontSize: 14, cursor: "pointer", textAlign: "left",
-      }}>🔒 Sign Out & Lock</button>
+      <div class="info-card">
+        <div class="info-card-label">Queued Reports</div>
+        <div class="info-card-value" style={{ color: queueCount > 0 ? "var(--warning)" : "var(--success)" }}>
+          {queueCount > 0 ? `${queueCount} pending upload` : "All synced"}
+        </div>
+      </div>
+
+      <div class="info-card">
+        <div class="info-card-label">Device Encryption</div>
+        <div class="info-card-value" style={{ color: "var(--success)" }}>AES-256-GCM active</div>
+        <div class="info-card-detail">All queued data encrypted. Photos bypass gallery.</div>
+      </div>
+
+      <div class="info-card">
+        <div class="info-card-label">Check-In Window</div>
+        <div class="info-card-value" style={{ color: "var(--accent)" }}>{ttlHours} hours</div>
+        <div class="info-card-detail">App auto-clears if no server contact within this window.</div>
+      </div>
+
+      <button class="btn btn-secondary btn-full" onClick={onShowSecurity} style={{ marginBottom: "var(--sp-3)", justifyContent: "flex-start" }}>
+        <Icon name="shield" size={16} /> How TRACE Protects You
+      </button>
+
+      <button class="btn btn-secondary btn-full" onClick={onToggleTheme} style={{ marginBottom: "var(--sp-3)", justifyContent: "flex-start" }}>
+        <Icon name="eye" size={16} /> {theme === "light" ? "Switch to Dark Mode" : "Switch to Light Mode"}
+      </button>
+
+      <button class="btn btn-ghost btn-full" onClick={onSignOut} style={{ marginBottom: "var(--sp-3)", justifyContent: "flex-start" }}>
+        <Icon name="log-out" size={16} /> Sign Out & Lock
+      </button>
 
       <PanicButton />
     </div>
   );
 }
 
-function InfoCard({ label, value, color, detail }: { label: string; value: string; color: string; detail?: string }) {
-  return (
-    <div style={{ padding: 14, background: "#1a1a2e", borderRadius: 8, border: "1px solid #2a2a3e", marginBottom: 10 }}>
-      <div style={{ fontSize: 12, color: "#888", marginBottom: 3 }}>{label}</div>
-      <div style={{ fontSize: 14, color }}>{value}</div>
-      {detail && <div style={{ fontSize: 11, color: "#555", marginTop: 4 }}>{detail}</div>}
-    </div>
-  );
-}
-
 function WipedState() {
   return (
-    <div style={{ padding: 32, textAlign: "center", marginTop: "30vh" }}>
-      <div style={{ fontSize: 48, marginBottom: 16, opacity: 0.3 }}>🔒</div>
-      <p style={{ color: "#555", fontSize: 14 }}>This app has been wiped.</p>
+    <div class="wiped-screen">
+      <div class="wiped-icon"><Icon name="lock" size={48} /></div>
+      <p class="wiped-text">This app has been wiped.</p>
     </div>
-  );
-}
-
-function NavBtn(props: { label: string; active: boolean; badge?: number; onClick: () => void }) {
-  return (
-    <button onClick={props.onClick} style={{
-      flex: 1, background: "none", border: "none",
-      color: props.active ? "#4fc3f7" : "#888",
-      fontSize: 14, fontWeight: props.active ? 700 : 400,
-      padding: 8, position: "relative", cursor: "pointer",
-    }}>
-      {props.label}
-      {props.badge && props.badge > 0 && (
-        <span style={{
-          position: "absolute", top: 2, right: "25%",
-          background: "#e74c3c", color: "#fff", borderRadius: "50%",
-          width: 18, height: 18, fontSize: 11, lineHeight: "18px", textAlign: "center",
-        }}>{props.badge}</span>
-      )}
-    </button>
   );
 }
 
@@ -187,29 +192,31 @@ function LoginPrompt({ onAuth }: { onAuth: () => void }) {
   };
 
   return (
-    <div style={{ padding: 32, textAlign: "center", marginTop: "20vh" }}>
-      <h1 style={{ fontSize: 28, marginBottom: 4, color: "#4fc3f7" }}>TRACE</h1>
-      <p style={{ fontSize: 12, color: "#555", marginBottom: 24 }}>Enter your invite code</p>
-      <input type="text" placeholder="XXXX-XXXX" value={code}
-        onInput={(e) => handleInput((e.target as HTMLInputElement).value)}
-        onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
-        autoFocus
-        style={{
-          width: "100%", maxWidth: 260, padding: "14px 16px",
-          background: "#1a1a2e", border: errorMsg ? "1px solid #e74c3c" : "1px solid #2a2a3e",
-          borderRadius: 10, color: "#e0e0e0", fontSize: 24,
-          textAlign: "center", letterSpacing: 4, fontFamily: "monospace", fontWeight: 700,
-        }} />
-      {errorMsg && <p style={{ color: "#e74c3c", fontSize: 12, marginTop: 8 }}>{errorMsg}</p>}
-      <button onClick={handleSubmit} disabled={status === "loading"} style={{
-        display: "block", margin: "16px auto", padding: "12px 32px",
-        background: status === "loading" ? "#333" : "#4fc3f7",
-        color: "#0f0f1a", border: "none", borderRadius: 8,
-        fontSize: 16, fontWeight: 600, cursor: status === "loading" ? "default" : "pointer",
-      }}>{status === "loading" ? "Verifying..." : "Join Chapter"}</button>
-      <p style={{ fontSize: 10, color: "#444", marginTop: 24, lineHeight: 1.5 }}>
-        Get your invite code from your chapter operator.<br />No email or account needed.
-      </p>
+    <div class="auth-screen">
+      <div class="auth-card">
+        <h1 class="auth-title">TRACE</h1>
+        <p class="auth-subtitle">Enter your invite code</p>
+
+        <input
+          type="text"
+          placeholder="XXXX-XXXX"
+          value={code}
+          onInput={(e) => handleInput((e.target as HTMLInputElement).value)}
+          onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
+          autoFocus
+          class={`invite-input ${errorMsg ? "error" : ""}`}
+        />
+
+        {errorMsg && <p class="error-text">{errorMsg}</p>}
+
+        <button onClick={handleSubmit} disabled={status === "loading"} class="btn btn-primary btn-full btn-lg" style={{ marginTop: "var(--sp-4)" }}>
+          {status === "loading" ? "Verifying..." : "Join Chapter"}
+        </button>
+
+        <p class="hint-text" style={{ marginTop: "var(--sp-6)" }}>
+          Get your invite code from your chapter operator. No email or account needed.
+        </p>
+      </div>
     </div>
   );
 }

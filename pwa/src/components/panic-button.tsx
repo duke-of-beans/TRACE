@@ -1,36 +1,26 @@
 /**
  * TRACE PWA — Panic Button Component
- *
- * Always accessible. Two-step activation to prevent accidents:
- * 1. Tap the panic zone (bottom of settings)
- * 2. Confirm with a 3-second hold on the destroy button
- *
- * Executes full self-destruct: encryption key, all data,
- * service worker, caches, navigation away.
  */
 import { useState, useRef, useCallback } from "preact/hooks";
 import { panic } from "../lib/panic.js";
+import { Icon } from "./icon.js";
 
 export function PanicButton() {
   const [armed, setArmed] = useState(false);
   const [holding, setHolding] = useState(false);
   const [progress, setProgress] = useState(0);
   const holdTimer = useRef<ReturnType<typeof setInterval> | null>(null);
-  const HOLD_DURATION = 3000; // 3 seconds to confirm
+  const HOLD_DURATION = 3000;
 
   const startHold = useCallback(() => {
     setHolding(true);
     setProgress(0);
     const start = Date.now();
-
     holdTimer.current = setInterval(() => {
-      const elapsed = Date.now() - start;
-      const pct = Math.min(elapsed / HOLD_DURATION, 1);
+      const pct = Math.min((Date.now() - start) / HOLD_DURATION, 1);
       setProgress(pct);
-
       if (pct >= 1) {
         if (holdTimer.current) clearInterval(holdTimer.current);
-        // EXECUTE
         panic();
       }
     }, 50);
@@ -44,68 +34,38 @@ export function PanicButton() {
 
   if (!armed) {
     return (
-      <div style={{ marginTop: 32, borderTop: "1px solid #2a2a3e", paddingTop: 16 }}>
-        <button
-          onClick={() => setArmed(true)}
-          style={{
-            width: "100%", padding: 12,
-            background: "transparent", border: "1px solid #e74c3c30",
-            borderRadius: 8, color: "#e74c3c", fontSize: 13,
-            cursor: "pointer", opacity: 0.6,
-          }}
-        >
+      <div class="panic-zone">
+        <button class="btn btn-ghost btn-full" onClick={() => setArmed(true)}
+          style={{ color: "var(--danger)", justifyContent: "flex-start" }}>
+          <Icon name="alert-triangle" size={16} />
           Emergency Wipe
         </button>
-        <p style={{ fontSize: 10, color: "#555", marginTop: 6, textAlign: "center" }}>
-          Destroys all TRACE data on this device
-        </p>
+        <p class="hint-text" style={{ textAlign: "center" }}>Destroys all TRACE data on this device</p>
       </div>
     );
   }
 
   return (
-    <div style={{
-      marginTop: 32, padding: 16,
-      background: "#1a0a0a", border: "1px solid #e74c3c",
-      borderRadius: 8,
-    }}>
-      <p style={{ color: "#e74c3c", fontSize: 14, fontWeight: 700, marginBottom: 8 }}>
+    <div class="panic-armed">
+      <p style={{ color: "var(--danger)", fontSize: "var(--text-sm)", fontWeight: 700, marginBottom: "var(--sp-2)" }}>
         EMERGENCY WIPE
       </p>
-      <p style={{ color: "#888", fontSize: 12, marginBottom: 16, lineHeight: 1.5 }}>
-        This will permanently destroy all TRACE data on this device:
-        queue, photos, session, encryption keys, cached app data.
-        The app will cease to exist. This cannot be undone.
+      <p style={{ color: "var(--text-sec)", fontSize: "var(--text-xs)", marginBottom: "var(--sp-4)", lineHeight: "var(--leading-relaxed)" }}>
+        This will permanently destroy all TRACE data on this device: queue, photos, session, encryption keys, cached app data. This cannot be undone.
       </p>
-
-      <div style={{ position: "relative", marginBottom: 12 }}>
-        <button
-          onMouseDown={startHold}
-          onMouseUp={cancelHold}
-          onMouseLeave={cancelHold}
-          onTouchStart={startHold}
-          onTouchEnd={cancelHold}
-          style={{
-            width: "100%", padding: 16,
-            background: holding ? `linear-gradient(90deg, #e74c3c ${progress * 100}%, #3a1a1a ${progress * 100}%)` : "#3a1a1a",
-            border: "2px solid #e74c3c",
-            borderRadius: 8, color: "#fff", fontSize: 16,
-            fontWeight: 700, cursor: "pointer",
-            letterSpacing: 2,
-          }}
-        >
-          {holding ? `HOLD ${Math.ceil(3 - progress * 3)}s...` : "HOLD TO DESTROY"}
-        </button>
-      </div>
-
       <button
-        onClick={() => setArmed(false)}
+        onMouseDown={startHold} onMouseUp={cancelHold} onMouseLeave={cancelHold}
+        onTouchStart={startHold} onTouchEnd={cancelHold}
+        class="panic-hold-btn"
         style={{
-          width: "100%", padding: 8,
-          background: "transparent", border: "none",
-          color: "#666", fontSize: 12, cursor: "pointer",
+          background: holding
+            ? `linear-gradient(90deg, var(--danger) ${progress * 100}%, var(--danger-soft) ${progress * 100}%)`
+            : "var(--danger-soft)",
         }}
       >
+        {holding ? `HOLD ${Math.ceil(3 - progress * 3)}s...` : "HOLD TO DESTROY"}
+      </button>
+      <button class="btn btn-ghost btn-full" onClick={() => setArmed(false)} style={{ marginTop: "var(--sp-2)" }}>
         Cancel
       </button>
     </div>
