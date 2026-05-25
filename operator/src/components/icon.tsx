@@ -2,7 +2,7 @@
  * TRACE Operator — Icon Component (React)
  * Wraps shared SVG path data into React components.
  */
-import { getIconSvg } from "../../shared/design/icons.js";
+import { getIconSvg } from "../../../shared/design/icons.js";
 
 type IconProps = {
   name: string;
