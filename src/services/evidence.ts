@@ -12,6 +12,7 @@ import { join, dirname } from "node:path";
 import { evidenceDb } from "../db/connection.js";
 import { evidenceRecords, evidenceAccessLog } from "../db/schema/vault-c.js";
 import { desc, eq } from "drizzle-orm";
+import { encryptEvidence, decryptEvidence } from "./encryption.js";
 
 const EVIDENCE_PATH = process.env.EVIDENCE_STORAGE_PATH || "./data/evidence";
 
@@ -83,7 +84,9 @@ export async function storeEvidence(opts: {
   await mkdir(dirname(storagePath), { recursive: true });
 
   // TODO: encrypt data with EVIDENCE_ENCRYPTION_KEY before writing
-  await writeFile(storagePath, data);
+  const shouldEncrypt = !!process.env.EVIDENCE_ENCRYPTION_KEY;
+  const writeData = shouldEncrypt ? encryptEvidence(data) : data;
+  await writeFile(storagePath, writeData);
 
   // 5. Insert record (write-once)
   const [record] = await evidenceDb
@@ -100,7 +103,7 @@ export async function storeEvidence(opts: {
       exifLat,
       exifLng,
       exifTimestamp,
-      encrypted: false, // TODO: true once encryption is wired
+      encrypted: shouldEncrypt,
     })
     .returning();
 
@@ -175,7 +178,8 @@ export async function readEvidence(opts: {
     action: opts.action || "view",
   });
 
-  // TODO: decrypt data with EVIDENCE_ENCRYPTION_KEY
-  const data = await readFile(record.storagePath);
+  // decrypt if encrypted
+  const rawData = await readFile(record.storagePath);
+  const data = record.encrypted ? decryptEvidence(rawData) : rawData;
   return data;
 }

@@ -15,6 +15,7 @@ import {
 import { reporterIdentities } from "../../db/schema/vault-b.js";
 import { eq } from "drizzle-orm";
 import { generateCasePackage } from "../../services/case-package.js";
+import { encryptFields } from "../../services/encryption.js";
 
 export const adminRouter = new Hono();
 
@@ -60,11 +61,17 @@ adminRouter.post("/reporters/invite", async (c) => {
     .returning();
 
   // Vault B: create identity (cross-vault link via reporterId)
+  // Encrypt PII fields before storage
+  const encryptedIdentity = encryptFields(
+    { realName, email, phone },
+    ["realName", "phone"] // email stays plaintext for magic link lookup
+  );
+
   await identDb.insert(reporterIdentities).values({
     reporterId: reporter.id,
-    realName,
-    email,
-    phone,
+    realName: encryptedIdentity.realName,
+    email, // plaintext for auth lookup
+    phone: encryptedIdentity.phone,
     role: "reporter",
   });
 
