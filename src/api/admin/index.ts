@@ -49,6 +49,13 @@ adminRouter.get("/suspicion-levels", async (c) => {
   return c.json(levels);
 });
 
+adminRouter.post("/suspicion-levels", async (c) => {
+  const body = await c.req.json();
+  const chapterId = c.req.header("x-chapter-id") || "";
+  const [level] = await opsDb.insert(suspicionLevels).values({ chapterId, ...body }).returning();
+  return c.json(level, 201);
+});
+
 // --- CRUD: Reporters (invite/deactivate) ---
 adminRouter.post("/reporters/invite", async (c) => {
   const { callsign, email, realName, phone } = await c.req.json();
