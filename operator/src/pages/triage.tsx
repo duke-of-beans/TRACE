@@ -48,35 +48,51 @@ export function Triage() {
 
   const current = sightings[selected];
 
-  const approve = useCallback(() => {
+  const approve = useCallback(async () => {
     if (!current) return;
-    setSightings((s) => s.filter((_, i) => i !== selected));
-    if (selected >= sightings.length - 1) setSelected(Math.max(0, selected - 1));
-    toast(`Sighting ${current.plate || current.id?.slice(0, 8)} approved`, "success");
+    try {
+      await api.triageSighting(current.id, "approve");
+      setSightings((s) => s.filter((_, i) => i !== selected));
+      if (selected >= sightings.length - 1) setSelected(Math.max(0, selected - 1));
+      toast(`Sighting ${current.plate || current.id?.slice(0, 8)} approved`, "success");
+    } catch { toast("Failed to approve", "error"); }
   }, [current, selected, sightings.length, toast]);
 
-  const flag = useCallback(() => {
+  const flag = useCallback(async () => {
     if (!current) return;
-    toast(`Sighting ${current.plate || current.id?.slice(0, 8)} flagged for follow-up`, "warning");
-  }, [current, toast]);
+    try {
+      await api.triageSighting(current.id, "flag");
+      setSightings((s) => s.filter((_, i) => i !== selected));
+      if (selected >= sightings.length - 1) setSelected(Math.max(0, selected - 1));
+      toast(`Sighting ${current.plate || current.id?.slice(0, 8)} flagged for follow-up`, "warning");
+    } catch { toast("Failed to flag", "error"); }
+  }, [current, selected, sightings.length, toast]);
 
   const dismiss = useCallback(async () => {
     if (!current) return;
     const ok = await confirm({
       title: "Dismiss sighting?",
-      message: "This sighting will be removed from the triage queue. It won't be deleted from the database.",
+      message: "This sighting will be marked as triaged and removed from the queue.",
       confirmLabel: "Dismiss",
     });
     if (!ok) return;
-    setSightings((s) => s.filter((_, i) => i !== selected));
-    if (selected >= sightings.length - 1) setSelected(Math.max(0, selected - 1));
-    toast("Sighting dismissed", "info");
+    try {
+      await api.triageSighting(current.id, "dismiss");
+      setSightings((s) => s.filter((_, i) => i !== selected));
+      if (selected >= sightings.length - 1) setSelected(Math.max(0, selected - 1));
+      toast("Sighting dismissed", "info");
+    } catch { toast("Failed to dismiss", "error"); }
   }, [current, selected, sightings.length, confirm, toast]);
 
-  const escalate = useCallback(() => {
+  const escalate = useCallback(async () => {
     if (!current) return;
-    toast(`Sighting ${current.plate || current.id?.slice(0, 8)} escalated`, "error");
-  }, [current, toast]);
+    try {
+      await api.triageSighting(current.id, "escalate");
+      setSightings((s) => s.filter((_, i) => i !== selected));
+      if (selected >= sightings.length - 1) setSelected(Math.max(0, selected - 1));
+      toast(`Sighting ${current.plate || current.id?.slice(0, 8)} escalated`, "error");
+    } catch { toast("Failed to escalate", "error"); }
+  }, [current, selected, sightings.length, toast]);
 
   const next = useCallback(() => {
     setSelected((s) => Math.min(s + 1, sightings.length - 1));

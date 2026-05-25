@@ -28,6 +28,11 @@ export const api = {
   getSightings: (untriaged = false) =>
     request<any[]>(`/sightings${untriaged ? "?untriaged=true" : ""}`),
   getSighting: (id: string) => request<any>(`/sightings/${id}`),
+  triageSighting: (id: string, action: string) =>
+    request(`/sightings/${id}/triage`, {
+      method: "PATCH",
+      body: JSON.stringify({ action }),
+    }),
 
   // Vehicles
   getVehicles: () => request<any[]>("/vehicles"),

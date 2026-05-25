@@ -102,3 +102,24 @@ sightingsRouter.get("/:id", async (c) => {
   if (!sighting) return c.json({ error: "Not found" }, 404);
   return c.json(sighting);
 });
+
+// --- PATCH /sightings/:id/triage — mark sighting as triaged ---
+sightingsRouter.patch("/:id/triage", async (c) => {
+  const id = c.req.param("id");
+  const { action } = await c.req.json(); // approve, dismiss, flag, escalate
+  const triagedBy = c.req.header("x-reporter-id") || "";
+
+  const [updated] = await opsDb
+    .update(sightings)
+    .set({
+      triaged: true,
+      triagedBy,
+      triagedAt: new Date(),
+      updatedAt: new Date(),
+    })
+    .where(eq(sightings.id, id))
+    .returning();
+
+  if (!updated) return c.json({ error: "Not found" }, 404);
+  return c.json({ ...updated, triageAction: action });
+});
