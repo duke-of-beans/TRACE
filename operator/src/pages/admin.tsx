@@ -823,18 +823,28 @@ function IdentifierTypeForm({ form, setForm, onSave, onCancel }: { form: any; se
 
 // ============ Reporters ============
 function ReportersAdmin() {
-  const [invite, setInvite] = useState({ callsign: "", email: "", realName: "", phone: "" });
+  const [callsign, setCallsign] = useState("");
   const [saving, setSaving] = useState(false);
+  const [lastInvite, setLastInvite] = useState<{ callsign: string; code: string } | null>(null);
   const toast = useToast();
 
-  const handleInvite = async () => {
-    if (!invite.callsign || !invite.email) { toast("Callsign and email required", "warning"); return; }
+  const handleGenerate = async () => {
+    if (!callsign) { toast("Callsign required", "warning"); return; }
     setSaving(true);
     try {
-      await api.inviteReporter(invite);
-      toast(`"${invite.callsign}" invited`, "success");
-      setInvite({ callsign: "", email: "", realName: "", phone: "" });
-    } catch { toast("Failed to invite", "error"); }
+      const res = await apiFetch("/reporters/generate-invite", {
+        method: "POST",
+        body: JSON.stringify({ callsign }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setLastInvite({ callsign: data.callsign, code: data.inviteCode });
+        setCallsign("");
+        toast(`Invite code generated for "${data.callsign}"`, "success");
+      } else {
+        toast("Failed to generate invite", "error");
+      }
+    } catch { toast("Failed", "error"); }
     setSaving(false);
   };
 
@@ -842,18 +852,38 @@ function ReportersAdmin() {
     <div className="max-w-lg">
       <div className="flex items-center gap-2 mb-4">
         <h2 className="font-semibold">Invite Reporter</h2>
-        <HelpTip text="Callsign goes to Vault A (operational, pseudonymous). Real name and phone are encrypted in Vault B (identity)." />
+        <HelpTip text="Generate an invite code to give to a reporter in person. No email needed. Code expires in 7 days." />
       </div>
-      <div className="bg-trace-surface rounded-lg p-5 border border-trace-border space-y-3">
-        <LabeledInput label="Callsign *" value={invite.callsign} onChange={(v) => setInvite((i) => ({ ...i, callsign: v }))} placeholder="Operational pseudonym" />
-        <LabeledInput label="Email *" value={invite.email} onChange={(v) => setInvite((i) => ({ ...i, email: v }))} placeholder="For magic link login" />
-        <LabeledInput label="Real Name (encrypted)" value={invite.realName} onChange={(v) => setInvite((i) => ({ ...i, realName: v }))} placeholder="Encrypted in Vault B" />
-        <LabeledInput label="Phone (encrypted)" value={invite.phone} onChange={(v) => setInvite((i) => ({ ...i, phone: v }))} placeholder="Optional" />
-        <button onClick={handleInvite} disabled={saving}
+
+      <div className="bg-trace-surface rounded-lg p-5 border border-trace-border space-y-4">
+        <div>
+          <label className="text-xs text-gray-500 uppercase tracking-wider mb-1 block">Callsign *</label>
+          <input value={callsign} onChange={(e) => setCallsign(e.target.value)}
+            className={inputCls} placeholder="Operational pseudonym for this reporter" />
+        </div>
+        <button onClick={handleGenerate} disabled={saving}
           className="bg-trace-accent text-trace-bg px-4 py-2 rounded-lg text-sm font-semibold hover:opacity-90 transition disabled:opacity-50">
-          {saving ? "Inviting..." : "Send Invite"}
+          {saving ? "Generating..." : "Generate Invite Code"}
         </button>
       </div>
+
+      {lastInvite && (
+        <div className="mt-4 p-5 bg-trace-bg rounded-lg border-2 border-trace-accent">
+          <div className="text-xs text-gray-500 uppercase tracking-wider mb-2">Invite Code for {lastInvite.callsign}</div>
+          <div className="text-3xl font-mono font-bold text-trace-accent tracking-[6px] text-center py-4">
+            {lastInvite.code}
+          </div>
+          <div className="text-xs text-gray-500 text-center space-y-1">
+            <p>Give this code to the reporter in person.</p>
+            <p>They enter it in the TRACE app to join. No email needed.</p>
+            <p className="text-gray-600">Expires in 7 days. Single use.</p>
+          </div>
+          <button onClick={() => { navigator.clipboard?.writeText(lastInvite.code); toast("Copied", "success"); }}
+            className="w-full mt-3 py-2 bg-trace-surface text-gray-400 rounded-lg text-xs hover:text-gray-200 transition">
+            Copy to clipboard
+          </button>
+        </div>
+      )}
     </div>
   );
 }

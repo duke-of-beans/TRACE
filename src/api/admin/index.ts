@@ -13,10 +13,11 @@ import {
   reporters, vehicles, vehicleTypeAssignments, vehicleSuspicionHistory,
   actors,
 } from "../../db/schema/vault-a.js";
-import { reporterIdentities, sessions } from "../../db/schema/vault-b.js";
+import { reporterIdentities, sessions, magicLinkTokens } from "../../db/schema/vault-b.js";
 import { eq, and, count } from "drizzle-orm";
 import { generateCasePackage } from "../../services/case-package.js";
 import { encryptFields } from "../../services/encryption.js";
+import { createHash, randomBytes } from "node:crypto";
 import webpush from "web-push";
 
 export const adminRouter = new Hono();
@@ -328,6 +329,51 @@ adminRouter.post("/reporters/invite", async (c) => {
   });
 
   return c.json({ reporterId: reporter.id, callsign }, 201);
+});
+
+// --- POST /admin/reporters/generate-invite — create reporter + invite code ---
+// Returns a short human-readable code the operator gives to the reporter in person.
+// No email required. No network required for the handoff.
+adminRouter.post("/reporters/generate-invite", async (c) => {
+  const { callsign } = await c.req.json();
+  if (!callsign) return c.json({ error: "Callsign required" }, 400);
+  const chapterId = c.req.header("x-chapter-id") || "";
+
+  // create reporter in Vault A
+  const [reporter] = await opsDb
+    .insert(reporters)
+    .values({ chapterId, callsign })
+    .returning();
+
+  // create identity in Vault B (no email)
+  const [identity] = await identDb
+    .insert(reporterIdentities)
+    .values({ reporterId: reporter.id, role: "reporter" })
+    .returning();
+
+  // generate invite code: 8 alphanumeric uppercase chars, formatted XXXX-XXXX
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // no 0/O/1/I confusion
+  let code = "";
+  const bytes = randomBytes(8);
+  for (let i = 0; i < 8; i++) {
+    code += chars[bytes[i] % chars.length];
+  }
+  const formatted = `${code.slice(0, 4)}-${code.slice(4)}`;
+
+  // store as hashed token (same infrastructure as magic links)
+  const codeHash = createHash("sha256").update(code).digest("hex");
+  await identDb.insert(magicLinkTokens).values({
+    identityId: identity.id,
+    tokenHash: codeHash,
+    expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days to use
+  });
+
+  return c.json({
+    reporterId: reporter.id,
+    callsign,
+    inviteCode: formatted,
+    expiresIn: "7 days",
+  }, 201);
 });
 
 // --- POST /admin/reporters/:id/kill — remote kill a reporter's device ---

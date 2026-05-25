@@ -15,6 +15,54 @@ import { createHash, randomBytes } from "node:crypto";
 
 export const authRouter = new Hono();
 
+// --- POST /auth/invite-code — verify an invite code (no email needed) ---
+authRouter.post("/invite-code", async (c) => {
+  const { code } = await c.req.json();
+  if (!code) return c.json({ error: "Code required" }, 400);
+
+  const normalized = code.replace(/[-\s]/g, "").toUpperCase();
+  const codeHash = createHash("sha256").update(normalized).digest("hex");
+
+  const [link] = await identDb
+    .select()
+    .from(magicLinkTokens)
+    .where(eq(magicLinkTokens.tokenHash, codeHash))
+    .limit(1);
+
+  if (!link || link.usedAt || new Date() > link.expiresAt) {
+    return c.json({ error: "Invalid or expired invite code" }, 401);
+  }
+
+  // mark code as used
+  await identDb
+    .update(magicLinkTokens)
+    .set({ usedAt: new Date() })
+    .where(eq(magicLinkTokens.id, link.id));
+
+  // create session
+  const sessionToken = randomBytes(32).toString("hex");
+  const sessionHash = createHash("sha256").update(sessionToken).digest("hex");
+
+  await identDb.insert(sessions).values({
+    identityId: link.identityId,
+    tokenHash: sessionHash,
+    expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+  });
+
+  const [identity] = await identDb
+    .select()
+    .from(reporterIdentities)
+    .where(eq(reporterIdentities.id, link.identityId))
+    .limit(1);
+
+  return c.json({
+    status: "authenticated",
+    sessionToken,
+    reporterId: identity!.reporterId,
+    role: identity!.role,
+  });
+});
+
 // --- POST /auth/magic-link — request magic link ---
 authRouter.post("/magic-link", async (c) => {
   const { email } = await c.req.json();

@@ -60,7 +60,11 @@ export function App() {
     const apiBase = import.meta.env.VITE_API_URL || "http://localhost:3100/api/v1";
     startDeadManSwitch();
     startHeartbeat(apiBase);
-    setupAutoLock(5 * 60 * 1000); // 5 min inactivity
+
+    // delay auto-lock setup to avoid locking during auth flow
+    const lockTimer = setTimeout(() => {
+      setupAutoLock(5 * 60 * 1000);
+    }, 10000); // 10s grace after unlock
 
     // queue count polling
     const interval = setInterval(async () => {
@@ -68,7 +72,7 @@ export function App() {
       // re-check lock state
       if (isLocked()) setLocked(true);
     }, 5000);
-    return () => clearInterval(interval);
+    return () => { clearInterval(interval); clearTimeout(lockTimer); };
   }, [locked]);
 
   // --- Gate: wiped ---
@@ -198,23 +202,24 @@ function NavBtn(props: { label: string; active: boolean; badge?: number; onClick
 }
 
 function LoginPrompt({ onAuth }: { onAuth: () => void }) {
-  const [email, setEmail] = useState("");
-  const [status, setStatus] = useState<"idle" | "loading" | "sent" | "error">("idle");
+  const [code, setCode] = useState("");
+  const [status, setStatus] = useState<"idle" | "loading" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
 
   const handleSubmit = async () => {
-    if (!email) return;
+    if (!code) return;
     setStatus("loading");
+    setErrorMsg("");
 
     try {
-      const devRes = await fetch("/api/v1/auth/dev-login", {
+      const res = await fetch("/api/v1/auth/invite-code", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ code }),
       });
 
-      if (devRes.ok) {
-        const data = await devRes.json();
+      if (res.ok) {
+        const data = await res.json();
         if (data.sessionToken) {
           setToken(data.sessionToken);
           onAuth();
@@ -222,50 +227,63 @@ function LoginPrompt({ onAuth }: { onAuth: () => void }) {
         }
       }
 
-      // fall back to magic link
-      await fetch("/api/v1/auth/magic-link", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
-      });
-      setStatus("sent");
+      const err = await res.json().catch(() => ({}));
+      setStatus("error");
+      setErrorMsg(err.error || "Invalid invite code");
     } catch {
       setStatus("error");
       setErrorMsg("Cannot reach server. Are you connected?");
     }
   };
 
-  return (
-    <div style={{ padding: 32, textAlign: "center", marginTop: "25vh" }}>
-      <h1 style={{ fontSize: 28, marginBottom: 4, color: "#4fc3f7" }}>TRACE</h1>
-      <p style={{ fontSize: 12, color: "#555", marginBottom: 24 }}>Sign in to your chapter</p>
+  // auto-format: insert dash after 4 chars
+  const handleInput = (val: string) => {
+    const clean = val.replace(/[^A-Za-z0-9]/g, "").toUpperCase().slice(0, 8);
+    if (clean.length > 4) {
+      setCode(`${clean.slice(0, 4)}-${clean.slice(4)}`);
+    } else {
+      setCode(clean);
+    }
+    setErrorMsg("");
+  };
 
-      {status === "sent" ? (
-        <p style={{ color: "#4fc3f7", fontSize: 14 }}>Check your email for the login link.</p>
-      ) : (
-        <>
-          <input type="email" placeholder="your@email.com" value={email}
-            onInput={(e) => setEmail((e.target as HTMLInputElement).value)}
-            onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
-            style={{
-              width: "100%", maxWidth: 300, padding: "12px 16px",
-              background: "#1a1a2e", border: "1px solid #2a2a3e",
-              borderRadius: 8, color: "#e0e0e0", fontSize: 16,
-            }} />
-          {status === "error" && (
-            <p style={{ color: "#e74c3c", fontSize: 12, marginTop: 8 }}>{errorMsg}</p>
-          )}
-          <button onClick={handleSubmit} disabled={status === "loading"} style={{
-            display: "block", margin: "16px auto", padding: "12px 32px",
-            background: status === "loading" ? "#333" : "#4fc3f7",
-            color: "#0f0f1a", border: "none",
-            borderRadius: 8, fontSize: 16, fontWeight: 600,
-            cursor: status === "loading" ? "default" : "pointer",
-          }}>
-            {status === "loading" ? "Signing in..." : "Sign In"}
-          </button>
-        </>
-      )}
+  return (
+    <div style={{ padding: 32, textAlign: "center", marginTop: "20vh" }}>
+      <h1 style={{ fontSize: 28, marginBottom: 4, color: "#4fc3f7" }}>TRACE</h1>
+      <p style={{ fontSize: 12, color: "#555", marginBottom: 24 }}>Enter your invite code</p>
+
+      <input
+        type="text"
+        placeholder="XXXX-XXXX"
+        value={code}
+        onInput={(e) => handleInput((e.target as HTMLInputElement).value)}
+        onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
+        autoFocus
+        style={{
+          width: "100%", maxWidth: 260, padding: "14px 16px",
+          background: "#1a1a2e", border: errorMsg ? "1px solid #e74c3c" : "1px solid #2a2a3e",
+          borderRadius: 10, color: "#e0e0e0", fontSize: 24,
+          textAlign: "center", letterSpacing: 4,
+          fontFamily: "monospace", fontWeight: 700,
+        }}
+      />
+
+      {errorMsg && <p style={{ color: "#e74c3c", fontSize: 12, marginTop: 8 }}>{errorMsg}</p>}
+
+      <button onClick={handleSubmit} disabled={status === "loading"} style={{
+        display: "block", margin: "16px auto", padding: "12px 32px",
+        background: status === "loading" ? "#333" : "#4fc3f7",
+        color: "#0f0f1a", border: "none",
+        borderRadius: 8, fontSize: 16, fontWeight: 600,
+        cursor: status === "loading" ? "default" : "pointer",
+      }}>
+        {status === "loading" ? "Verifying..." : "Join Chapter"}
+      </button>
+
+      <p style={{ fontSize: 10, color: "#444", marginTop: 24, lineHeight: 1.5 }}>
+        Get your invite code from your chapter operator.
+        <br />No email or account needed.
+      </p>
     </div>
   );
 }
