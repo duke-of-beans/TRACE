@@ -12,11 +12,12 @@ import { Actors } from "./pages/actors.js";
 import { Admin } from "./pages/admin.js";
 import { Dashboard } from "./pages/dashboard.js";
 import { Intelligence } from "./pages/intelligence.js";
+import { Security } from "./pages/security.js";
 import {
   ToastProvider, ConfirmProvider, ErrorBoundary, KeyboardOverlay, Tooltip,
 } from "./components/ux/index.js";
 
-type Page = "dashboard" | "triage" | "intel" | "vehicles" | "actors" | "admin";
+type Page = "dashboard" | "triage" | "intel" | "vehicles" | "actors" | "admin" | "security";
 
 const NAV: { key: Page; label: string; shortcut: string; icon: string; desc: string }[] = [
   { key: "dashboard", label: "Dashboard", shortcut: "1", icon: "◫", desc: "Overview stats and status" },
@@ -25,6 +26,7 @@ const NAV: { key: Page; label: string; shortcut: string; icon: string; desc: str
   { key: "vehicles",  label: "Vehicles",  shortcut: "4", icon: "▣", desc: "Vehicle dossiers and search" },
   { key: "actors",    label: "Actors",    shortcut: "5", icon: "◈", desc: "Criminal profiles" },
   { key: "admin",     label: "Admin",     shortcut: "6", icon: "⚙", desc: "Chapter configuration" },
+  { key: "security",  label: "Security",  shortcut: "7", icon: "🛡", desc: "Device control and kill switches" },
 ];
 
 export function App() {
@@ -88,6 +90,7 @@ export function App() {
               {page === "vehicles"  && <Vehicles />}
               {page === "actors"    && <Actors />}
               {page === "admin"     && <Admin />}
+              {page === "security"  && <Security />}
             </ErrorBoundary>
           </main>
         </div>
