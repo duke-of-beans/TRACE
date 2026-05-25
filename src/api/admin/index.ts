@@ -1,25 +1,22 @@
 /**
  * TRACE API — Admin
  *
- * Chapter configuration, reporter management,
- * notification topology, vehicle type/suspicion ladder CRUD.
- * All admin-only endpoints.
+ * Full CRUD for chapter configuration with dependency checking.
+ * Vehicle types, suspicion levels + predicates, reporters, notifications.
  */
 import { Hono } from "hono";
 import { opsDb, identDb } from "../../db/connection.js";
 import {
   chapters, vehicleTypes, suspicionLevels, suspicionPredicates,
   actorRiskLevels, notificationChannels, notificationRules,
-  reporters,
+  reporters, vehicles, vehicleTypeAssignments, vehicleSuspicionHistory,
 } from "../../db/schema/vault-a.js";
 import { reporterIdentities } from "../../db/schema/vault-b.js";
-import { eq } from "drizzle-orm";
+import { eq, and, count } from "drizzle-orm";
 import { generateCasePackage } from "../../services/case-package.js";
 import { encryptFields } from "../../services/encryption.js";
 
 export const adminRouter = new Hono();
-
-// TODO: admin auth middleware (role check)
 
 // --- GET /admin/chapter ---
 adminRouter.get("/chapter", async (c) => {
@@ -28,7 +25,9 @@ adminRouter.get("/chapter", async (c) => {
   return c.json(chapter || { error: "Not found" });
 });
 
-// --- CRUD: Vehicle Types ---
+// ============================================================
+// VEHICLE TYPES — full CRUD with dependency check
+// ============================================================
 adminRouter.get("/vehicle-types", async (c) => {
   const chapterId = c.req.header("x-chapter-id") || "";
   const types = await opsDb.select().from(vehicleTypes).where(eq(vehicleTypes.chapterId, chapterId));
@@ -42,7 +41,41 @@ adminRouter.post("/vehicle-types", async (c) => {
   return c.json(vt, 201);
 });
 
-// --- CRUD: Suspicion Levels ---
+adminRouter.put("/vehicle-types/:id", async (c) => {
+  const id = c.req.param("id");
+  const body = await c.req.json();
+  const [updated] = await opsDb
+    .update(vehicleTypes)
+    .set({ label: body.label, description: body.description, color: body.color, icon: body.icon, sortOrder: body.sortOrder })
+    .where(eq(vehicleTypes.id, id))
+    .returning();
+  if (!updated) return c.json({ error: "Not found" }, 404);
+  return c.json(updated);
+});
+
+adminRouter.delete("/vehicle-types/:id", async (c) => {
+  const id = c.req.param("id");
+  // dependency check: any vehicles assigned this type?
+  const [dep] = await opsDb
+    .select({ total: count() })
+    .from(vehicleTypeAssignments)
+    .where(eq(vehicleTypeAssignments.vehicleTypeId, id));
+
+  if (dep.total > 0) {
+    return c.json({
+      error: "Cannot delete",
+      reason: `${dep.total} vehicle(s) are assigned this type. Remove assignments first.`,
+      dependencyCount: dep.total,
+    }, 409);
+  }
+
+  await opsDb.delete(vehicleTypes).where(eq(vehicleTypes.id, id));
+  return c.json({ deleted: true });
+});
+
+// ============================================================
+// SUSPICION LEVELS — full CRUD with dependency check + predicates
+// ============================================================
 adminRouter.get("/suspicion-levels", async (c) => {
   const chapterId = c.req.header("x-chapter-id") || "";
   const levels = await opsDb.select().from(suspicionLevels).where(eq(suspicionLevels.chapterId, chapterId));
@@ -56,37 +89,115 @@ adminRouter.post("/suspicion-levels", async (c) => {
   return c.json(level, 201);
 });
 
-// --- CRUD: Reporters (invite/deactivate) ---
+adminRouter.put("/suspicion-levels/:id", async (c) => {
+  const id = c.req.param("id");
+  const body = await c.req.json();
+  const [updated] = await opsDb
+    .update(suspicionLevels)
+    .set({ label: body.label, rank: body.rank, description: body.description, color: body.color })
+    .where(eq(suspicionLevels.id, id))
+    .returning();
+  if (!updated) return c.json({ error: "Not found" }, 404);
+  return c.json(updated);
+});
+
+adminRouter.delete("/suspicion-levels/:id", async (c) => {
+  const id = c.req.param("id");
+  // dependency check: any vehicles at this level?
+  const [vDep] = await opsDb
+    .select({ total: count() })
+    .from(vehicles)
+    .where(eq(vehicles.suspicionLevelId, id));
+
+  // dependency check: any predicates targeting this level?
+  const [pDep] = await opsDb
+    .select({ total: count() })
+    .from(suspicionPredicates)
+    .where(eq(suspicionPredicates.targetLevelId, id));
+
+  if (vDep.total > 0 || pDep.total > 0) {
+    return c.json({
+      error: "Cannot delete",
+      reason: `${vDep.total} vehicle(s) at this level, ${pDep.total} predicate(s) targeting it.`,
+      vehicleCount: vDep.total,
+      predicateCount: pDep.total,
+    }, 409);
+  }
+
+  await opsDb.delete(suspicionLevels).where(eq(suspicionLevels.id, id));
+  return c.json({ deleted: true });
+});
+
+// --- Suspicion Predicates (promotion rules per level) ---
+adminRouter.get("/suspicion-levels/:levelId/predicates", async (c) => {
+  const levelId = c.req.param("levelId");
+  const preds = await opsDb
+    .select()
+    .from(suspicionPredicates)
+    .where(eq(suspicionPredicates.targetLevelId, levelId));
+  return c.json(preds);
+});
+
+adminRouter.post("/suspicion-levels/:levelId/predicates", async (c) => {
+  const levelId = c.req.param("levelId");
+  const body = await c.req.json();
+  const chapterId = c.req.header("x-chapter-id") || "";
+  const [pred] = await opsDb
+    .insert(suspicionPredicates)
+    .values({ chapterId, targetLevelId: levelId, ...body })
+    .returning();
+  return c.json(pred, 201);
+});
+
+adminRouter.put("/suspicion-predicates/:id", async (c) => {
+  const id = c.req.param("id");
+  const body = await c.req.json();
+  const [updated] = await opsDb
+    .update(suspicionPredicates)
+    .set({ label: body.label, predicateType: body.predicateType, config: body.config, conjunction: body.conjunction })
+    .where(eq(suspicionPredicates.id, id))
+    .returning();
+  if (!updated) return c.json({ error: "Not found" }, 404);
+  return c.json(updated);
+});
+
+adminRouter.delete("/suspicion-predicates/:id", async (c) => {
+  const id = c.req.param("id");
+  await opsDb.delete(suspicionPredicates).where(eq(suspicionPredicates.id, id));
+  return c.json({ deleted: true });
+});
+
+// ============================================================
+// REPORTERS
+// ============================================================
 adminRouter.post("/reporters/invite", async (c) => {
   const { callsign, email, realName, phone } = await c.req.json();
   const chapterId = c.req.header("x-chapter-id") || "";
 
-  // Vault A: create pseudonymous reporter
   const [reporter] = await opsDb
     .insert(reporters)
     .values({ chapterId, callsign })
     .returning();
 
-  // Vault B: create identity (cross-vault link via reporterId)
-  // Encrypt PII fields before storage
   const encryptedIdentity = encryptFields(
     { realName, email, phone },
-    ["realName", "phone"] // email stays plaintext for magic link lookup
+    ["realName", "phone"]
   );
 
   await identDb.insert(reporterIdentities).values({
     reporterId: reporter.id,
     realName: encryptedIdentity.realName,
-    email, // plaintext for auth lookup
+    email,
     phone: encryptedIdentity.phone,
     role: "reporter",
   });
 
-  // TODO: send magic link to email for first login
   return c.json({ reporterId: reporter.id, callsign }, 201);
 });
 
-// --- Notification Channels ---
+// ============================================================
+// NOTIFICATIONS
+// ============================================================
 adminRouter.get("/notifications/channels", async (c) => {
   const chapterId = c.req.header("x-chapter-id") || "";
   const channels = await opsDb
@@ -106,19 +217,16 @@ adminRouter.post("/notifications/channels", async (c) => {
   return c.json(ch, 201);
 });
 
-// --- Case Packages ---
+// ============================================================
+// CASE PACKAGES
+// ============================================================
 adminRouter.post("/case-packages", async (c) => {
   const { title, description, vehicleId, actorId } = await c.req.json();
   const chapterId = c.req.header("x-chapter-id") || "";
   const generatedBy = c.req.header("x-reporter-id") || "";
 
   const result = await generateCasePackage({
-    chapterId,
-    vehicleId,
-    actorId,
-    title,
-    description,
-    generatedBy,
+    chapterId, vehicleId, actorId, title, description, generatedBy,
   });
 
   return c.json(result, 201);
