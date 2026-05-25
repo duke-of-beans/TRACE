@@ -23,13 +23,15 @@ function env(key: string): string {
 const opsClient = postgres(env("DATABASE_URL_OPS"), {
   max: 10,
   idle_timeout: 20,
+  connection: { search_path: "ops,public" },
 });
 export const opsDb = drizzle(opsClient, { schema: opsSchema });
 
 // --- Vault B: Identity ---
 const identClient = postgres(env("DATABASE_URL_IDENT"), {
-  max: 5,  // fewer connections — identity lookups are infrequent
+  max: 5,
   idle_timeout: 20,
+  connection: { search_path: "ident,public" },
 });
 export const identDb = drizzle(identClient, { schema: identSchema });
 
@@ -37,6 +39,7 @@ export const identDb = drizzle(identClient, { schema: identSchema });
 const evidenceClient = postgres(env("DATABASE_URL_EVIDENCE"), {
   max: 5,
   idle_timeout: 20,
+  connection: { search_path: "evidence,public" },
 });
 export const evidenceDb = drizzle(evidenceClient, { schema: evidenceSchema });
 

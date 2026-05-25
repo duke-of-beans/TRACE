@@ -4,6 +4,7 @@
  * Hono HTTP server with WebSocket upgrade for real-time.
  * All routes are chapter-scoped via middleware.
  */
+import "dotenv/config";
 import { serve } from "@hono/node-server";
 import { createNodeWebSocket } from "@hono/node-ws";
 import { Hono } from "hono";
