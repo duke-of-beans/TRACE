@@ -8,8 +8,10 @@ import { Hono } from "hono";
 import { opsDb, identDb } from "../../db/connection.js";
 import {
   chapters, vehicleTypes, suspicionLevels, suspicionPredicates,
-  actorRiskLevels, notificationChannels, notificationRules,
+  actorSuspicionLevels, actorSuspicionPredicates, actorIdentifierTypes,
+  actorIdentifiers, notificationChannels, notificationRules,
   reporters, vehicles, vehicleTypeAssignments, vehicleSuspicionHistory,
+  actors,
 } from "../../db/schema/vault-a.js";
 import { reporterIdentities } from "../../db/schema/vault-b.js";
 import { eq, and, count } from "drizzle-orm";
@@ -164,6 +166,138 @@ adminRouter.put("/suspicion-predicates/:id", async (c) => {
 adminRouter.delete("/suspicion-predicates/:id", async (c) => {
   const id = c.req.param("id");
   await opsDb.delete(suspicionPredicates).where(eq(suspicionPredicates.id, id));
+  return c.json({ deleted: true });
+});
+
+// ============================================================
+// ACTOR SUSPICION LEVELS — full CRUD with dependency check
+// ============================================================
+adminRouter.get("/actor-suspicion-levels", async (c) => {
+  const chapterId = c.req.header("x-chapter-id") || "";
+  const levels = await opsDb.select().from(actorSuspicionLevels).where(eq(actorSuspicionLevels.chapterId, chapterId));
+  return c.json(levels);
+});
+
+adminRouter.post("/actor-suspicion-levels", async (c) => {
+  const body = await c.req.json();
+  const chapterId = c.req.header("x-chapter-id") || "";
+  const [level] = await opsDb.insert(actorSuspicionLevels).values({ chapterId, ...body }).returning();
+  return c.json(level, 201);
+});
+
+adminRouter.put("/actor-suspicion-levels/:id", async (c) => {
+  const id = c.req.param("id");
+  const body = await c.req.json();
+  const [updated] = await opsDb
+    .update(actorSuspicionLevels)
+    .set({ label: body.label, rank: body.rank, description: body.description, color: body.color })
+    .where(eq(actorSuspicionLevels.id, id))
+    .returning();
+  if (!updated) return c.json({ error: "Not found" }, 404);
+  return c.json(updated);
+});
+
+adminRouter.delete("/actor-suspicion-levels/:id", async (c) => {
+  const id = c.req.param("id");
+  const [aDep] = await opsDb.select({ total: count() }).from(actors).where(eq(actors.suspicionLevelId, id));
+  const [pDep] = await opsDb.select({ total: count() }).from(actorSuspicionPredicates).where(eq(actorSuspicionPredicates.targetLevelId, id));
+  if (aDep.total > 0 || pDep.total > 0) {
+    return c.json({ error: "Cannot delete", reason: `${aDep.total} actor(s) at this level, ${pDep.total} predicate(s) targeting it.` }, 409);
+  }
+  await opsDb.delete(actorSuspicionLevels).where(eq(actorSuspicionLevels.id, id));
+  return c.json({ deleted: true });
+});
+
+// --- Actor Suspicion Predicates ---
+adminRouter.get("/actor-suspicion-levels/:levelId/predicates", async (c) => {
+  const levelId = c.req.param("levelId");
+  const preds = await opsDb.select().from(actorSuspicionPredicates).where(eq(actorSuspicionPredicates.targetLevelId, levelId));
+  return c.json(preds);
+});
+
+adminRouter.post("/actor-suspicion-levels/:levelId/predicates", async (c) => {
+  const levelId = c.req.param("levelId");
+  const body = await c.req.json();
+  const chapterId = c.req.header("x-chapter-id") || "";
+  const [pred] = await opsDb.insert(actorSuspicionPredicates).values({ chapterId, targetLevelId: levelId, ...body }).returning();
+  return c.json(pred, 201);
+});
+
+adminRouter.delete("/actor-suspicion-predicates/:id", async (c) => {
+  const id = c.req.param("id");
+  await opsDb.delete(actorSuspicionPredicates).where(eq(actorSuspicionPredicates.id, id));
+  return c.json({ deleted: true });
+});
+
+// ============================================================
+// ACTOR IDENTIFIER TYPES — chapter-defined taxonomy CRUD
+// ============================================================
+adminRouter.get("/actor-identifier-types", async (c) => {
+  const chapterId = c.req.header("x-chapter-id") || "";
+  const types = await opsDb.select().from(actorIdentifierTypes).where(eq(actorIdentifierTypes.chapterId, chapterId));
+  return c.json(types);
+});
+
+adminRouter.post("/actor-identifier-types", async (c) => {
+  const body = await c.req.json();
+  const chapterId = c.req.header("x-chapter-id") || "";
+  const [t] = await opsDb.insert(actorIdentifierTypes).values({ chapterId, ...body }).returning();
+  return c.json(t, 201);
+});
+
+adminRouter.put("/actor-identifier-types/:id", async (c) => {
+  const id = c.req.param("id");
+  const body = await c.req.json();
+  const [updated] = await opsDb
+    .update(actorIdentifierTypes)
+    .set({ label: body.label, description: body.description, icon: body.icon, color: body.color, fieldType: body.fieldType, options: body.options, sortOrder: body.sortOrder })
+    .where(eq(actorIdentifierTypes.id, id))
+    .returning();
+  if (!updated) return c.json({ error: "Not found" }, 404);
+  return c.json(updated);
+});
+
+adminRouter.delete("/actor-identifier-types/:id", async (c) => {
+  const id = c.req.param("id");
+  const [dep] = await opsDb.select({ total: count() }).from(actorIdentifiers).where(eq(actorIdentifiers.identifierTypeId, id));
+  if (dep.total > 0) {
+    return c.json({ error: "Cannot delete", reason: `${dep.total} identifier(s) use this type. Remove them first.` }, 409);
+  }
+  await opsDb.delete(actorIdentifierTypes).where(eq(actorIdentifierTypes.id, id));
+  return c.json({ deleted: true });
+});
+
+// ============================================================
+// ACTOR IDENTIFIERS — per-actor values CRUD
+// ============================================================
+adminRouter.get("/actors/:actorId/identifiers", async (c) => {
+  const actorId = c.req.param("actorId");
+  const ids = await opsDb.select().from(actorIdentifiers).where(eq(actorIdentifiers.actorId, actorId));
+  return c.json(ids);
+});
+
+adminRouter.post("/actors/:actorId/identifiers", async (c) => {
+  const actorId = c.req.param("actorId");
+  const body = await c.req.json();
+  const [ident] = await opsDb.insert(actorIdentifiers).values({ actorId, ...body }).returning();
+  return c.json(ident, 201);
+});
+
+adminRouter.put("/actor-identifiers/:id", async (c) => {
+  const id = c.req.param("id");
+  const body = await c.req.json();
+  const [updated] = await opsDb
+    .update(actorIdentifiers)
+    .set({ value: body.value, confidence: body.confidence, notes: body.notes, lastObserved: body.lastObserved ? new Date(body.lastObserved) : undefined, updatedAt: new Date() })
+    .where(eq(actorIdentifiers.id, id))
+    .returning();
+  if (!updated) return c.json({ error: "Not found" }, 404);
+  return c.json(updated);
+});
+
+adminRouter.delete("/actor-identifiers/:id", async (c) => {
+  const id = c.req.param("id");
+  await opsDb.delete(actorIdentifiers).where(eq(actorIdentifiers.id, id));
   return c.json({ deleted: true });
 });
 

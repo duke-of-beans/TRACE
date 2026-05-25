@@ -151,7 +151,6 @@ export async function importRows(
               chapterId,
               alias,
               physicalDescription: n.driverDescription ? String(n.driverDescription) : null,
-              riskLevel: n.riskLevel ? String(n.riskLevel) : null,
             })
             .returning();
           actorId = created.id;

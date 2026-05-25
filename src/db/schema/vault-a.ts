@@ -159,7 +159,7 @@ export const actors = ops.table("actors", {
   chapterId: uuid("chapter_id").notNull().references(() => chapters.id),
   alias: varchar("alias", { length: 128 }),
   physicalDescription: text("physical_description"),
-  riskLevel: varchar("risk_level", { length: 64 }),       // chapter-editable: Aggressive, Stalker, etc.
+  suspicionLevelId: uuid("actor_suspicion_level_id"),     // links to actor_suspicion_levels
   status: actorStatusEnum("status").default("active").notNull(),
   notes: text("notes"),
   createdAt: createdAt(),
@@ -168,16 +168,96 @@ export const actors = ops.table("actors", {
   index("actors_chapter_status").on(t.chapterId, t.status),
 ]);
 
-export const actorRiskLevels = ops.table("actor_risk_levels", {
+// ============================================================
+// ACTOR SUSPICION LEVELS (parallel to vehicle levels, own criteria)
+// ============================================================
+export const actorSuspicionLevels = ops.table("actor_suspicion_levels", {
   id: id(),
   chapterId: uuid("chapter_id").notNull().references(() => chapters.id),
   label: varchar("label", { length: 64 }).notNull(),
-  severity: smallint("severity").notNull(),                // higher = more dangerous
+  rank: smallint("rank").notNull(),
   description: text("description"),
   color: varchar("color", { length: 7 }),
   createdAt: createdAt(),
 }, (t) => [
-  uniqueIndex("actor_risk_chapter_label").on(t.chapterId, t.label),
+  uniqueIndex("actor_susp_levels_chapter_rank").on(t.chapterId, t.rank),
+]);
+
+// ============================================================
+// ACTOR SUSPICION PREDICATES (behavioral promotion criteria)
+// ============================================================
+export const actorSuspicionPredicates = ops.table("actor_suspicion_predicates", {
+  id: id(),
+  chapterId: uuid("chapter_id").notNull().references(() => chapters.id),
+  targetLevelId: uuid("target_level_id").notNull().references(() => actorSuspicionLevels.id),
+  label: varchar("label", { length: 128 }).notNull(),
+  predicateType: varchar("predicate_type", { length: 32 }).notNull(),
+  config: jsonb("config").notNull(),
+  conjunction: varchar("conjunction", { length: 3 }).default("OR").notNull(),
+  createdAt: createdAt(),
+});
+
+// ============================================================
+// ACTOR SUSPICION HISTORY (immutable audit)
+// ============================================================
+export const actorSuspicionHistory = ops.table("actor_suspicion_history", {
+  id: id(),
+  actorId: uuid("actor_id").notNull().references(() => actors.id),
+  fromLevelId: uuid("from_level_id").references(() => actorSuspicionLevels.id),
+  toLevelId: uuid("to_level_id").notNull().references(() => actorSuspicionLevels.id),
+  reason: text("reason").notNull(),
+  changedBy: uuid("changed_by").notNull(),
+  changedByRole: varchar("changed_by_role", { length: 16 }).notNull(),
+  predicatesMet: jsonb("predicates_met").default([]),
+  createdAt: createdAt(),
+}, (t) => [
+  index("ash_actor").on(t.actorId),
+]);
+
+// ============================================================
+// ACTOR IDENTIFIER TYPES (chapter-defined, fully customizable)
+// e.g. "Tattoo", "Clothing Pattern", "Scar", "Piercing",
+//      "Speech Pattern", "Gait", "Vehicle Preference"
+// Each chapter defines what matters for their operation.
+// ============================================================
+export const actorIdentifierTypes = ops.table("actor_identifier_types", {
+  id: id(),
+  chapterId: uuid("chapter_id").notNull().references(() => chapters.id),
+  label: varchar("label", { length: 64 }).notNull(),
+  description: text("description"),
+  icon: varchar("icon", { length: 32 }),
+  color: varchar("color", { length: 7 }),
+  // data type hint for the UI: text, select, multiselect, location
+  fieldType: varchar("field_type", { length: 16 }).default("text").notNull(),
+  // for select/multiselect: predefined options as JSON array
+  // e.g. ["Left arm", "Right arm", "Neck", "Face", "Chest", "Back"]
+  options: jsonb("options").default([]),
+  sortOrder: smallint("sort_order").default(0),
+  createdAt: createdAt(),
+}, (t) => [
+  uniqueIndex("ait_chapter_label").on(t.chapterId, t.label),
+]);
+
+// ============================================================
+// ACTOR IDENTIFIERS (actual values per actor)
+// e.g. Actor X has Tattoo: "Dragon on left forearm"
+//      Actor X has Clothing: "Always wears red bandana"
+// ============================================================
+export const actorIdentifiers = ops.table("actor_identifiers", {
+  id: id(),
+  actorId: uuid("actor_id").notNull().references(() => actors.id),
+  identifierTypeId: uuid("identifier_type_id").notNull().references(() => actorIdentifierTypes.id),
+  value: text("value").notNull(),
+  confidence: varchar("confidence", { length: 16 }).default("confirmed"), // confirmed, probable, unverified
+  firstObserved: timestamp("first_observed", { withTimezone: true }).defaultNow(),
+  lastObserved: timestamp("last_observed", { withTimezone: true }),
+  notes: text("notes"),
+  reportedBy: uuid("reported_by"),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+}, (t) => [
+  index("ai_actor").on(t.actorId),
+  index("ai_type").on(t.identifierTypeId),
 ]);
 
 export const actorVehicles = ops.table("actor_vehicles", {

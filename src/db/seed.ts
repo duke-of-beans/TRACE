@@ -10,8 +10,8 @@ import "dotenv/config";
 import { opsDb } from "./connection.js";
 import { sql } from "drizzle-orm";
 import {
-  chapters, vehicleTypes, suspicionLevels, actorRiskLevels,
-  reporters,
+  chapters, vehicleTypes, suspicionLevels, actorSuspicionLevels,
+  actorIdentifierTypes, reporters,
 } from "./schema/vault-a.js";
 import { identDb } from "./connection.js";
 import { reporterIdentities } from "./schema/vault-b.js";
@@ -58,12 +58,27 @@ async function seed() {
   ]).onConflictDoNothing();
 
   // --- Default actor risk levels ---
-  await opsDb.insert(actorRiskLevels).values([
-    { chapterId: cid, label: "Unknown",    severity: 0, description: "Risk level not yet assessed", color: "#95a5a6" },
-    { chapterId: cid, label: "Low",        severity: 1, description: "No known aggressive behavior", color: "#3498db" },
-    { chapterId: cid, label: "Aggressive", severity: 2, description: "Known aggressive behavior toward others", color: "#e67e22" },
-    { chapterId: cid, label: "Stalker",    severity: 3, description: "Will follow spotters - extreme caution", color: "#e74c3c" },
+  await opsDb.insert(actorSuspicionLevels).values([
+    { chapterId: cid, label: "Unknown",           rank: 0, description: "Not yet assessed", color: "#95a5a6" },
+    { chapterId: cid, label: "Person of Interest", rank: 1, description: "Linked to tracked vehicle, no behavioral flags", color: "#3498db" },
+    { chapterId: cid, label: "Confirmed Associate", rank: 2, description: "Multiple vehicle links or confirmed role in operations", color: "#f39c12" },
+    { chapterId: cid, label: "Active Threat",      rank: 3, description: "Known aggressive behavior, territorial, or confrontational", color: "#e67e22" },
+    { chapterId: cid, label: "Stalker",            rank: 4, description: "Will follow reporters - extreme caution required", color: "#e74c3c" },
   ]).onConflictDoNothing();
+
+  // --- Default actor identifier types ---
+  await opsDb.insert(actorIdentifierTypes).values([
+    { chapterId: cid, label: "Tattoo",           description: "Visible tattoo with location and description", fieldType: "text", icon: "🖋", color: "#9b59b6", sortOrder: 1 },
+    { chapterId: cid, label: "Scar / Marking",   description: "Scars, birthmarks, or other permanent markings", fieldType: "text", icon: "⚡", color: "#e74c3c", sortOrder: 2 },
+    { chapterId: cid, label: "Clothing Pattern",  description: "Consistently worn clothing or accessories", fieldType: "text", icon: "👕", color: "#3498db", sortOrder: 3 },
+    { chapterId: cid, label: "Hair",             description: "Hair style, color, facial hair", fieldType: "text", icon: "💇", color: "#f39c12", sortOrder: 4 },
+    { chapterId: cid, label: "Build",            description: "Height, weight, body type", fieldType: "select", options: JSON.stringify(["Slim", "Average", "Athletic", "Heavy", "Tall", "Short"]), icon: "🧍", color: "#27ae60", sortOrder: 5 },
+    { chapterId: cid, label: "Distinguishing Feature", description: "Any unique identifying characteristic", fieldType: "text", icon: "👁", color: "#e67e22", sortOrder: 6 },
+    { chapterId: cid, label: "Voice / Speech",   description: "Accent, speech pattern, language", fieldType: "text", icon: "🗣", color: "#1abc9c", sortOrder: 7 },
+    { chapterId: cid, label: "Accessory",        description: "Glasses, jewelry, hat, bag always carried", fieldType: "text", icon: "🎒", color: "#8e44ad", sortOrder: 8 },
+  ]).onConflictDoNothing();
+
+  console.log("  5 actor suspicion levels, 8 identifier types");
 
   // --- Demo operator account (for dev/walkthrough) ---
   const [demoReporter] = await opsDb
