@@ -21,7 +21,7 @@ import { Onboarding } from "./components/onboarding.js";
 import { PinLock } from "./components/pin-lock.js";
 import { PanicButton } from "./components/panic-button.js";
 import { SecurityInfo } from "./components/security-info.js";
-import { getToken } from "./lib/api.js";
+import { getToken, setToken } from "./lib/api.js";
 import { getQueueCount } from "./lib/queue.js";
 import { isWiped } from "./lib/panic.js";
 import { hasPIN, isLocked, setupAutoLock } from "./lib/app-lock.js";
@@ -198,31 +198,72 @@ function NavBtn(props: { label: string; active: boolean; badge?: number; onClick
 
 function LoginPrompt() {
   const [email, setEmail] = useState("");
-  const [sent, setSent] = useState(false);
+  const [status, setStatus] = useState<"idle" | "loading" | "sent" | "error">("idle");
+  const [errorMsg, setErrorMsg] = useState("");
 
   const handleSubmit = async () => {
-    const { api } = await import("./lib/api.js");
-    await api.requestMagicLink(email);
-    setSent(true);
+    if (!email) return;
+    setStatus("loading");
+
+    try {
+      // try dev-login first (development mode)
+      const devRes = await fetch("/api/v1/auth/dev-login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+
+      if (devRes.ok) {
+        const data = await devRes.json();
+        if (data.sessionToken) {
+          setToken(data.sessionToken);
+          window.location.reload();
+          return;
+        }
+      }
+
+      // fall back to magic link
+      await fetch("/api/v1/auth/magic-link", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      setStatus("sent");
+    } catch {
+      setStatus("error");
+      setErrorMsg("Cannot reach server. Are you connected?");
+    }
   };
 
   return (
-    <div style={{ padding: 32, textAlign: "center", marginTop: "30vh" }}>
-      <h1 style={{ fontSize: 28, marginBottom: 16, color: "#4fc3f7" }}>TRACE</h1>
-      {sent ? <p>Check your email for the login link.</p> : (
+    <div style={{ padding: 32, textAlign: "center", marginTop: "25vh" }}>
+      <h1 style={{ fontSize: 28, marginBottom: 4, color: "#4fc3f7" }}>TRACE</h1>
+      <p style={{ fontSize: 12, color: "#555", marginBottom: 24 }}>Sign in to your chapter</p>
+
+      {status === "sent" ? (
+        <p style={{ color: "#4fc3f7", fontSize: 14 }}>Check your email for the login link.</p>
+      ) : (
         <>
           <input type="email" placeholder="your@email.com" value={email}
             onInput={(e) => setEmail((e.target as HTMLInputElement).value)}
+            onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
             style={{
               width: "100%", maxWidth: 300, padding: "12px 16px",
               background: "#1a1a2e", border: "1px solid #2a2a3e",
               borderRadius: 8, color: "#e0e0e0", fontSize: 16,
             }} />
-          <button onClick={handleSubmit} style={{
+          {status === "error" && (
+            <p style={{ color: "#e74c3c", fontSize: 12, marginTop: 8 }}>{errorMsg}</p>
+          )}
+          <button onClick={handleSubmit} disabled={status === "loading"} style={{
             display: "block", margin: "16px auto", padding: "12px 32px",
-            background: "#4fc3f7", color: "#0f0f1a", border: "none",
-            borderRadius: 8, fontSize: 16, fontWeight: 600, cursor: "pointer",
-          }}>Send Login Link</button>
+            background: status === "loading" ? "#333" : "#4fc3f7",
+            color: "#0f0f1a", border: "none",
+            borderRadius: 8, fontSize: 16, fontWeight: 600,
+            cursor: status === "loading" ? "default" : "pointer",
+          }}>
+            {status === "loading" ? "Signing in..." : "Sign In"}
+          </button>
         </>
       )}
     </div>
