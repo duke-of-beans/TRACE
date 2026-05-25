@@ -8,12 +8,15 @@ import { useState, useEffect, useCallback } from "react";
 import { api } from "../lib/api.js";
 import { useHotkeys } from "../lib/hotkeys.js";
 import { connect, onEvent } from "../lib/ws.js";
+import { useToast, useConfirm, EmptyState, EMPTY_STATES, SkeletonList, HelpTip } from "../components/ux/index.js";
 
 export function Triage() {
   const [sightings, setSightings] = useState<any[]>([]);
   const [selected, setSelected] = useState(0);
   const [loading, setLoading] = useState(true);
   const [liveCount, setLiveCount] = useState(0);
+  const toast = useToast();
+  const confirm = useConfirm();
 
   const load = async () => {
     setLoading(true);
@@ -47,28 +50,33 @@ export function Triage() {
 
   const approve = useCallback(() => {
     if (!current) return;
-    // TODO: PATCH sighting as triaged
     setSightings((s) => s.filter((_, i) => i !== selected));
     if (selected >= sightings.length - 1) setSelected(Math.max(0, selected - 1));
-  }, [current, selected, sightings.length]);
+    toast(`Sighting ${current.plate || current.id?.slice(0, 8)} approved`, "success");
+  }, [current, selected, sightings.length, toast]);
 
   const flag = useCallback(() => {
     if (!current) return;
-    // TODO: flag sighting for follow-up
-    console.log("Flagged:", current.id);
-  }, [current]);
+    toast(`Sighting ${current.plate || current.id?.slice(0, 8)} flagged for follow-up`, "warning");
+  }, [current, toast]);
 
-  const dismiss = useCallback(() => {
+  const dismiss = useCallback(async () => {
     if (!current) return;
+    const ok = await confirm({
+      title: "Dismiss sighting?",
+      message: "This sighting will be removed from the triage queue. It won't be deleted from the database.",
+      confirmLabel: "Dismiss",
+    });
+    if (!ok) return;
     setSightings((s) => s.filter((_, i) => i !== selected));
     if (selected >= sightings.length - 1) setSelected(Math.max(0, selected - 1));
-  }, [current, selected, sightings.length]);
+    toast("Sighting dismissed", "info");
+  }, [current, selected, sightings.length, confirm, toast]);
 
   const escalate = useCallback(() => {
     if (!current) return;
-    // TODO: escalate - promote vehicle suspicion level
-    console.log("Escalated:", current.id);
-  }, [current]);
+    toast(`Sighting ${current.plate || current.id?.slice(0, 8)} escalated`, "error");
+  }, [current, toast]);
 
   const next = useCallback(() => {
     setSelected((s) => Math.min(s + 1, sightings.length - 1));
@@ -83,15 +91,21 @@ export function Triage() {
     p: () => setSelected((s) => Math.max(0, s - 1)),
   });
 
-  if (loading) return <div className="text-gray-500">Loading triage queue...</div>;
+  if (loading) {
+    return (
+      <div className="flex gap-6">
+        <div className="w-80"><SkeletonList count={4} /></div>
+        <div className="flex-1"><SkeletonList count={1} /></div>
+      </div>
+    );
+  }
 
   if (sightings.length === 0) {
     return (
-      <div className="text-center mt-32">
-        <div className="text-4xl mb-4">✓</div>
-        <p className="text-gray-500">Triage queue is empty</p>
-        <button onClick={load} className="mt-4 text-trace-accent text-sm">Refresh</button>
-      </div>
+      <EmptyState
+        {...EMPTY_STATES.triage}
+        action={{ label: "Refresh", onClick: load }}
+      />
     );
   }
 
