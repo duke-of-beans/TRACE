@@ -29,6 +29,10 @@ type SightingDraft = {
 };
 
 const DIRECTIONS = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"];
+const DIRECTION_LABELS: Record<string, string> = {
+  N: "↑ North", NE: "↗ NE", E: "→ East", SE: "↘ SE",
+  S: "↓ South", SW: "↙ SW", W: "← West", NW: "↖ NW",
+};
 
 const emptyDraft = (): SightingDraft => ({
   photos: [],
@@ -193,42 +197,57 @@ export function Submit() {
       )}
 
       {/* Plate - most important field */}
-      <input placeholder="Plate number" value={draft.plate}
-        onInput={(e) => setDraft((d) => ({ ...d, plate: (e.target as HTMLInputElement).value.toUpperCase() }))}
-        style={{ ...s, fontSize: 20, fontWeight: 700, letterSpacing: 2, textAlign: "center" }}
-      />
+      <div style={{ marginBottom: 12 }}>
+        <label style={labelStyle}>License Plate</label>
+        <input placeholder="ABC 1234" value={draft.plate}
+          onInput={(e) => setDraft((d) => ({ ...d, plate: (e.target as HTMLInputElement).value.toUpperCase() }))}
+          style={{ ...s, fontSize: 20, fontWeight: 700, letterSpacing: 2, textAlign: "center", marginBottom: 0 }}
+        />
+      </div>
 
       {/* Vehicle description */}
-      <input placeholder="Vehicle (e.g. Red 2019 Honda Civic)" value={draft.vehicleDescription}
-        onInput={(e) => setDraft((d) => ({ ...d, vehicleDescription: (e.target as HTMLInputElement).value }))}
-        style={s}
-      />
+      <div style={{ marginBottom: 12 }}>
+        <label style={labelStyle}>Vehicle Description</label>
+        <input placeholder="e.g. Red 2019 Honda Civic, tinted windows" value={draft.vehicleDescription}
+          onInput={(e) => setDraft((d) => ({ ...d, vehicleDescription: (e.target as HTMLInputElement).value }))}
+          style={{ ...s, marginBottom: 0 }}
+        />
+      </div>
 
       {/* Activity */}
-      <input placeholder="Activity observed" value={draft.activityDescription}
-        onInput={(e) => setDraft((d) => ({ ...d, activityDescription: (e.target as HTMLInputElement).value }))}
-        style={s}
-      />
+      <div style={{ marginBottom: 12 }}>
+        <label style={labelStyle}>What were they doing?</label>
+        <input placeholder="e.g. Circling the block, parked and watching" value={draft.activityDescription}
+          onInput={(e) => setDraft((d) => ({ ...d, activityDescription: (e.target as HTMLInputElement).value }))}
+          style={{ ...s, marginBottom: 0 }}
+        />
+      </div>
 
       {/* Direction */}
-      <div style={{ display: "flex", gap: 6, marginBottom: 12, flexWrap: "wrap" }}>
-        {DIRECTIONS.map((dir) => (
-          <button key={dir} onClick={() => setDraft((d) => ({ ...d, direction: dir }))}
-            style={{
-              padding: "6px 12px", borderRadius: 6, border: "none", cursor: "pointer",
-              background: draft.direction === dir ? "#4fc3f7" : "#1a1a2e",
-              color: draft.direction === dir ? "#0f0f1a" : "#888",
-              fontSize: 13, fontWeight: 600,
-            }}
-          >{dir}</button>
-        ))}
+      <div style={{ marginBottom: 12 }}>
+        <label style={labelStyle}>Direction of Travel</label>
+        <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+          {DIRECTIONS.map((dir) => (
+            <button key={dir} onClick={() => setDraft((d) => ({ ...d, direction: d.direction === dir ? "" : dir }))}
+              style={{
+                padding: "8px 14px", borderRadius: 6, border: "none", cursor: "pointer",
+                background: draft.direction === dir ? "#4fc3f7" : "#1a1a2e",
+                color: draft.direction === dir ? "#0f0f1a" : "#888",
+                fontSize: 13, fontWeight: 600,
+              }}
+            >{DIRECTION_LABELS[dir]}</button>
+          ))}
+        </div>
       </div>
 
       {/* Notes */}
-      <textarea placeholder="Additional notes" value={draft.notes}
-        onInput={(e) => setDraft((d) => ({ ...d, notes: (e.target as HTMLTextAreaElement).value }))}
-        style={{ ...s, minHeight: 60, resize: "vertical" }}
-      />
+      <div style={{ marginBottom: 12 }}>
+        <label style={labelStyle}>Additional Notes <span style={{ fontWeight: 400, color: "#555" }}>(optional)</span></label>
+        <textarea placeholder="Anything else worth noting" value={draft.notes}
+          onInput={(e) => setDraft((d) => ({ ...d, notes: (e.target as HTMLTextAreaElement).value }))}
+          style={{ ...s, minHeight: 60, resize: "vertical", marginBottom: 0 }}
+        />
+      </div>
 
       {/* Location indicator */}
       {draft.lat && (
@@ -258,4 +277,10 @@ const inputStyle: Record<string, string | number> = {
   width: "100%", padding: "12px 16px", marginBottom: 12,
   background: "#1a1a2e", border: "1px solid #2a2a3e",
   borderRadius: 8, color: "#e0e0e0", fontSize: 15,
+};
+
+const labelStyle: Record<string, string | number> = {
+  display: "block", fontSize: 12, color: "#888",
+  marginBottom: 6, fontWeight: 600,
+  textTransform: "uppercase", letterSpacing: 0.5,
 };

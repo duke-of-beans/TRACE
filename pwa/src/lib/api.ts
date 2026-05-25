@@ -20,6 +20,11 @@ export function getToken(): string | null {
   return sessionToken;
 }
 
+export function clearToken(): void {
+  sessionToken = null;
+  localStorage.removeItem("trace_token");
+}
+
 async function request<T>(
   path: string,
   opts: RequestInit = {}
