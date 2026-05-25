@@ -55,24 +55,28 @@ export function TimeSlider({
         <span>{endDate.toLocaleString()}</span>
       </div>
       {/* mini histogram */}
-      <div className="flex items-end gap-px mt-2 h-8">
-        {buckets.map((b, i) => {
-          const maxPts = Math.max(...buckets.map((x) => x.pointCount), 1);
-          const h = (b.pointCount / maxPts) * 100;
-          return (
-            <div
-              key={i}
-              onClick={() => onChange(i)}
-              className="flex-1 cursor-pointer rounded-t"
-              style={{
-                height: `${Math.max(h, 4)}%`,
-                background: i === selectedIndex ? "#4fc3f7" : "#2a2a3e",
-                opacity: i === selectedIndex ? 1 : 0.6,
-              }}
-            />
-          );
-        })}
-      </div>
+      {buckets.length > 1 && (
+        <div className="flex items-end gap-px mt-2 h-8">
+          {buckets.map((b, i) => {
+            const maxPts = Math.max(...buckets.map((x) => x.pointCount), 1);
+            const h = (b.pointCount / maxPts) * 100;
+            return (
+              <div
+                key={i}
+                onClick={() => onChange(i)}
+                className="flex-1 cursor-pointer rounded-t transition-colors"
+                style={{
+                  height: `${Math.max(h, 8)}%`,
+                  minHeight: 3,
+                  background: i === selectedIndex ? "#4fc3f7" : "#2a2a3e",
+                  opacity: i === selectedIndex ? 1 : 0.5,
+                }}
+                title={`${b.pointCount} sighting${b.pointCount !== 1 ? "s" : ""}`}
+              />
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }

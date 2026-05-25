@@ -33,13 +33,13 @@ export function Intelligence() {
       setLoading(true);
       try {
         const [heatData, coData, tempData] = await Promise.all([
-          fetch(`${getApiBase()}/geo/heatmap`, authHeaders()).then((r) => r.json()),
-          fetch(`${getApiBase()}/geo/co-occurrence`, authHeaders()).then((r) => r.json()),
-          fetch(`${getApiBase()}/geo/temporal?bucket=60`, authHeaders()).then((r) => r.json()),
+          fetch(`${getApiBase()}/geo/heatmap`, authHeaders()).then((r) => r.ok ? r.json() : []),
+          fetch(`${getApiBase()}/geo/co-occurrence`, authHeaders()).then((r) => r.ok ? r.json() : []),
+          fetch(`${getApiBase()}/geo/temporal?bucket=60`, authHeaders()).then((r) => r.ok ? r.json() : []),
         ]);
-        setHeatmap(heatData);
-        setCoOccurrences(coData);
-        setTemporalBuckets(tempData);
+        setHeatmap(Array.isArray(heatData) ? heatData : []);
+        setCoOccurrences(Array.isArray(coData) ? coData : []);
+        setTemporalBuckets(Array.isArray(tempData) ? tempData : []);
       } catch (err) {
         console.error("Failed to load geo data:", err);
       }

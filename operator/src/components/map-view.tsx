@@ -10,7 +10,7 @@
  *
  * Uses Leaflet.js + leaflet.heat for heatmaps.
  */
-import { useEffect, useRef, useCallback } from "react";
+import { useEffect, useRef, useCallback, useState } from "react";
 import L from "leaflet";
 
 // ---------- Types ----------
@@ -47,6 +47,23 @@ type LayerRefs = {
   coOccurrences: L.LayerGroup;
 };
 
+const TILES = {
+  dark: {
+    url: "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
+    attr: "&copy; OSM &copy; CARTO",
+  },
+  light: {
+    url: "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
+    attr: "&copy; OSM &copy; CARTO",
+  },
+  satellite: {
+    url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+    attr: "&copy; Esri",
+  },
+};
+
+type TileMode = keyof typeof TILES;
+
 export function IntelMap({
   markers = [],
   heatmapData = [],
@@ -59,6 +76,18 @@ export function IntelMap({
   const mapRef = useRef<HTMLDivElement>(null);
   const leafletRef = useRef<L.Map | null>(null);
   const layersRef = useRef<LayerRefs | null>(null);
+  const tileRef = useRef<L.TileLayer | null>(null);
+  const [tileMode, setTileMode] = useState<TileMode>("light");
+
+  // switch tile layer
+  const switchTiles = useCallback((mode: TileMode) => {
+    const map = leafletRef.current;
+    if (!map) return;
+    if (tileRef.current) map.removeLayer(tileRef.current);
+    const t = TILES[mode];
+    tileRef.current = L.tileLayer(t.url, { attribution: t.attr, maxZoom: 19 }).addTo(map);
+    setTileMode(mode);
+  }, []);
 
   // initialize map
   useEffect(() => {
@@ -66,11 +95,9 @@ export function IntelMap({
 
     const map = L.map(mapRef.current, { zoomControl: true }).setView(center, zoom);
 
-    // dark tile layer for operational feel
-    L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
-      attribution: "&copy; OSM &copy; CARTO",
-      maxZoom: 19,
-    }).addTo(map);
+    // default tiles
+    const t = TILES.light;
+    tileRef.current = L.tileLayer(t.url, { attribution: t.attr, maxZoom: 19 }).addTo(map);
 
     const layers: LayerRefs = {
       markers: L.layerGroup().addTo(map),
@@ -203,13 +230,32 @@ export function IntelMap({
   }, []);
 
   return (
-    <div
-      ref={mapRef}
-      style={{
-        height, width: "100%", borderRadius: 8, overflow: "hidden",
-        border: "1px solid #2a2a3e",
-      }}
-    />
+    <div style={{ position: "relative" }}>
+      <div
+        ref={mapRef}
+        style={{
+          height, width: "100%", borderRadius: 8, overflow: "hidden",
+          border: "1px solid #2a2a3e",
+        }}
+      />
+      {/* Tile mode toggle */}
+      <div style={{
+        position: "absolute", bottom: 8, left: 8, zIndex: 1000,
+        display: "flex", gap: 2, background: "rgba(26,26,46,0.9)",
+        borderRadius: 6, padding: 2,
+      }}>
+        {(["light", "dark", "satellite"] as TileMode[]).map((m) => (
+          <button key={m} onClick={() => switchTiles(m)}
+            style={{
+              padding: "4px 10px", fontSize: 11, border: "none", borderRadius: 4,
+              cursor: "pointer", fontWeight: tileMode === m ? 700 : 400,
+              background: tileMode === m ? "#4fc3f7" : "transparent",
+              color: tileMode === m ? "#0f0f1a" : "#888",
+            }}
+          >{m}</button>
+        ))}
+      </div>
+    </div>
   );
 }
 
