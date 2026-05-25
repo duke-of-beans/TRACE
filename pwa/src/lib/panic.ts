@@ -96,9 +96,10 @@ export async function panic(): Promise<void> {
 }
 
 /**
- * Quick check: is the app in a clean/wiped state?
- * Returns true if there's no encryption key (post-panic or first run).
+ * Quick check: is the app in a genuinely wiped state?
+ * Returns true ONLY if there's no encryption key in any form.
+ * A PIN-locked app has trace_ek_wrapped — that's not wiped, it's locked.
  */
 export function isWiped(): boolean {
-  return !localStorage.getItem("trace_ek");
+  return !localStorage.getItem("trace_ek") && !localStorage.getItem("trace_ek_wrapped");
 }
