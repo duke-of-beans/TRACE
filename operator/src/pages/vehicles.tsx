@@ -3,6 +3,9 @@
  */
 import { useState, useEffect } from "react";
 import { api } from "../lib/api.js";
+import { IntelMap } from "../components/map-view.js";
+
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3100/api/v1";
 
 export function Vehicles() {
   const [vehicles, setVehicles] = useState<any[]>([]);
@@ -77,6 +80,7 @@ export function Vehicles() {
             </div>
           )}
           {/* TODO: sighting timeline, linked actors, map, suspicion history */}
+          <VehicleMap vehicleId={selected.id} />
         </div>
       )}
     </div>
@@ -88,6 +92,55 @@ function Field(props: { label: string; value: any }) {
     <div>
       <label className="text-xs text-gray-500 uppercase tracking-wider">{props.label}</label>
       <p className="mt-1">{props.value || "—"}</p>
+    </div>
+  );
+}
+
+function VehicleMap({ vehicleId }: { vehicleId: string }) {
+  const [corridorData, setCorridorData] = useState<any[]>([]);
+  const [sightingMarkers, setSightingMarkers] = useState<any[]>([]);
+
+  useEffect(() => {
+    const token = localStorage.getItem("trace_op_token");
+    const headers: any = { "Content-Type": "application/json" };
+    if (token) headers["Authorization"] = `Bearer ${token}`;
+
+    // load corridor
+    fetch(`${API_BASE}/geo/corridor/${vehicleId}`, { headers })
+      .then((r) => r.json())
+      .then((segments) => setCorridorData(segments))
+      .catch(() => {});
+
+    // load sightings for markers
+    fetch(`${API_BASE}/sightings?vehicleId=${vehicleId}`, { headers })
+      .then((r) => r.json())
+      .then((sightings: any[]) => {
+        setSightingMarkers(
+          sightings
+            .filter((s) => s.lat)
+            .map((s) => ({
+              lat: s.lat,
+              lng: s.lng,
+              color: "#4fc3f7",
+              popup: `${new Date(s.observedAt).toLocaleDateString()} - ${s.activityDescription || "sighting"}`,
+            }))
+        );
+      })
+      .catch(() => {});
+  }, [vehicleId]);
+
+  if (sightingMarkers.length === 0) return null;
+
+  return (
+    <div className="mt-6">
+      <label className="text-xs text-gray-500 uppercase tracking-wider">Sighting Locations</label>
+      <div className="mt-2">
+        <IntelMap
+          markers={sightingMarkers}
+          corridors={corridorData.length > 0 ? [{ vehicleId, color: "#e74c3c", segments: corridorData }] : []}
+          height="300px"
+        />
+      </div>
     </div>
   );
 }

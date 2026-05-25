@@ -9,15 +9,17 @@ import { Vehicles } from "./pages/vehicles.js";
 import { Actors } from "./pages/actors.js";
 import { Admin } from "./pages/admin.js";
 import { Dashboard } from "./pages/dashboard.js";
+import { Intelligence } from "./pages/intelligence.js";
 
-type Page = "dashboard" | "triage" | "vehicles" | "actors" | "admin";
+type Page = "dashboard" | "triage" | "intel" | "vehicles" | "actors" | "admin";
 
 const NAV: { key: Page; label: string; shortcut: string }[] = [
   { key: "dashboard", label: "Dashboard", shortcut: "1" },
   { key: "triage",    label: "Triage",    shortcut: "2" },
-  { key: "vehicles",  label: "Vehicles",  shortcut: "3" },
-  { key: "actors",    label: "Actors",    shortcut: "4" },
-  { key: "admin",     label: "Admin",     shortcut: "5" },
+  { key: "intel",     label: "Intel Map", shortcut: "3" },
+  { key: "vehicles",  label: "Vehicles",  shortcut: "4" },
+  { key: "actors",    label: "Actors",    shortcut: "5" },
+  { key: "admin",     label: "Admin",     shortcut: "6" },
 ];
 
 export function App() {
@@ -55,6 +57,7 @@ export function App() {
       <main className="flex-1 overflow-auto p-6">
         {page === "dashboard" && <Dashboard />}
         {page === "triage"    && <Triage />}
+        {page === "intel"     && <Intelligence />}
         {page === "vehicles"  && <Vehicles />}
         {page === "actors"    && <Actors />}
         {page === "admin"     && <Admin />}

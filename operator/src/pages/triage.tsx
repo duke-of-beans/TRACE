@@ -7,11 +7,13 @@
 import { useState, useEffect, useCallback } from "react";
 import { api } from "../lib/api.js";
 import { useHotkeys } from "../lib/hotkeys.js";
+import { connect, onEvent } from "../lib/ws.js";
 
 export function Triage() {
   const [sightings, setSightings] = useState<any[]>([]);
   const [selected, setSelected] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [liveCount, setLiveCount] = useState(0);
 
   const load = async () => {
     setLoading(true);
@@ -24,7 +26,22 @@ export function Triage() {
     setLoading(false);
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    load();
+
+    // connect WebSocket for live updates
+    connect("", "operator"); // chapterId filled from auth context
+    const unsub = onEvent((event) => {
+      if (event.type === "sighting.new") {
+        setSightings((prev) => [event.data.sighting, ...prev]);
+        setLiveCount((c) => c + 1);
+        // clear live indicator after 3s
+        setTimeout(() => setLiveCount((c) => Math.max(0, c - 1)), 3000);
+      }
+    });
+
+    return unsub;
+  }, []);
 
   const current = sightings[selected];
 
@@ -83,7 +100,12 @@ export function Triage() {
       {/* Queue list */}
       <div className="w-80 space-y-2 max-h-[calc(100vh-3rem)] overflow-auto">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-lg font-semibold">{sightings.length} pending</h2>
+          <h2 className="text-lg font-semibold">
+            {sightings.length} pending
+            {liveCount > 0 && (
+              <span className="ml-2 inline-block w-2 h-2 rounded-full bg-trace-confirm animate-pulse" />
+            )}
+          </h2>
           <button onClick={load} className="text-xs text-trace-accent">↻</button>
         </div>
         {sightings.map((s, i) => (
