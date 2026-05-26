@@ -84,8 +84,8 @@ api.route("/vehicles", vehiclesRouter);
 api.route("/actors", actorsRouter);
 api.route("/geo", geoRouter);
 
-// Admin routes require admin role
-api.use("/admin/*", adminOnly);
+// Admin routes require operator or admin role
+api.use("/admin/*", operatorOnly);
 api.route("/admin", adminRouter);
 
 app.route("/api/v1", api);

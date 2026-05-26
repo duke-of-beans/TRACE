@@ -3,19 +3,17 @@
  */
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3100/api/v1";
 
-let token: string | null = localStorage.getItem("trace_op_token");
-
-export function setToken(t: string) {
-  token = t;
-  localStorage.setItem("trace_op_token", t);
+function getToken(): string | null {
+  return localStorage.getItem("trace_op_token");
 }
 
 async function request<T>(path: string, opts: RequestInit = {}): Promise<T> {
+  const t = getToken();
   const res = await fetch(`${API_BASE}${path}`, {
     ...opts,
     headers: {
       "Content-Type": "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(t ? { Authorization: `Bearer ${t}` } : {}),
       ...(opts.headers || {}),
     },
   });

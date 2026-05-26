@@ -194,6 +194,13 @@ authRouter.post("/dev-login", async (c) => {
     .where(eq(reporterIdentities.email, email))
     .limit(1);
 
+  // DEV: fix role if email suggests operator but identity says reporter
+  if (identity && (email.includes("operator") || email.includes("admin")) && identity.role === "reporter") {
+    await identDb.update(reporterIdentities).set({ role: "operator" }).where(eq(reporterIdentities.id, identity.id));
+    identity = { ...identity, role: "operator" };
+    console.log(`[DEV] Upgraded ${email} to operator role`);
+  }
+
   // DEV MODE: auto-create reporter if email doesn't exist
   if (!identity) {
     // find first chapter
@@ -207,13 +214,16 @@ authRouter.post("/dev-login", async (c) => {
       .values({ chapterId: chapter.id, callsign: `RPT-${callsign}` })
       .returning();
 
+    // DEV: assign operator role if email suggests it
+    const role = email.includes("operator") || email.includes("admin") ? "operator" : "reporter";
+
     // create identity in Vault B
     [identity] = await identDb
       .insert(reporterIdentities)
-      .values({ reporterId: reporter.id, email, role: "reporter" })
+      .values({ reporterId: reporter.id, email, role })
       .returning();
 
-    console.log(`[DEV] Auto-created reporter "${callsign}" for ${email}`);
+    console.log(`[DEV] Auto-created ${role} "${callsign}" for ${email}`);
   }
 
   const sessionToken = randomBytes(32).toString("hex");
