@@ -609,7 +609,7 @@ function PinDetailPanel({ pin, reporters, onClose, onDispatch, onCloseDispatch }
   })();
 
   return (
-    <div className="mt-4 bg-trace-surface rounded-lg p-5 border border-trace-border">
+    <div data-trace-panel className="mt-4 bg-trace-surface rounded-lg p-5 border border-trace-border">
       <div className="flex justify-between items-center mb-3">
         <div className="flex items-center gap-2">
           <span className="text-xs px-2 py-0.5 rounded font-semibold"
@@ -681,7 +681,7 @@ function SightingDetailPanel({ marker, onClose, onCreateDispatch }: {
   })();
 
   return (
-    <div className="mt-4 bg-trace-surface rounded-lg p-5 border border-trace-border">
+    <div data-trace-panel className="mt-4 bg-trace-surface rounded-lg p-5 border border-trace-border">
       <div className="flex justify-between items-center mb-3">
         <div className="flex items-center gap-2">
           <span className="text-xs px-2 py-0.5 rounded font-semibold"

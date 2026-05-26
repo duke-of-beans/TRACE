@@ -210,8 +210,8 @@ export function IntelMap({
 
     markers.forEach((m) => {
       const cm = L.circleMarker([m.lat, m.lng], {
-        radius: 7,
-        fillColor: m.color || "#4fc3f7",
+        radius: 9,
+        fillColor: m.color || "#818CF8",
         color: "#fff", weight: 1.5, opacity: 1, fillOpacity: 0.85,
       })
         .bindTooltip(m.label || "", { permanent: false })
@@ -220,6 +220,10 @@ export function IntelMap({
       cm.on("click", () => {
         if (onMarkerClickRef.current) {
           onMarkerClickRef.current(m);
+          setTimeout(() => {
+            const panel = document.querySelector("[data-trace-panel]");
+            if (panel) panel.scrollIntoView({ behavior: "smooth", block: "nearest" });
+          }, 100);
         }
       });
     });
@@ -385,14 +389,20 @@ export function IntelMap({
         return `${Math.round(mins / 60)}h ago`;
       })();
 
-      marker.bindPopup(`<div style="min-width:150px;font-family:system-ui;font-size:12px;">
-        <div style="font-weight:700;margin-bottom:4px;">${pin.eventTypeLabel || "Dispatch"}</div>
-        ${pin.plate ? `<div style="font-family:monospace;letter-spacing:0.1em;font-weight:600;">${pin.plate}</div>` : ""}
-        ${pin.notes ? `<div style="color:#666;margin-top:4px;">${pin.notes.slice(0, 80)}</div>` : ""}
-        <div style="color:#999;margin-top:4px;">${timeAgo} · ${pin.status}</div>
-      </div>`);
+      marker.bindTooltip(`<div style="min-width:120px;font-family:system-ui;font-size:11px;">
+        <div style="font-weight:700;">${pin.eventTypeLabel || "Dispatch"}</div>
+        ${pin.plate ? `<div style="font-family:monospace;">${pin.plate}</div>` : ""}
+        <div style="color:#999;">${timeAgo} · ${pin.status}</div>
+      </div>`, { direction: "top", offset: [0, -10] });
 
-      marker.on("click", () => { if (onPinClickRef.current) onPinClickRef.current(pin); });
+      marker.on("click", () => {
+        if (onPinClickRef.current) onPinClickRef.current(pin);
+        // Scroll panel into view
+        setTimeout(() => {
+          const panel = document.querySelector("[data-trace-panel]");
+          if (panel) panel.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        }, 100);
+      });
       marker.addTo(layer);
     });
   }, [dispatchPins]);
