@@ -156,7 +156,7 @@ export function LoginScreen({ onAuth }: AuthGateProps) {
               onBlur={(e) => (e.target as HTMLInputElement).style.borderColor = "var(--border)"}
             />
             <p className="text-[10px] mt-1.5" style={{ color: "var(--text-muted)" }}>
-              Provided by your chapter admin. Leave blank in dev mode.
+              Provided by your chapter admin.
             </p>
           </div>
 
