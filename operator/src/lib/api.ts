@@ -53,6 +53,8 @@ export const api = {
   updateVehicleType: (id: string, data: any) => request(`/admin/vehicle-types/${id}`, { method: "PUT", body: JSON.stringify(data) }),
   deleteVehicleType: (id: string) => request(`/admin/vehicle-types/${id}`, { method: "DELETE" }),
 
+  getReporters: () => request<any[]>("/admin/reporters"),
+
   getSuspicionLevels: () => request<any[]>("/admin/suspicion-levels"),
   createSuspicionLevel: (data: any) => request("/admin/suspicion-levels", { method: "POST", body: JSON.stringify(data) }),
   updateSuspicionLevel: (id: string, data: any) => request(`/admin/suspicion-levels/${id}`, { method: "PUT", body: JSON.stringify(data) }),
