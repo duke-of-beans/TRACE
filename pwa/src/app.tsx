@@ -21,7 +21,7 @@ import { startDeadManSwitch, startHeartbeat } from "./lib/deadman.js";
 import { toggleTheme, getTheme } from "../../shared/design/theme.js";
 
 const DEFAULT_TTL_HOURS = 24;
-type Page = "submit" | "history" | "settings" | "security" | "join";
+type Page = "submit" | "history" | "settings" | "security";
 
 export function App() {
   const [page, setPage] = useState<Page>("submit");
@@ -71,9 +71,8 @@ export function App() {
   return (
     <div class="app-shell">
       <main class="app-main">
-        {page === "submit" && <SubmitGate authed={authed} onJoin={() => setPage("join")} />}
+        {page === "submit" && <SubmitGate authed={authed} onJoin={() => { setAuthed(true); }} />}
         {page === "history" && <History />}
-        {page === "join" && <JoinPrompt onAuth={handleAuth} onSkip={() => setPage("settings")} />}
         {page === "security" && <SecurityInfo ttlHours={ttlHours} onBack={() => setPage("settings")} />}
         {page === "settings" && (
           <SettingsPage
@@ -81,7 +80,7 @@ export function App() {
             ttlHours={ttlHours}
             theme={theme}
             onShowSecurity={() => setPage("security")}
-            onShowJoin={() => setPage("join")}
+            onShowJoin={() => setPage("submit")}
             onSignOut={handleSignOut}
             onToggleTheme={handleToggleTheme}
           />
@@ -98,7 +97,7 @@ export function App() {
           <Icon name="clock" size={20} />
           <span>History</span>
         </button>
-        <button class={`nav-btn ${page === "settings" || page === "security" || page === "join" ? "active" : ""}`} onClick={() => setPage("settings")} aria-label="Settings">
+        <button class={`nav-btn ${page === "settings" || page === "security" ? "active" : ""}`} onClick={() => setPage("settings")} aria-label="Settings">
           <Icon name="sliders" size={20} />
           <span>Settings</span>
         </button>
@@ -107,9 +106,45 @@ export function App() {
   );
 }
 
-/** Shows submit form if authed, or a prompt to join if not */
+/** Shows submit form if authed, or inline join + skip if not */
 function SubmitGate({ authed, onJoin }: { authed: boolean; onJoin: () => void }) {
-  if (!authed) {
+  const [code, setCode] = useState("");
+  const [status, setStatus] = useState<"idle" | "loading" | "error">("idle");
+  const [errorMsg, setErrorMsg] = useState("");
+  const [skipped, setSkipped] = useState(false);
+
+  if (authed) return <Submit />;
+
+  const handleSubmit = async () => {
+    if (!code) return;
+    setStatus("loading");
+    setErrorMsg("");
+    try {
+      const res = await fetch("/api/v1/auth/invite-code", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.sessionToken) { setToken(data.sessionToken); onJoin(); return; }
+      }
+      const err = await res.json().catch(() => ({}));
+      setStatus("error");
+      setErrorMsg(err.error || "Invalid invite code");
+    } catch {
+      setStatus("error");
+      setErrorMsg("Cannot reach server. Are you connected?");
+    }
+  };
+
+  const handleInput = (val: string) => {
+    const clean = val.replace(/[^A-Za-z0-9]/g, "").toUpperCase().slice(0, 8);
+    setCode(clean.length > 4 ? `${clean.slice(0, 4)}-${clean.slice(4)}` : clean);
+    setErrorMsg("");
+  };
+
+  if (skipped) {
     return (
       <div>
         <h1 class="page-title">Report Sighting</h1>
@@ -117,28 +152,51 @@ function SubmitGate({ authed, onJoin }: { authed: boolean; onJoin: () => void })
           <div style={{ color: "var(--text-muted)", marginBottom: "var(--sp-3)" }}>
             <Icon name="send" size={32} />
           </div>
-          <h3 style={{ fontSize: "var(--text-lg)", fontWeight: 600, marginBottom: "var(--sp-2)" }}>
-            Connect to your chapter
-          </h3>
-          <p style={{ fontSize: "var(--text-sm)", color: "var(--text-sec)", marginBottom: "var(--sp-5)", lineHeight: "var(--leading-relaxed)" }}>
-            Your operator will give you an invite code to start reporting.
-            It looks like <strong style={{ fontFamily: "var(--font-mono)" }}>XXXX-XXXX</strong>.
+          <p style={{ fontSize: "var(--text-sm)", color: "var(--text-sec)", marginBottom: "var(--sp-4)", lineHeight: "var(--leading-relaxed)" }}>
+            You'll need an invite code from your operator before you can submit reports.
           </p>
-          <button class="btn btn-primary btn-full btn-lg" onClick={onJoin}>
-            Enter Invite Code
+          <button class="btn btn-secondary" onClick={() => setSkipped(false)}>
+            I have my code now
           </button>
-        </div>
-
-        <div style={{ textAlign: "center", marginTop: "var(--sp-4)" }}>
-          <p style={{ fontSize: "var(--text-xs)", color: "var(--text-muted)", lineHeight: "var(--leading-relaxed)" }}>
-            Don't have a code yet? No problem — explore the app and enter it
-            when you're ready. Go to <strong>Settings</strong> to enter it later.
-          </p>
         </div>
       </div>
     );
   }
-  return <Submit />;
+
+  return (
+    <div>
+      <h1 class="page-title">Get Started</h1>
+
+      <div class="card" style={{ padding: "var(--sp-6)", textAlign: "center" }}>
+        <p style={{ fontSize: "var(--text-sm)", color: "var(--text-sec)", marginBottom: "var(--sp-4)", lineHeight: "var(--leading-relaxed)" }}>
+          Enter the invite code from your chapter operator to start reporting.
+        </p>
+
+        <input
+          type="text"
+          placeholder="XXXX-XXXX"
+          value={code}
+          onInput={(e) => handleInput((e.target as HTMLInputElement).value)}
+          onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
+          autoFocus
+          class={`invite-input ${errorMsg ? "error" : ""}`}
+          aria-label="Invite code"
+        />
+
+        {errorMsg && <p class="error-text">{errorMsg}</p>}
+
+        <button onClick={handleSubmit} disabled={status === "loading"} class="btn btn-primary btn-full btn-lg" style={{ marginTop: "var(--sp-4)" }}>
+          {status === "loading" ? "Verifying..." : "Join Chapter"}
+        </button>
+      </div>
+
+      <div style={{ textAlign: "center", marginTop: "var(--sp-5)" }}>
+        <button class="btn btn-ghost" onClick={() => setSkipped(true)}>
+          I don't have a code yet — skip for now
+        </button>
+      </div>
+    </div>
+  );
 }
 
 function SettingsPage({ authed, ttlHours, theme, onShowSecurity, onShowJoin, onSignOut, onToggleTheme }: {
@@ -218,81 +276,6 @@ function WipedState() {
     <div class="wiped-screen">
       <div class="wiped-icon"><Icon name="lock" size={48} /></div>
       <p class="wiped-text">This app has been wiped.</p>
-    </div>
-  );
-}
-
-/** Invite code entry — shown inline, not as a blocking gate */
-function JoinPrompt({ onAuth, onSkip }: { onAuth: () => void; onSkip: () => void }) {
-  const [code, setCode] = useState("");
-  const [status, setStatus] = useState<"idle" | "loading" | "error">("idle");
-  const [errorMsg, setErrorMsg] = useState("");
-
-  const handleSubmit = async () => {
-    if (!code) return;
-    setStatus("loading");
-    setErrorMsg("");
-    try {
-      const res = await fetch("/api/v1/auth/invite-code", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code }),
-      });
-      if (res.ok) {
-        const data = await res.json();
-        if (data.sessionToken) { setToken(data.sessionToken); onAuth(); return; }
-      }
-      const err = await res.json().catch(() => ({}));
-      setStatus("error");
-      setErrorMsg(err.error || "Invalid invite code");
-    } catch {
-      setStatus("error");
-      setErrorMsg("Cannot reach server. Are you connected?");
-    }
-  };
-
-  const handleInput = (val: string) => {
-    const clean = val.replace(/[^A-Za-z0-9]/g, "").toUpperCase().slice(0, 8);
-    setCode(clean.length > 4 ? `${clean.slice(0, 4)}-${clean.slice(4)}` : clean);
-    setErrorMsg("");
-  };
-
-  return (
-    <div>
-      <h1 class="page-title">Join Chapter</h1>
-
-      <div class="card" style={{ padding: "var(--sp-6)", textAlign: "center" }}>
-        <p style={{ fontSize: "var(--text-sm)", color: "var(--text-sec)", marginBottom: "var(--sp-5)", lineHeight: "var(--leading-relaxed)" }}>
-          Your chapter operator will give you an invite code. It's a short code that looks like XXXX-XXXX.
-          Enter it below to connect to your chapter and start reporting.
-        </p>
-
-        <input
-          type="text"
-          placeholder="XXXX-XXXX"
-          value={code}
-          onInput={(e) => handleInput((e.target as HTMLInputElement).value)}
-          onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
-          autoFocus
-          class={`invite-input ${errorMsg ? "error" : ""}`}
-          aria-label="Invite code"
-        />
-
-        {errorMsg && <p class="error-text">{errorMsg}</p>}
-
-        <button onClick={handleSubmit} disabled={status === "loading"} class="btn btn-primary btn-full btn-lg" style={{ marginTop: "var(--sp-4)" }}>
-          {status === "loading" ? "Verifying..." : "Join Chapter"}
-        </button>
-      </div>
-
-      <div style={{ textAlign: "center", marginTop: "var(--sp-5)" }}>
-        <button class="btn btn-ghost" onClick={onSkip}>
-          I don't have a code yet — skip for now
-        </button>
-        <p class="hint-text" style={{ marginTop: "var(--sp-3)" }}>
-          You can enter your code later in Settings. You'll need it before you can submit sightings.
-        </p>
-      </div>
     </div>
   );
 }

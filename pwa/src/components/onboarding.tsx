@@ -62,9 +62,11 @@ export function Onboarding({ onComplete }: OnboardingProps) {
           </p>
           <input type="password" inputMode="numeric" maxLength={6} placeholder="4–6 digit PIN" value={pin}
             onInput={(e) => { setPin((e.target as HTMLInputElement).value); setError(""); }}
-            class={`pin-input ${error ? "error" : ""}`} />
+            onKeyDown={(e) => e.key === "Enter" && pinConfirm && handlePinSubmit()}
+            class={`pin-input ${error ? "error" : ""}`} autoFocus />
           <input type="password" inputMode="numeric" maxLength={6} placeholder="Confirm PIN" value={pinConfirm}
             onInput={(e) => { setPinConfirm((e.target as HTMLInputElement).value); setError(""); }}
+            onKeyDown={(e) => e.key === "Enter" && handlePinSubmit()}
             class="pin-input" style={{ marginTop: "var(--sp-3)" }} />
           {error && <p class="error-text">{error}</p>}
           <button onClick={handlePinSubmit} disabled={setting} class="btn btn-primary btn-full btn-lg" style={{ marginTop: "var(--sp-5)" }}>
