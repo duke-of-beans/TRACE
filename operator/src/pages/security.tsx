@@ -76,10 +76,9 @@ Each vault uses a separate database role with minimal privileges. The evidence v
 
       <div className="p-4 bg-trace-surface rounded-lg border border-trace-border">
         <p className="text-xs text-gray-500 leading-relaxed">
-          These features are designed to provide reasonable security protections for
-          chapter operations. No system can guarantee absolute security in all scenarios.
-          Operational security practices, situational awareness, and proper training
-          remain essential complements to technical protections.
+          These mechanisms provide specific technical protections. They do not
+          guarantee safety in all circumstances. Operational awareness, situational
+          judgment, and chapter guidelines remain necessary.
         </p>
       </div>
     </div>

@@ -10,19 +10,35 @@ type OnboardingProps = { onComplete: () => void };
 
 const STEPS = [
   { title: "Welcome", icon: "shield",
-    content: `TRACE — Tracking, Reporting, Analysis & Community Evidence — is designed to help you report sightings quickly and securely.\n\nBefore you start, there are a few things you should understand about how this app protects you.\n\nThis briefing takes about 2 minutes. Please read it carefully.` },
-  { title: "Your Data is Encrypted", icon: "lock",
-    content: `Everything you capture through TRACE — photos, locations, notes — is encrypted on your device before it's stored. This means that even if someone accessed your phone's raw storage, they would find only scrambled data.\n\nYour encryption key is protected by the PIN you'll set up next. Without your PIN, the data on your device cannot be read.` },
-  { title: "Photos Stay Private", icon: "camera",
-    content: `When you use TRACE's camera, photos are captured directly from the camera stream and do not get saved to your phone's photo gallery. This means there are no copies of your surveillance photos sitting in your camera roll.\n\nIf you use the file picker instead, your phone may save a copy to the gallery. Delete it afterward.` },
+    content: `TRACE records and organizes vehicle sightings reported by community members. Tracking, Reporting, Analysis, and Community Evidence.
+
+Before you begin, read through how the system works and what it does with your data.
+
+This takes about 2 minutes.` },
+  { title: "Device Encryption", icon: "lock",
+    content: `Everything stored on this device is encrypted with AES-256-GCM. Photos, locations, notes, queued reports. All of it.
+
+The encryption key is derived from the PIN you set next. Without the PIN, the data on this device is unreadable ciphertext.` },
+  { title: "Camera Behavior", icon: "camera",
+    content: `Photos taken through the TRACE camera go directly from the camera stream into encrypted storage. They are not saved to the device gallery. No copies exist outside the app.
+
+The file picker may create gallery copies. Use the camera when possible.` },
   { title: "Offline Queue", icon: "radio",
-    content: `TRACE works without an internet connection. When you submit a sighting and the server isn't reachable, your report is encrypted and queued on your device. It will automatically upload when connectivity is restored.\n\nYou can see how many reports are queued in the Settings tab.` },
+    content: `Reports are encrypted and queued locally when the server is unreachable. They upload automatically when connectivity returns.
+
+Queue count is visible in Settings.` },
   { title: "Emergency Wipe", icon: "alert-triangle",
-    content: `If you ever need to quickly destroy all TRACE data on your device, go to Settings and use the Emergency Wipe button. This permanently destroys your encryption key and all stored data. The app will cease to function.\n\nThis is intended for situations where you believe your device may be compromised. Use it only when necessary — it cannot be undone.` },
+    content: `The Wipe button destroys the encryption key first, making all stored data unreadable, then clears all app storage. The app stops functioning.
+
+This is on the Report screen (top right) and in Settings. It cannot be undone.` },
   { title: "Check-In Requirement", icon: "clock",
-    content: `For your protection, TRACE requires periodic contact with the server. If your device cannot reach the server for an extended period, the app may automatically clear its data as a precaution.\n\nIf you know you'll be without signal for an extended time (vacation, travel, remote areas), coordinate with your operator beforehand.` },
-  { title: "Your Operator Can Help", icon: "user",
-    content: `Your chapter operator has tools to protect you remotely. If they believe a device may be compromised, they can remotely revoke access and signal the app to clear its data.\n\nThis is a safety measure, not surveillance. The operator cannot see your personal data — only your callsign and submission history within the chapter's operational data.` },
+    content: `The device contacts the server periodically in the background. If contact fails for 72 hours, the app clears its data automatically.
+
+If you will be without signal for an extended time, tell your operator beforehand.` },
+  { title: "Operator Controls", icon: "user",
+    content: `The chapter operator can revoke access or signal a device to clear its data remotely. This fires on the device's next server contact.
+
+The operator works with callsigns only. They do not have access to the identity vault.` },
 ];
 
 export function Onboarding({ onComplete }: OnboardingProps) {
@@ -35,8 +51,8 @@ export function Onboarding({ onComplete }: OnboardingProps) {
   const isPinStep = step === STEPS.length;
 
   const handlePinSubmit = async () => {
-    if (pin.length < 4 || pin.length > 6) { setError("PIN must be 4–6 digits"); return; }
-    if (pin !== pinConfirm) { setError("PINs don't match"); return; }
+    if (pin.length < 4 || pin.length > 6) { setError("PIN must be 4 to 6 digits"); return; }
+    if (pin !== pinConfirm) { setError("PINs do not match"); return; }
     if (!/^\d+$/.test(pin)) { setError("PIN must be numbers only"); return; }
     setSetting(true);
     try {
@@ -47,7 +63,7 @@ export function Onboarding({ onComplete }: OnboardingProps) {
       }
       onComplete();
     } catch {
-      setError("Failed to set up PIN. Please try again.");
+      setError("PIN setup failed. Try again.");
       setSetting(false);
     }
   };
@@ -62,9 +78,9 @@ export function Onboarding({ onComplete }: OnboardingProps) {
           </div>
           <h2 style={{ fontSize: "var(--text-lg)", fontWeight: 600, marginTop: "var(--sp-3)", marginBottom: "var(--sp-1)" }}>Set Your PIN</h2>
           <p class="auth-subtitle">
-            Your PIN protects the encryption key on this device. You'll enter it each time you open TRACE.
+            The PIN protects the encryption key on this device. Required every time the app opens.
           </p>
-          <input type="password" inputMode="numeric" maxLength={6} placeholder="4–6 digit PIN" value={pin}
+          <input type="password" inputMode="numeric" maxLength={6} placeholder="4 to 6 digit PIN" value={pin}
             onInput={(e) => { setPin((e.target as HTMLInputElement).value); setError(""); }}
             onKeyDown={(e) => e.key === "Enter" && pinConfirm && handlePinSubmit()}
             class={`pin-input ${error ? "error" : ""}`} autoFocus />
@@ -74,7 +90,7 @@ export function Onboarding({ onComplete }: OnboardingProps) {
             class="pin-input" style={{ marginTop: "var(--sp-3)" }} />
           {error && <p class="error-text">{error}</p>}
           <button onClick={handlePinSubmit} disabled={setting} class="btn btn-primary btn-full btn-lg" style={{ marginTop: "var(--sp-5)" }}>
-            {setting ? "Setting up..." : "Set PIN & Start"}
+            {setting ? "Setting up..." : "Set PIN"}
           </button>
         </div>
       </div>

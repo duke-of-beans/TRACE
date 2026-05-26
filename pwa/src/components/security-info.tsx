@@ -13,32 +13,32 @@ export function SecurityInfo({ ttlHours, onBack }: SecurityInfoProps) {
         Back to Settings
       </button>
 
-      <h1 class="page-title">How TRACE Protects You</h1>
+      <h1 class="page-title">System Architecture</h1>
 
       <Section title="Device Encryption" icon="shield"
-        body="All data stored on this device is encrypted using AES-256-GCM. Your photos, sighting reports, and queue data are scrambled before being saved. Your PIN protects the encryption key — without it, the data cannot be read, even with physical access to the device." />
+        body="All data on this device is encrypted with AES-256-GCM before it is written to storage. Photos, sighting reports, and queue data are ciphertext at rest. The encryption key is derived from your PIN using PBKDF2. Without the PIN, stored data is unreadable." />
 
-      <Section title="Gallery-Free Camera" icon="camera"
-        body={`When you capture photos through TRACE's camera, images are taken directly from the camera stream and are not saved to your phone's photo gallery. There are no copies to find or delete. The "Files" fallback may create gallery copies — use the camera when possible.`} />
+      <Section title="Camera" icon="camera"
+        body="The camera captures directly from the hardware stream into encrypted storage. Images do not pass through the device gallery. No copies are created outside the app. The file picker fallback may write to the gallery. Delete those manually." />
 
       <Section title="Offline Queue" icon="radio"
-        body="Sighting reports are encrypted and queued on your device when the server isn't reachable. They upload automatically when connectivity is restored. You can see your queue count in Settings." />
+        body="Sighting reports are encrypted and stored locally when the server is unreachable. The queue drains automatically when connectivity returns. Queue count is visible in Settings." />
 
       <Section title="Emergency Wipe" icon="alert-triangle"
-        body="The Emergency Wipe in Settings permanently destroys all TRACE data on this device. It works by destroying your encryption key first — making all stored data irrecoverable — then wiping all app storage, caches, and the app itself. This cannot be undone." />
+        body="Wipe destroys the encryption key first. All stored data becomes unreadable ciphertext. Then it clears all app storage, caches, and service worker registration. The device retains nothing. This cannot be undone." />
 
-      <Section title={`Check-In Window (${ttlHours} hours)`} icon="clock"
-        body={`As a precaution, TRACE requires periodic contact with the server. If this device cannot reach the server for ${ttlHours} hours, the app will automatically clear its data.\n\nIf you plan to be without signal for an extended period, contact your operator beforehand.`} />
+      <Section title={`Check-In (${ttlHours} hours)`} icon="clock"
+        body={`The device contacts the server periodically via background sync and in-app heartbeat. If server contact fails for ${ttlHours} hours, the app clears its data automatically.\n\nThe 4 hours before expiry, the app shows a warning. If you will be without signal, coordinate with your operator to extend the window.`} />
 
-      <Section title="Remote Protection" icon="globe"
-        body="Your chapter operator can remotely revoke access and signal this app to clear its data if they believe a device may be compromised. The operator cannot access your personal information — they work only with your callsign and operational data." />
+      <Section title="Remote Controls" icon="globe"
+        body="The operator can revoke access and signal this device to clear its data. The signal fires on the next server contact. If the device is offline, the check-in timer handles it. The operator has access to callsigns and operational data only. They cannot read the identity vault." />
 
-      <Section title="PIN Protection" icon="lock"
-        body="Your PIN is required every time you open TRACE. The app also locks when you switch to another app or after inactivity. After 10 incorrect PIN attempts, the app automatically wipes all data." />
+      <Section title="PIN Lock" icon="lock"
+        body="PIN is required every time the app opens. The app locks after 30 seconds in the background or 5 minutes of inactivity. After 10 incorrect PIN entries, the app wipes automatically." />
 
       <div class="card" style={{ marginTop: "var(--sp-6)" }}>
         <p style={{ fontSize: "var(--text-xs)", color: "var(--text-muted)", lineHeight: "var(--leading-relaxed)" }}>
-          These features are designed to provide reasonable protections for your information. No security system can guarantee absolute protection in all circumstances. Always exercise situational awareness and follow your chapter's operational guidelines.
+          These mechanisms provide specific technical protections. They do not guarantee safety in all circumstances. Operational awareness and chapter guidelines remain necessary.
         </p>
       </div>
     </div>

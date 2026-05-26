@@ -1,13 +1,5 @@
 /**
  * TRACE Operator — Onboarding
- *
- * First-time briefing for operators. Covers:
- * - What TRACE is and the full acronym
- * - Three-vault architecture
- * - Triage workflow
- * - Reporter management + invite codes
- * - Remote kill capabilities
- * - Demo data notice
  */
 import { useState } from "react";
 import { Icon } from "./icon.js";
@@ -17,84 +9,84 @@ const STEPS = [
     title: "Welcome",
     icon: "shield",
     useWordmark: true,
-    content: `TRACE — Tracking, Reporting, Analysis & Community Evidence — is a secure platform for community vehicle surveillance operations.
+    content: `Tracking, Reporting, Analysis, and Community Evidence.
 
-You're logging in as an operator. You manage reporters, review incoming sightings, track vehicles and actors, and control device security for your chapter.
+TRACE records vehicle sightings from field reporters, organizes them into patterns, and surfaces intelligence for chapter operators.
 
-This briefing covers the key systems you'll be working with. Takes about 3 minutes.`,
+You are logging in as an operator. You manage reporters, triage sightings, track vehicles and actors, and control device security.
+
+This covers the key systems. Takes about 3 minutes.`,
   },
   {
     title: "Three-Vault Architecture",
     icon: "lock",
-    content: `TRACE separates all data into three cryptographically isolated vaults:
+    content: `Data is separated into three cryptographically isolated vaults.
 
-Vault A (Operational) — Vehicles, sightings, actors, suspicion levels. Everything is pseudonymous. A full dump reveals zero personal information about reporters.
+Vault A (Operational): Vehicles, sightings, actors, suspicion levels. Pseudonymous. A complete dump contains zero reporter identities.
 
-Vault B (Identity) — Reporter real names, emails, authentication. Encrypted at rest with a separate key. Only accessible during auth flows.
+Vault B (Identity): Reporter names, authentication tokens, sessions. Encrypted at rest with a separate key. Accessed only during auth flows.
 
-Vault C (Evidence) — Write-once evidence locker with SHA-256 hash chain. Cannot be modified or deleted. Provides tamper-evident, legal-grade evidence integrity.
+Vault C (Evidence): Write-once evidence locker. SHA-256 hash chain. Cannot be modified or deleted. Append-only by architecture, not policy.
 
-Each vault uses a separate database role with minimal privileges. This means a breach of one vault does not compromise the others.`,
+Each vault uses a separate database role with minimal privileges. A breach of one vault does not expose the others.`,
   },
   {
-    title: "Triage Workflow",
+    title: "Triage",
     icon: "zap",
-    content: `When reporters submit sightings from the field, they arrive in your Triage queue.
+    content: `Field reports arrive in the Triage queue.
 
-For each sighting, you review the plate, vehicle description, activity, photos, and location, then take one of four actions:
+For each sighting: review plate, vehicle description, activity, location. Then act.
 
-Approve — Valid sighting, add to vehicle tracking.
-Flag — Needs follow-up or additional context.
-Dismiss — Not actionable (false positive, duplicate, etc.).
-Escalate — Urgent or high-priority, fast-track to confirmed status.
+Approve: valid sighting, add to vehicle tracking.
+Flag: needs follow-up or context.
+Dismiss: not actionable.
+Escalate: high priority, fast-track.
 
-Triage is keyboard-driven: A, F, D, E for actions, N/P to navigate. Press ? anywhere in the dashboard for the full shortcut list.`,
+Keyboard driven. A, F, D, E for actions. N/P to navigate. Press ? for the full shortcut list.`,
   },
   {
     title: "Suspicion Ladder",
     icon: "alert-triangle",
-    content: `Vehicles are assigned suspicion levels that escalate as evidence accumulates:
+    content: `Vehicles are assigned suspicion levels that escalate with evidence.
 
-Noted → Watching → Suspicious → Confirmed → Priority
+Noted, Watching, Suspicious, Confirmed, Priority.
 
-Each level has configurable predicates — rules that define when a vehicle should be promoted. For example: "Promote to Watching when sighting count ≥ 3 across ≥ 2 distinct days."
+Each level has configurable predicates. Example: promote to Watching when sighting count reaches 3 across 2 or more distinct days.
 
-You can customize these levels, their colors, and their promotion rules in the Admin section. Actors have their own parallel suspicion ladder.`,
+Levels, colors, and promotion rules are editable in Admin. Actors have a parallel ladder with their own criteria.`,
   },
   {
     title: "Reporter Management",
     icon: "user",
-    content: `Reporters join your chapter using invite codes. You generate these in Admin → Reporters.
+    content: `Reporters join via invite codes generated in Admin.
 
-Each code is a single-use XXXX-XXXX format, valid for 7 days. Give it to the reporter in person or via a secure channel. No email is required — reporters authenticate with the code and a device PIN.
+Each code is single-use, XXXX-XXXX format, valid 7 days. Hand it to the reporter directly or through a secure channel. No email is involved.
 
-Reporters are identified only by callsigns in the operational vault. Their real identities (if collected) are encrypted separately in Vault B. You work with callsigns, never real names, in your day-to-day operations.`,
+Reporters appear in operational data by callsign only. Real identities, if collected, are encrypted in Vault B. Day-to-day operations use callsigns exclusively.`,
   },
   {
-    title: "Device Security Controls",
+    title: "Device Security",
     icon: "skull",
-    content: `You have three levels of remote device control:
+    content: `Three levels of remote device control.
 
-Suspend — Revokes the reporter's sessions. They lose access on next API call. Reversible.
+Suspend: revokes sessions. Reporter loses access on next API call. Reversible.
 
-Kill — Suspends the reporter AND sends a push kill signal. The reporter's device wipes all TRACE data on next contact. Not easily reversible.
+Kill: suspends the reporter and pushes a kill signal. The device clears all TRACE data on next server contact.
 
-Nuke All — Emergency kill for every reporter in the chapter simultaneously. Double-confirmed. Use only when the chapter's operational security has been fundamentally compromised.
+Nuke All: suspends every reporter in the chapter, revokes all sessions, pushes kill to every device. Double-confirmed.
 
-If a device is offline, the dead man's switch will fire after the check-in window (default 72 hours), automatically wiping the device.`,
+Offline devices are handled by the check-in timer. Default: 72 hours without server contact triggers automatic data clearing.`,
   },
   {
     title: "Demo Data",
     icon: "info",
-    content: `This instance has been seeded with obviously fake demo data so you can see how the system works:
+    content: `This instance contains demo records. All are marked.
 
-• Vehicles with plates like FAKE-001, FAKE-002, TEST-004
-• Actors named GHOST (DEMO), SPARKS (DEMO), NINE (DEMO)
-• Sightings, identifier types, suspicion levels — all marked (DEMO)
+Vehicles: FAKE-001, FAKE-002, FAKE-003, TEST-004, TEST-005.
+Actors: GHOST (DEMO), SPARKS (DEMO), NINE (DEMO).
+Sightings, identifiers, suspicion levels: all prefixed DEMO.
 
-Explore the dashboard to see how vehicles, actors, sightings, and the suspicion ladder work together. When you're ready to go live, delete all demo records from Admin and replace them with your chapter's real configuration.
-
-You're all set. Welcome to TRACE.`,
+Use these to understand how the system works. Delete them from Admin when you are ready to go live.`,
   },
 ];
 
@@ -113,7 +105,6 @@ export function OperatorOnboarding({ onComplete }: OperatorOnboardingProps) {
   return (
     <div className="min-h-screen flex items-center justify-center p-8" style={{ background: "var(--bg)" }}>
       <div style={{ maxWidth: 520, width: "100%" }}>
-        {/* Progress dots */}
         <div className="flex gap-1.5 justify-center mb-8">
           {STEPS.map((_, i) => (
             <div key={i} className="rounded-full" style={{
@@ -125,9 +116,7 @@ export function OperatorOnboarding({ onComplete }: OperatorOnboardingProps) {
           ))}
         </div>
 
-        {/* Content card */}
         <div className="rounded-xl p-8" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
-          {/* Header */}
           <div className="flex items-center gap-3 mb-5">
             {current.useWordmark ? (
               <div style={{ display: "inline-block" }}>
@@ -142,13 +131,11 @@ export function OperatorOnboarding({ onComplete }: OperatorOnboardingProps) {
             )}
           </div>
 
-          {/* Body */}
           <p className="text-sm leading-relaxed whitespace-pre-line" style={{ color: "var(--text-sec)" }}>
             {current.content}
           </p>
         </div>
 
-        {/* Navigation */}
         <div className="flex gap-3 mt-6">
           {step > 0 && (
             <button onClick={() => setStep(s => s - 1)}
@@ -166,7 +153,7 @@ export function OperatorOnboarding({ onComplete }: OperatorOnboardingProps) {
         </div>
 
         <p className="text-center mt-4 text-xs" style={{ color: "var(--text-muted)" }}>
-          Step {step + 1} of {STEPS.length}
+          {step + 1} of {STEPS.length}
         </p>
       </div>
     </div>
