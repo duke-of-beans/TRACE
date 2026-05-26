@@ -4,58 +4,70 @@
 
 Community vehicle tracking platform for neighborhood safety chapters. Reporters submit sightings from their phones. Operators triage, dispatch, and build intelligence from a desktop console. Three-vault database architecture ensures reporter identities stay separate from operational data.
 
-## Quick Deploy (15 minutes)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fduke-of-beans%2FTRACE&env=DATABASE_URL&envDescription=Neon%20PostgreSQL%20connection%20string%20(pooler%20URL)&envLink=https%3A%2F%2Fneon.tech&project-name=trace&repository-name=TRACE)
 
-TRACE runs on Vercel (free tier) with a Neon PostgreSQL database (free tier). No server to manage.
+## Get Started (10 minutes, no coding)
 
-### What you need
+You need a computer with a web browser. That's it. Everything runs in the cloud for free.
 
-- A GitHub account
-- A Vercel account (sign up with GitHub)
-- A Neon account (free at neon.tech)
+### Step 1: Create your database
 
-### Steps
+1. Go to [neon.tech](https://neon.tech) and sign up (you can use your Google account)
+2. Click **New Project**
+3. Name it anything (like `trace`)
+4. After it's created, you'll see a **Connection String** box. Click the copy button next to it. It looks something like `postgresql://neondb_owner:abc123@ep-something.neon.tech/neondb?sslmode=require`
 
-1. **Fork the repo.** Click Fork on [github.com/duke-of-beans/TRACE](https://github.com/duke-of-beans/TRACE).
+Keep this copied — you'll need it in the next step.
 
-2. **Create a Neon database.** Sign in at [neon.tech](https://neon.tech), create a project, name the database `trace`. Copy the pooler connection string.
+### Step 2: Deploy TRACE
 
-3. **Connect to Vercel.** Sign in at [vercel.com](https://vercel.com), click "Add New Project," import your fork. Under Environment Variables, add `DATABASE_URL` with your Neon pooler connection string. Deploy.
+1. Click the blue **Deploy with Vercel** button above
+2. Sign in with GitHub (create a free account if you don't have one)
+3. It asks for `DATABASE_URL` — paste the connection string you just copied
+4. Click **Deploy** and wait about 2 minutes
 
-4. **Push the schema.** In your Neon dashboard, open the SQL Editor. Paste the contents of `migrations/0000_init.sql`, then `migrations/0001_dispatch.sql`, then `migrations/0002_photos-and-fixes.sql`. Run each one.
+When it finishes, you'll get a URL like `trace-abc123.vercel.app`. This is your TRACE. Bookmark it.
 
-5. **Seed the database.** In the Neon SQL Editor, run this query to create your chapter and first operator:
+### Step 3: Set up the database tables
 
-```sql
--- Create chapter
-INSERT INTO ops.chapters (id, name, slug, sunset_days)
-VALUES (gen_random_uuid(), 'My Chapter', 'my-chapter', 90);
+1. Go back to [Neon](https://console.neon.tech) and click on your project
+2. Click **SQL Editor** in the left sidebar
+3. Open the file [`setup.sql`](setup.sql) from this repository (click it on GitHub, then click the copy button)
+4. Paste the entire contents into the Neon SQL Editor
+5. Click **Run**
 
--- Create first operator (use the chapter ID from above)
-INSERT INTO ops.reporters (id, chapter_id, callsign, status)
-VALUES (gen_random_uuid(),
-  (SELECT id FROM ops.chapters LIMIT 1),
-  'YOUR-CALLSIGN', 'active');
+You should see a series of "CREATE TABLE" confirmations. If you see any errors about things "already existing," that's fine — it means the tables were already created.
 
--- Give them operator role
-INSERT INTO ident.reporter_identities (id, reporter_id, role)
-VALUES (gen_random_uuid(),
-  (SELECT id FROM ops.reporters WHERE callsign = 'YOUR-CALLSIGN'),
-  'operator');
-```
+### Step 4: Create your operator account
 
-Replace `YOUR-CALLSIGN` with the operator's callsign (uppercase, letters and numbers only).
+1. Go to `your-app.vercel.app/operator/` (replace with your actual Vercel URL)
+2. You'll see a **First-Time Setup** screen
+3. Enter your **chapter name** (e.g., "Westside Watch")
+4. Choose a **callsign** (your operator name — like "ALPHA" or "DISPATCH-1")
+5. Choose an **access code** (like a password — 6+ characters, keep it safe)
+6. Click **Create Operator & Start**
 
-6. **Lock it down.** In Vercel, add these environment variables and redeploy:
+You're in. The onboarding walkthrough will show you around.
 
-| Variable | Value | Purpose |
-|----------|-------|---------|
-| `TRACE_DISABLE_DEV_LOGIN` | `true` | Prevents login by callsign alone |
-| `TRACE_DISABLE_TEST_CODE` | `true` | Disables the demo invite code |
+### Step 5: Invite your first reporter
 
-7. **Generate your first invite code.** Log in to the operator console at `your-app.vercel.app/operator/` using your callsign. Go to Admin > Reporters > Generate Invite Code. Give the code to your first reporter via Signal or in person.
+1. In the operator console, click **Admin** in the sidebar
+2. Click the **Reporters** tab
+3. Type a callsign for the reporter (their code name, not their real name)
+4. Click **Generate Invite Code**
+5. Send the invite code to your reporter via Signal, WhatsApp, or in person
 
-8. **Share the reporter app.** Send reporters to `your-app.vercel.app`. On iPhone: Safari > Share > Add to Home Screen. On Android: Chrome > three dots > Add to Home Screen. It installs as a standalone app.
+The reporter opens your TRACE URL on their phone, enters the code, and they're in.
+
+### Step 6: Install the app on phones
+
+Tell reporters to open your TRACE URL in their phone's browser, then:
+
+**iPhone (must use Safari):** Tap the Share button → Add to Home Screen → Add
+
+**Android (use Chrome):** Tap the three-dot menu → Add to Home Screen → Add
+
+The app icon appears on their home screen and runs full-screen like a real app.
 
 ## How It Works
 
