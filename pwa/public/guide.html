@@ -17,7 +17,7 @@
     --accent-text: #FFFFFF;
     --text: #F1F5F9;
     --text-sec: #94A3B8;
-    --text-muted: #64748B;
+    --text-muted: #7C8BA4;
     --success: #16A34A;
     --warning: #D97706;
     --danger: #DC2626;
@@ -310,7 +310,7 @@
   <ol class="instructions">
     <li>Go to <strong><a href="https://neon.tech" target="_blank">neon.tech</a></strong> and click <strong>Sign Up</strong>. Google account works, or use a separate email and password.</li>
     <li>Click <strong>New Project</strong>. Name it anything. Pick the region closest to your area.</li>
-    <li>After creation, you will see a <strong>Connection String</strong>. It is a long string of characters. Click the <strong>copy button</strong> next to it.</li>
+    <li>After creation, you will see a <strong>Connection String</strong> in the dashboard. Make sure the connection type says <strong>Pooled</strong> (not "Direct"). Copy the full string. It starts with <code>postgresql://</code> and contains the word <code>pooler</code>.</li>
   </ol>
 
   <div class="mockup">
@@ -387,7 +387,7 @@
   <ol class="instructions">
     <li>Go back to <strong><a href="https://console.neon.tech" target="_blank">Neon</a></strong> and click your project.</li>
     <li>Click <strong>SQL Editor</strong> in the left sidebar.</li>
-    <li>Open <strong><a href="https://github.com/duke-of-beans/TRACE/blob/main/setup.sql" target="_blank">this file</a></strong> on GitHub. Click the <strong>copy raw file</strong> button (top-right of the code block).</li>
+    <li>Open <strong><a href="https://github.com/duke-of-beans/TRACE/blob/main/setup.sql" target="_blank">this file</a></strong> on GitHub. Click the <strong>copy icon</strong> in the toolbar above the code (looks like two overlapping squares).</li>
     <li>Paste the entire contents into the Neon SQL Editor.</li>
     <li>Click <strong>Run</strong>.</li>
   </ol>
@@ -422,8 +422,8 @@
   <p>This screen appears once, on first access. After the first operator is created, it becomes a standard login.</p>
 
   <ol class="instructions">
-    <li>Go to <strong>your-app.vercel.app/operator/</strong> (your Vercel URL + <code>/operator/</code>)</li>
-    <li>The <strong>First-Time Setup</strong> screen appears.</li>
+    <li>Open your Vercel URL from Step 2 and add <code>/operator/</code> to the end. Example: if your URL is <code>trace-abc123.vercel.app</code>, go to <code>trace-abc123.vercel.app/operator/</code></li>
+    <li>The <strong>First-Time Setup</strong> screen appears automatically (because no operators exist yet).</li>
     <li>Enter a <strong>chapter name</strong> (e.g. "Westside Watch")</li>
     <li>Choose a <strong>callsign</strong> (your operator code name, e.g. "ALPHA" or "DISPATCH-1")</li>
     <li>Choose an <strong>access code</strong> (passphrase, at least 6 characters). Store this securely.</li>
@@ -572,7 +572,7 @@
 
   <details style="margin-bottom:10px;border:1px solid var(--border);border-radius:6px;padding:10px 14px;">
     <summary style="font-size:13px;font-weight:600;color:var(--text-sec);">Connection failed on login</summary>
-    <p style="font-size:12px;color:var(--text-muted);margin-top:6px;">Verify DATABASE_URL in Vercel. Go to your Vercel project, Settings, Environment Variables. The value should start with <code>postgresql://</code>.</p>
+    <p style="font-size:12px;color:var(--text-muted);margin-top:6px;">Verify DATABASE_URL in Vercel. Go to your Vercel project, Settings, Environment Variables. The value should start with <code>postgresql://</code> and contain the word <code>pooler</code>. If it does not contain <code>pooler</code>, go back to Neon, switch to the Pooled connection string, copy it, and update the Vercel environment variable. Redeploy after changing it (Deployments tab, three-dot menu on the latest, Redeploy).</p>
   </details>
 
   <details style="margin-bottom:10px;border:1px solid var(--border);border-radius:6px;padding:10px 14px;">
@@ -586,13 +586,18 @@
   </details>
 
   <details style="margin-bottom:10px;border:1px solid var(--border);border-radius:6px;padding:10px 14px;">
+    <summary style="font-size:13px;font-weight:600;color:var(--text-sec);">Setup screen did not appear at /operator/</summary>
+    <p style="font-size:12px;color:var(--text-muted);margin-top:6px;">The First-Time Setup screen only appears when zero operators exist in the database. If you see a login screen instead, an operator was already created (possibly from a previous attempt). Try logging in with the callsign and access code you chose. If you do not remember them, you will need to delete the Neon project and start over from Step 1.</p>
+  </details>
+
+  <details style="margin-bottom:10px;border:1px solid var(--border);border-radius:6px;padding:10px 14px;">
     <summary style="font-size:13px;font-weight:600;color:var(--text-sec);">Adding more operators</summary>
     <p style="font-size:12px;color:var(--text-muted);margin-top:6px;">Admin, Operators tab, Add Operator. Each operator gets their own callsign and access code.</p>
   </details>
 
   <details style="margin-bottom:10px;border:1px solid var(--border);border-radius:6px;padding:10px 14px;">
     <summary style="font-size:13px;font-weight:600;color:var(--text-sec);">Updating TRACE</summary>
-    <p style="font-size:12px;color:var(--text-muted);margin-top:6px;">In your GitHub repository, click "Sync fork," then "Update branch." Vercel deploys the update automatically. Data in Neon is unaffected.</p>
+    <p style="font-size:12px;color:var(--text-muted);margin-top:6px;">When the Deploy button ran in Step 2, it created a copy of the TRACE code in your GitHub account. To get updates: go to github.com, open your TRACE repository, and look for a banner that says "This branch is X commits behind." Click <strong>Sync fork</strong>, then <strong>Update branch</strong>. Vercel detects the change and deploys automatically. Your data in Neon is unaffected.</p>
   </details>
 
   <h3 style="font-size:15px;margin-bottom:14px;margin-top:28px;color:var(--text-muted);">Accounts and Security</h3>
