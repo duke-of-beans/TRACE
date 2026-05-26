@@ -36,3 +36,14 @@ export function initTheme(defaultTheme: Theme = "light"): Theme {
   applyTheme(theme);
   return theme;
 }
+
+/** Auto-switch based on time of day (6pm-6am = dark). Only applies if user hasn't manually set a preference. */
+export function autoNightMode(): Theme | null {
+  const manuallySet = localStorage.getItem(STORAGE_KEY);
+  if (manuallySet) return null; // respect manual choice
+  const hour = new Date().getHours();
+  const shouldBeDark = hour >= 18 || hour < 6;
+  const theme: Theme = shouldBeDark ? "dark" : "light";
+  applyTheme(theme);
+  return theme;
+}

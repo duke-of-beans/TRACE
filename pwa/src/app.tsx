@@ -20,7 +20,8 @@ import { getQueueCount } from "./lib/queue.js";
 import { isWiped } from "./lib/panic.js";
 import { hasPIN, isLocked, lock, setupAutoLock } from "./lib/app-lock.js";
 import { startDeadManSwitch, startHeartbeat, hoursUntilExpiry, checkTTLStatus, getTTLHours } from "./lib/deadman.js";
-import { toggleTheme, getTheme } from "../../shared/design/theme.js";
+import { toggleTheme, getTheme, autoNightMode } from "../../shared/design/theme.js";
+import { registerPush } from "./lib/push.js";
 
 type Page = "submit" | "map" | "history" | "settings" | "security";
 
@@ -36,6 +37,21 @@ export function App() {
   const [briefed, setBriefed] = useState(() => isBriefed());
   const [ttlHours] = useState(() => parseInt(localStorage.getItem("trace_ttl_hours") || "72"));
   const [theme, setThemeState] = useState(() => getTheme("light"));
+
+  // Auto night mode on mount + check every 15 min
+  useEffect(() => {
+    autoNightMode();
+    const timer = setInterval(() => {
+      const result = autoNightMode();
+      if (result) setThemeState(result);
+    }, 15 * 60 * 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  // Register push notifications after auth
+  useEffect(() => {
+    if (authed && briefed) registerPush().catch(() => {});
+  }, [authed, briefed]);
 
   useEffect(() => {
     if (isWiped()) return;

@@ -22,6 +22,7 @@ export function Triage() {
   const [showDispatch, setShowDispatch] = useState(false);
   const [reporters, setReporters] = useState<any[]>([]);
   const [eventTypes, setEventTypes] = useState<any[]>([]);
+  const [photos, setPhotos] = useState<any[]>([]);
   const toast = useToast();
   const confirm = useConfirm();
 
@@ -54,6 +55,19 @@ export function Triage() {
     });
     return unsub;
   }, []);
+
+  // Load photos for selected sighting
+  useEffect(() => {
+    setPhotos([]);
+    const sid = sightings[selected]?.id;
+    if (!sid) return;
+    fetch(`${import.meta.env.VITE_API_URL || "/api/v1"}/sightings/${sid}/photos`, {
+      headers: { Authorization: `Bearer ${localStorage.getItem("trace_op_token") || ""}` },
+    })
+      .then((r) => r.ok ? r.json() : [])
+      .then((data) => setPhotos(Array.isArray(data) ? data : []))
+      .catch(() => {});
+  }, [selected, sightings]);
 
   const current = sightings[selected];
   const isMatch = current?.plateMatched === true;
@@ -255,6 +269,24 @@ export function Triage() {
               <div className="mb-4">
                 <label className="text-xs uppercase tracking-wider" style={{ color: "var(--text-sec)" }}>Notes</label>
                 <p className="mt-1 text-sm" style={{ color: "var(--text-sec)" }}>{current.notes}</p>
+              </div>
+            )}
+
+            {/* Photos */}
+            {photos.length > 0 && (
+              <div className="mb-4">
+                <label className="text-xs uppercase tracking-wider" style={{ color: "var(--text-sec)" }}>Photos ({photos.length})</label>
+                <div className="flex gap-2 mt-2 overflow-x-auto">
+                  {photos.map((p: any) => (
+                    <img key={p.id}
+                      src={`data:${p.mimeType || "image/jpeg"};base64,${p.photoData}`}
+                      alt="Sighting photo"
+                      className="rounded-lg border border-trace-border cursor-pointer hover:opacity-80 transition"
+                      style={{ height: 120, maxWidth: 200, objectFit: "cover" }}
+                      onClick={() => window.open(`data:${p.mimeType || "image/jpeg"};base64,${p.photoData}`, "_blank")}
+                    />
+                  ))}
+                </div>
               </div>
             )}
 

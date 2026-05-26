@@ -17,6 +17,7 @@ import {
   dispatchEventTypes, sightings, sightingFeedback, vehicles,
 } from "../../db/schema/vault-a.js";
 import { eq, and, desc, inArray, lt, ne } from "drizzle-orm";
+import { pushDispatchToReporters } from "../../services/notification.js";
 
 export const dispatchRouter = new Hono();
 
@@ -168,6 +169,12 @@ dispatchRouter.post("/", async (c) => {
         reporterId: rid,
       }).onConflictDoNothing();
     }
+    // Send push notifications
+    pushDispatchToReporters(body.reporterIds, {
+      priority: body.priority || "routine",
+      plate: body.plate,
+      notes: body.notes,
+    }).catch(() => {});
   }
 
   return c.json(event, 201);
@@ -216,6 +223,12 @@ dispatchRouter.post("/confirm-and-dispatch/:sightingId", async (c) => {
         reporterId: rid,
       }).onConflictDoNothing();
     }
+    // Send push notifications
+    pushDispatchToReporters(body.reporterIds, {
+      priority: body.priority || "urgent",
+      plate: sighting.plate || undefined,
+      notes: body.notes || sighting.activityDescription || undefined,
+    }).catch(() => {});
   }
 
   // 5. Send feedback to the original reporter

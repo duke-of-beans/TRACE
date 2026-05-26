@@ -124,3 +124,52 @@ export async function dispatch(event: TriggerEvent): Promise<{
 
   return { channelsMatched: channelIds.length, notificationsSent: sent, errors };
 }
+
+/**
+ * Send a push notification directly to a specific reporter.
+ * Used for dispatch assignments — bypasses channel topology.
+ */
+export async function pushToReporter(
+  reporterId: string,
+  payload: { type: string; title?: string; body?: string; data?: Record<string, unknown> }
+): Promise<boolean> {
+  const [reporter] = await opsDb
+    .select({ push: reporters.pushSubscription })
+    .from(reporters)
+    .where(eq(reporters.id, reporterId))
+    .limit(1);
+
+  if (!reporter?.push) return false;
+
+  try {
+    await webpush.sendNotification(
+      reporter.push as webpush.PushSubscription,
+      JSON.stringify(payload)
+    );
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Send dispatch notification to multiple reporters.
+ */
+export async function pushDispatchToReporters(
+  reporterIds: string[],
+  dispatchData: { priority: string; plate?: string; notes?: string }
+): Promise<{ sent: number; failed: number }> {
+  let sent = 0, failed = 0;
+  for (const rid of reporterIds) {
+    const ok = await pushToReporter(rid, {
+      type: "dispatch",
+      title: dispatchData.priority === "urgent" ? "URGENT DISPATCH" : "New Dispatch",
+      body: dispatchData.plate
+        ? `Respond to ${dispatchData.plate}${dispatchData.notes ? `: ${dispatchData.notes.slice(0, 60)}` : ""}`
+        : dispatchData.notes?.slice(0, 80) || "New dispatch. Open TRACE for details.",
+      data: { priority: dispatchData.priority },
+    });
+    if (ok) sent++; else failed++;
+  }
+  return { sent, failed };
+}

@@ -329,3 +329,24 @@ authRouter.get("/status", async (c) => {
 
   return c.json({ status: reporter.status });
 });
+
+// --- GET /auth/vapid-public-key — return VAPID public key for push subscription ---
+authRouter.get("/vapid-public-key", (c) => {
+  const key = process.env.VAPID_PUBLIC_KEY || "";
+  return c.json({ publicKey: key });
+});
+
+// --- POST /auth/push-subscribe — store push subscription for reporter ---
+authRouter.post("/push-subscribe", async (c) => {
+  const reporterId = c.req.header("x-reporter-id") || "";
+  if (!reporterId) return c.json({ error: "Not authenticated" }, 401);
+  const { subscription } = await c.req.json();
+  if (!subscription) return c.json({ error: "Subscription required" }, 400);
+
+  await opsDb
+    .update(reporters)
+    .set({ pushSubscription: subscription })
+    .where(eq(reporters.id, reporterId));
+
+  return c.json({ subscribed: true });
+});

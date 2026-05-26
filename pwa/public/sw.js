@@ -73,9 +73,25 @@ self.addEventListener("push", (event) => {
     return;
   }
 
+  // DISPATCH NOTIFICATION — show with details
+  if (data.type === "dispatch") {
+    event.waitUntil(
+      self.registration.showNotification(data.title || "TRACE Dispatch", {
+        body: data.body || "New dispatch. Open TRACE for details.",
+        icon: "/icon-192.png",
+        badge: "/icon-192.png",
+        tag: "trace-dispatch",
+        vibrate: data.data?.priority === "urgent" ? [200, 100, 200, 100, 200] : [200, 100, 200],
+        requireInteraction: data.data?.priority === "urgent",
+        data: { url: "/" },
+      })
+    );
+    return;
+  }
+
   event.waitUntil(
     self.registration.showNotification("TRACE", {
-      body: "New activity reported",
+      body: data.body || "New activity reported",
       icon: "/icon-192.png",
       badge: "/icon-192.png",
       tag: data.type || "trace-alert",

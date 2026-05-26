@@ -1,26 +1,30 @@
-version: "3.8"
-
 services:
-  postgres:
+  db:
     image: postgres:16-alpine
-    container_name: trace-db
-    restart: unless-stopped
     environment:
       POSTGRES_DB: trace
-      POSTGRES_USER: trace_admin
-      POSTGRES_PASSWORD: ${POSTGRES_ADMIN_PASSWORD:-trace_admin_dev}
+      POSTGRES_USER: trace_ops
+      POSTGRES_PASSWORD: trace_ops_dev
     ports:
       - "5432:5432"
     volumes:
-      - trace-pgdata:/var/lib/postgresql/data
-      - ./migrations/000_bootstrap.sql:/docker-entrypoint-initdb.d/001_bootstrap.sql
-      - ./migrations/002_role_passwords.sql:/docker-entrypoint-initdb.d/002_passwords.sql
-      - ./migrations/003_tables.sql:/docker-entrypoint-initdb.d/003_tables.sql
+      - trace_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U trace_admin -d trace"]
+      test: ["CMD-SHELL", "pg_isready -U trace_ops -d trace"]
       interval: 5s
       timeout: 3s
-      retries: 10
+      retries: 5
+
+  app:
+    build: .
+    ports:
+      - "3100:3100"
+    environment:
+      DATABASE_URL: postgresql://trace_ops:trace_ops_dev@db:5432/trace
+      NODE_ENV: development
+    depends_on:
+      db:
+        condition: service_healthy
 
 volumes:
-  trace-pgdata:
+  trace_data:
