@@ -69,7 +69,7 @@ const tests: Record<string, () => Promise<void>> = {
     const res = await fetch(`${API}/admin/reporters/generate-invite`, {
       method: "POST",
       headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ callsign: "YUMA-TEST" }),
+      body: JSON.stringify({ callsign: `YUMA-${Date.now().toString(36)}` }),
     });
     if (!res.ok) throw new Error(`${res.status}`);
     const data = await res.json() as any;

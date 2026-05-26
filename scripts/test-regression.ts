@@ -100,12 +100,12 @@ const tests: Record<string, () => Promise<void>> = {
 
   // Full reporter lifecycle: generate invite -> use code -> submit sighting -> verify
   async "reporter-lifecycle"() {
-    // Step 1: operator generates invite
+    const suffix = Date.now().toString(36);
     const opToken = await getToken();
     const inviteRes = await fetch(`${API}/admin/reporters/generate-invite`, {
       method: "POST",
       headers: headers(opToken),
-      body: JSON.stringify({ callsign: "CHAIN-REPORTER" }),
+      body: JSON.stringify({ callsign: `CHAIN-R-${suffix}` }),
     });
     const invite = await inviteRes.json() as any;
     if (!invite.inviteCode) throw new Error("No invite code generated");
@@ -157,7 +157,7 @@ const tests: Record<string, () => Promise<void>> = {
 
     // Step 2: verify levels have required fields
     for (const level of levels) {
-      if (!level.label || !level.rank || !level.id) throw new Error(`Level missing fields: ${JSON.stringify(level)}`);
+      if (!level.label || level.rank === undefined || level.rank === null || !level.id) throw new Error(`Level missing fields: ${JSON.stringify(level)}`);
     }
     console.log(`  2. All levels have label, rank, id`);
 
@@ -178,13 +178,12 @@ const tests: Record<string, () => Promise<void>> = {
 
   // Device kill chain: create reporter -> kill -> verify sessions revoked
   async "device-kill"() {
+    const suffix = Date.now().toString(36);
     const opToken = await getToken();
-
-    // Step 1: create reporter via invite
     const inviteRes = await fetch(`${API}/admin/reporters/generate-invite`, {
       method: "POST",
       headers: headers(opToken),
-      body: JSON.stringify({ callsign: "KILL-TARGET" }),
+      body: JSON.stringify({ callsign: `KILL-${suffix}` }),
     });
     const invite = await inviteRes.json() as any;
     const reporterId = invite.reporterId;
