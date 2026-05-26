@@ -10,6 +10,7 @@ import { enqueue } from "../lib/queue.js";
 import { applyJitter } from "../lib/jitter.js";
 import { DirectCamera } from "../components/camera.js";
 import { Icon } from "../components/icon.js";
+import { panic } from "../lib/panic.js";
 
 type SightingDraft = {
   photos: File[];
@@ -47,6 +48,7 @@ export function Submit() {
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [showCamera, setShowCamera] = useState(false);
+  const [wipeConfirm, setWipeConfirm] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const handlePhotos = async (e: Event) => {
@@ -103,7 +105,57 @@ export function Submit() {
 
   return (
     <div>
-      <h1 class="page-title">Report Sighting</h1>
+      {/* Header with emergency wipe */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "var(--sp-5)" }}>
+        <h1 class="page-title" style={{ marginBottom: 0 }}>Report Sighting</h1>
+        <button
+          onClick={() => setWipeConfirm(true)}
+          aria-label="Emergency wipe"
+          style={{
+            background: "none", border: "1px solid var(--danger)",
+            borderRadius: "var(--radius)", padding: "6px 10px",
+            color: "var(--danger)", cursor: "pointer", display: "flex",
+            alignItems: "center", gap: "4px", fontSize: "var(--text-xs)",
+            fontWeight: 600, minHeight: 36,
+          }}
+        >
+          <Icon name="alert-triangle" size={14} /> Wipe
+        </button>
+      </div>
+
+      {/* Wipe confirmation overlay */}
+      {wipeConfirm && (
+        <div style={{
+          position: "fixed", inset: 0, zIndex: 9999,
+          background: "rgba(0,0,0,0.5)", backdropFilter: "blur(2px)",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          padding: "var(--sp-4)",
+        }} onClick={() => setWipeConfirm(false)}>
+          <div onClick={(e) => e.stopPropagation()} style={{
+            background: "var(--surface)", border: "1px solid var(--danger)",
+            borderRadius: "var(--radius-lg)", padding: "var(--sp-6)",
+            maxWidth: 340, width: "100%", textAlign: "center",
+          }}>
+            <div style={{ color: "var(--danger)", marginBottom: "var(--sp-3)" }}>
+              <Icon name="alert-triangle" size={32} />
+            </div>
+            <h3 style={{ fontSize: "var(--text-lg)", fontWeight: 700, color: "var(--danger)", marginBottom: "var(--sp-2)" }}>
+              Wipe all data?
+            </h3>
+            <p style={{ fontSize: "var(--text-sm)", color: "var(--text-sec)", marginBottom: "var(--sp-5)", lineHeight: "var(--leading-relaxed)" }}>
+              This will permanently destroy all TRACE data on this device. It cannot be undone.
+            </p>
+            <div style={{ display: "flex", gap: "var(--sp-3)" }}>
+              <button class="btn btn-secondary" style={{ flex: 1 }} onClick={() => setWipeConfirm(false)}>
+                Cancel
+              </button>
+              <button class="btn btn-danger" style={{ flex: 1 }} onClick={() => panic()}>
+                <Icon name="x" size={14} /> Wipe Now
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Direct Camera */}
       {showCamera && (
