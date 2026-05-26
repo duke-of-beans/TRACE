@@ -92,6 +92,7 @@ export function App() {
         )}
       </main>
 
+      {authed && briefed && (
       <nav class="bottom-nav" role="navigation" aria-label="Main navigation">
         <button class={`nav-btn ${page === "submit" ? "active" : ""}`} onClick={() => setPage("submit")} aria-label="Report a sighting">
           <Icon name="send" size={20} />
@@ -107,6 +108,7 @@ export function App() {
           <span>Settings</span>
         </button>
       </nav>
+      )}
     </div>
   );
 }

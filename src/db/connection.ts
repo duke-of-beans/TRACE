@@ -33,7 +33,6 @@ const opsClient = postgres(singleUrl || env("DATABASE_URL_OPS"), {
   max: poolMax,
   idle_timeout: idleTimeout,
   connection: { search_path: "ops,public" },
-  ssl: singleUrl ? "require" : undefined,
 });
 export const opsDb = drizzle(opsClient, { schema: opsSchema });
 
@@ -42,7 +41,6 @@ const identClient = postgres(singleUrl || env("DATABASE_URL_IDENT"), {
   max: isServerless ? 1 : 5,
   idle_timeout: idleTimeout,
   connection: { search_path: "ident,public" },
-  ssl: singleUrl ? "require" : undefined,
 });
 export const identDb = drizzle(identClient, { schema: identSchema });
 
@@ -51,7 +49,6 @@ const evidenceClient = postgres(singleUrl || env("DATABASE_URL_EVIDENCE"), {
   max: isServerless ? 1 : 5,
   idle_timeout: idleTimeout,
   connection: { search_path: "evidence,public" },
-  ssl: singleUrl ? "require" : undefined,
 });
 export const evidenceDb = drizzle(evidenceClient, { schema: evidenceSchema });
 
