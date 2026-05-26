@@ -106,6 +106,7 @@ export const vehicles = ops.table("vehicles", {
   year: smallint("year"),
   color: varchar("color", { length: 32 }),
   description: text("description"),
+  photoUrl: text("photo_url"),                             // base64 data URI or external URL
   status: vehicleStatusEnum("status").default("active").notNull(),
   suspicionLevelId: uuid("suspicion_level_id").references(() => suspicionLevels.id),
   lastSeenAt: timestamp("last_seen_at", { withTimezone: true }),
@@ -159,6 +160,7 @@ export const actors = ops.table("actors", {
   chapterId: uuid("chapter_id").notNull().references(() => chapters.id),
   alias: varchar("alias", { length: 128 }),
   physicalDescription: text("physical_description"),
+  photoUrl: text("photo_url"),                             // base64 data URI or external URL
   suspicionLevelId: uuid("actor_suspicion_level_id"),     // links to actor_suspicion_levels
   status: actorStatusEnum("status").default("active").notNull(),
   notes: text("notes"),

@@ -47,6 +47,7 @@ export function Admin() {
     { key: "levels",    label: "Vehicle Suspicion" },
     { key: "actorlevels", label: "Actor Suspicion" },
     { key: "identifiers", label: "Actor Identifiers" },
+    { key: "dispatch",  label: "Dispatch Types" },
     { key: "reporters", label: "Reporters" },
     { key: "channels",  label: "Notifications" },
     { key: "feedback",  label: "Feedback" },
@@ -68,6 +69,7 @@ export function Admin() {
       {tab === "levels"      && <SuspicionLevelsAdmin />}
       {tab === "actorlevels" && <ActorSuspicionLevelsAdmin />}
       {tab === "identifiers" && <ActorIdentifierTypesAdmin />}
+      {tab === "dispatch"    && <DispatchTypesAdmin />}
       {tab === "reporters"   && <ReportersAdmin />}
       {tab === "channels"    && <ChannelsAdmin />}
       {tab === "feedback"    && <FeedbackAdmin />}
@@ -1080,6 +1082,170 @@ function FeedbackAdmin() {
               )}
             </div>
           ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+
+// ============ Dispatch Event Types — CRUD ============
+const DISPATCH_ICONS = ["car", "radio", "compass", "alert-triangle", "eye", "shield", "zap", "map-pin", "clock", "info"];
+
+function DispatchTypesAdmin() {
+  const [types, setTypes] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [editing, setEditing] = useState<string | null>(null);
+  const [adding, setAdding] = useState(false);
+  const [form, setForm] = useState({ label: "", description: "", icon: "alert-triangle", color: "#D97706", defaultPriority: "routine", autoCloseHours: 4 });
+  const toast = useToast();
+  const confirm = useConfirm();
+
+  const load = async () => {
+    setLoading(true);
+    const data = await api.getDispatchEventTypes();
+    setTypes(Array.isArray(data) ? data : []);
+    setLoading(false);
+  };
+  useEffect(() => { load(); }, []);
+
+  const save = async () => {
+    if (!form.label.trim()) return;
+    if (editing) {
+      await fetch(`${API_BASE}/dispatch/event-types/${editing}`, { method: "PUT", headers: authHeaders(), body: JSON.stringify(form) });
+      toast("Updated", "success");
+    } else {
+      await fetch(`${API_BASE}/dispatch/event-types`, { method: "POST", headers: authHeaders(), body: JSON.stringify(form) });
+      toast("Created", "success");
+    }
+    setEditing(null); setAdding(false);
+    setForm({ label: "", description: "", icon: "alert-triangle", color: "#D97706", defaultPriority: "routine", autoCloseHours: 4 });
+    load();
+  };
+
+  const remove = async (id: string) => {
+    const ok = await confirm({ title: "Delete event type?", message: "Existing dispatches using this type will not be affected.", confirmLabel: "Delete" });
+    if (!ok) return;
+    await fetch(`${API_BASE}/dispatch/event-types/${id}`, { method: "DELETE", headers: authHeaders() });
+    toast("Deleted", "info"); load();
+  };
+
+  if (loading) return <SkeletonList count={3} />;
+
+  return (
+    <div>
+      <div className="flex justify-between items-center mb-4">
+        <div>
+          <h2 className="text-lg font-semibold">Dispatch Event Types</h2>
+          <p className="text-xs mt-1" style={{ color: "var(--text-muted)" }}>
+            Customize the categories that appear when placing dispatch pins. Each type has an icon, color, default priority, and auto-close timer.
+          </p>
+        </div>
+        <button onClick={() => { setAdding(true); setEditing(null); setForm({ label: "", description: "", icon: "alert-triangle", color: "#D97706", defaultPriority: "routine", autoCloseHours: 4 }); }}
+          className="px-3 py-1.5 rounded text-sm font-medium" style={{ background: "var(--accent)", color: "var(--accent-text)" }}>
+          + Add Type
+        </button>
+      </div>
+
+      {/* List */}
+      <div className="space-y-2 mb-4">
+        {types.map((t) => (
+          <div key={t.id} className="flex items-center justify-between p-3 rounded-lg border border-trace-border bg-trace-surface">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded flex items-center justify-center text-xs font-bold" style={{ background: t.color || "#D97706", color: "#fff" }}>
+                {(t.icon || "?").slice(0, 2).toUpperCase()}
+              </div>
+              <div>
+                <div className="text-sm font-medium">{t.label}</div>
+                <div className="text-xs" style={{ color: "var(--text-muted)" }}>
+                  {t.defaultPriority} · auto-close {t.autoCloseHours}h
+                  {t.description && ` · ${t.description}`}
+                </div>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <button onClick={() => { setEditing(t.id); setAdding(false); setForm({ label: t.label, description: t.description || "", icon: t.icon || "alert-triangle", color: t.color || "#D97706", defaultPriority: t.defaultPriority || "routine", autoCloseHours: t.autoCloseHours || 4 }); }}
+                className="text-xs px-2 py-1 rounded" style={{ color: "var(--accent)" }}>Edit</button>
+              <button onClick={() => remove(t.id)} className="text-xs px-2 py-1 rounded" style={{ color: "var(--danger)" }}>Delete</button>
+            </div>
+          </div>
+        ))}
+        {types.length === 0 && <p className="text-sm py-4 text-center" style={{ color: "var(--text-muted)" }}>No event types configured. Add one to start using dispatch pins.</p>}
+      </div>
+
+      {/* Add/Edit form */}
+      {(adding || editing) && (
+        <div className="p-4 rounded-lg border border-trace-border bg-trace-surface space-y-3">
+          <h3 className="text-sm font-semibold">{editing ? "Edit Event Type" : "New Event Type"}</h3>
+
+          <input placeholder="Label (e.g. Community Report)" value={form.label}
+            onChange={(e) => setForm(f => ({ ...f, label: e.target.value }))}
+            className={inputCls} />
+
+          <input placeholder="Description (optional)" value={form.description}
+            onChange={(e) => setForm(f => ({ ...f, description: e.target.value }))}
+            className={inputCls} />
+
+          <div className="grid grid-cols-2 gap-3">
+            {/* Icon selection */}
+            <div>
+              <label className="text-xs mb-1 block" style={{ color: "var(--text-muted)" }}>Icon</label>
+              <div className="flex flex-wrap gap-1">
+                {DISPATCH_ICONS.map((icon) => (
+                  <button key={icon} onClick={() => setForm(f => ({ ...f, icon }))}
+                    className="px-2 py-1 rounded text-xs"
+                    style={{
+                      background: form.icon === icon ? "var(--accent)" : "var(--bg)",
+                      color: form.icon === icon ? "#fff" : "var(--text-sec)",
+                      border: `1px solid ${form.icon === icon ? "var(--accent)" : "var(--border)"}`,
+                    }}>{icon}</button>
+                ))}
+              </div>
+            </div>
+
+            {/* Color */}
+            <div>
+              <label className="text-xs mb-1 block" style={{ color: "var(--text-muted)" }}>Color</label>
+              <div className="flex gap-1 flex-wrap">
+                {["#DC2626", "#D97706", "#4F46E5", "#7C3AED", "#EA580C", "#059669", "#64748B", "#0EA5E9"].map((c) => (
+                  <button key={c} onClick={() => setForm(f => ({ ...f, color: c }))}
+                    className="w-7 h-7 rounded"
+                    style={{ background: c, border: form.color === c ? "2px solid #fff" : "2px solid transparent" }} />
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            {/* Default priority */}
+            <div>
+              <label className="text-xs mb-1 block" style={{ color: "var(--text-muted)" }}>Default Priority</label>
+              <select value={form.defaultPriority} onChange={(e) => setForm(f => ({ ...f, defaultPriority: e.target.value }))}
+                className={inputCls} style={{ colorScheme: "dark" }}>
+                <option value="urgent">Urgent</option>
+                <option value="routine">Routine</option>
+                <option value="info">Info</option>
+              </select>
+            </div>
+
+            {/* Auto-close hours */}
+            <div>
+              <label className="text-xs mb-1 block" style={{ color: "var(--text-muted)" }}>Auto-close after (hours)</label>
+              <input type="number" min={0} max={168} value={form.autoCloseHours}
+                onChange={(e) => setForm(f => ({ ...f, autoCloseHours: parseInt(e.target.value) || 0 }))}
+                className={inputCls} />
+              <p className="text-[10px] mt-1" style={{ color: "var(--text-muted)" }}>0 = manual close only</p>
+            </div>
+          </div>
+
+          <div className="flex gap-2 pt-2">
+            <button onClick={save} className="px-4 py-2 rounded text-sm font-semibold"
+              style={{ background: "var(--accent)", color: "var(--accent-text)" }}>
+              {editing ? "Save Changes" : "Create Type"}
+            </button>
+            <button onClick={() => { setEditing(null); setAdding(false); }}
+              className="px-4 py-2 rounded text-sm" style={{ color: "var(--text-sec)" }}>Cancel</button>
+          </div>
         </div>
       )}
     </div>

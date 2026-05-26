@@ -1,7 +1,7 @@
 /**
  * TRACE Operator — Vehicle List + Dossier + CRUD
  */
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { api } from "../lib/api.js";
 import { IntelMap } from "../components/map-view.js";
 import { Icon } from "../components/icon.js";
@@ -81,9 +81,20 @@ export function Vehicles() {
                 className={`w-full text-left p-3 rounded-lg border transition-colors ${
                   selected?.id === v.id ? "border-trace-accent bg-trace-surface" : "border-trace-border bg-trace-bg hover:bg-trace-surface"
                 }`}>
-                <div className="font-mono font-bold tracking-wider">{v.plate || "No plate"}</div>
-                <div className="text-xs mt-1" style={{ color: "var(--text-muted)" }}>
-                  {[v.color, v.year, v.make, v.model].filter(Boolean).join(" ") || "Unknown vehicle"}
+                <div className="flex items-center gap-3">
+                  {v.photoUrl ? (
+                    <img src={v.photoUrl} alt="" className="w-10 h-10 rounded object-cover flex-shrink-0" />
+                  ) : (
+                    <div className="w-10 h-10 rounded flex items-center justify-center flex-shrink-0" style={{ background: "var(--bg)", border: "1px solid var(--border)" }}>
+                      <Icon name="car" size={14} />
+                    </div>
+                  )}
+                  <div className="min-w-0">
+                    <div className="font-mono font-bold tracking-wider">{v.plate || "No plate"}</div>
+                    <div className="text-xs mt-0.5 truncate" style={{ color: "var(--text-muted)" }}>
+                      {[v.color, v.year, v.make, v.model].filter(Boolean).join(" ") || "Unknown vehicle"}
+                    </div>
+                  </div>
                 </div>
               </button>
             ))}
@@ -167,6 +178,8 @@ function VehicleDossier({ vehicle, onUpdated, onRetired }: { vehicle: any; onUpd
   const [form, setForm] = useState({ plate: "", make: "", model: "", year: "", color: "", description: "" });
   const [sightingMarkers, setSightingMarkers] = useState<any[]>([]);
   const [corridorData, setCorridorData] = useState<any[]>([]);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const photoRef = useRef<HTMLInputElement>(null);
   const toast = useToast();
   const confirm = useConfirm();
 
@@ -248,6 +261,43 @@ function VehicleDossier({ vehicle, onUpdated, onRetired }: { vehicle: any; onUpd
             </>
           )}
         </div>
+      </div>
+
+      {/* Photo */}
+      <input ref={photoRef} type="file" accept="image/*" style={{ display: "none" }} onChange={async (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        setUploadingPhoto(true);
+        const reader = new FileReader();
+        reader.onload = async () => {
+          try {
+            const photoUrl = reader.result as string;
+            const updated = await api.updateVehicle(vehicle.id, { photoUrl });
+            onUpdated(updated);
+            toast("Photo uploaded", "success");
+          } catch { toast("Photo upload failed", "error"); }
+          setUploadingPhoto(false);
+        };
+        reader.readAsDataURL(file);
+      }} />
+      <div className="mb-4">
+        {vehicle.photoUrl ? (
+          <div className="relative">
+            <img src={vehicle.photoUrl} alt={vehicle.plate || "Vehicle"} className="w-full h-48 object-cover rounded-lg" style={{ border: "1px solid var(--border)" }} />
+            <button onClick={() => photoRef.current?.click()}
+              className="absolute bottom-2 right-2 px-2 py-1 rounded text-xs font-medium"
+              style={{ background: "rgba(0,0,0,0.7)", color: "#fff" }}>
+              {uploadingPhoto ? "Uploading..." : "Change Photo"}
+            </button>
+          </div>
+        ) : (
+          <button onClick={() => photoRef.current?.click()}
+            className="w-full h-32 rounded-lg flex flex-col items-center justify-center gap-1 transition"
+            style={{ border: "1px dashed var(--border)", color: "var(--text-muted)" }}>
+            <Icon name="camera" size={20} />
+            <span className="text-xs">{uploadingPhoto ? "Uploading..." : "Add Photo"}</span>
+          </button>
+        )}
       </div>
 
       {editing ? (

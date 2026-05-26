@@ -481,6 +481,9 @@ function PinCreationForm({ lat, lng, eventTypes, reporters, onSave, onCancel }: 
             {eventTypes.map((t: any) => <option key={t.id} value={t.id}>{t.label}</option>)}
           </select>
         )}
+        {eventTypes.length === 0 && (
+          <p className="text-xs py-2" style={{ color: "var(--text-muted)" }}>No event types configured.</p>
+        )}
 
         {/* Source */}
         <select value={source} onChange={(e) => setSource(e.target.value)}
@@ -490,6 +493,9 @@ function PinCreationForm({ lat, lng, eventTypes, reporters, onSave, onCancel }: 
           <option value="intelligence">Intelligence</option>
         </select>
       </div>
+      <p className="text-[10px] mb-3" style={{ color: "var(--text-muted)", opacity: 0.6 }}>
+        Customize event types, icons, and colors in <a href="#" onClick={(e) => { e.preventDefault(); window.dispatchEvent(new CustomEvent("trace-nav", { detail: "admin" })); }} style={{ color: "var(--accent)", textDecoration: "underline" }}>Admin → Dispatch Types</a>
+      </p>
 
       {/* Priority */}
       <div className="flex gap-2 mb-3">
