@@ -42,7 +42,10 @@ export function PinLock({ onUnlock }: PinLockProps) {
         <div style={{ color: "var(--text-muted)", marginBottom: "var(--sp-4)" }}>
           <Icon name="lock" size={40} />
         </div>
-        <h1 class="auth-title">TRACE</h1>
+        <div class="wordmark-wrap" style={{ marginBottom: "var(--sp-2)" }}>
+          <span class="wordmark wordmark-md" style={{ color: "var(--text)" }}>TRACE</span>
+          <span class="wordmark-rule"></span>
+        </div>
         <p class="auth-subtitle">Enter your PIN to unlock</p>
 
         <input

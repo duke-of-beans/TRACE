@@ -9,8 +9,8 @@ import { Icon } from "./icon.js";
 type OnboardingProps = { onComplete: () => void };
 
 const STEPS = [
-  { title: "Welcome to TRACE", icon: "shield",
-    content: `TRACE is designed to help you report sightings quickly and securely. Before you start, there are a few things you should understand about how this app protects you.\n\nThis briefing takes about 2 minutes. Please read it carefully.` },
+  { title: "Welcome", icon: "shield",
+    content: `TRACE — Tracking, Reporting, Analysis & Community Evidence — is designed to help you report sightings quickly and securely.\n\nBefore you start, there are a few things you should understand about how this app protects you.\n\nThis briefing takes about 2 minutes. Please read it carefully.` },
   { title: "Your Data is Encrypted", icon: "lock",
     content: `Everything you capture through TRACE — photos, locations, notes — is encrypted on your device before it's stored. This means that even if someone accessed your phone's raw storage, they would find only scrambled data.\n\nYour encryption key is protected by the PIN you'll set up next. Without your PIN, the data on your device cannot be read.` },
   { title: "Photos Stay Private", icon: "camera",
@@ -56,7 +56,11 @@ export function Onboarding({ onComplete }: OnboardingProps) {
     return (
       <div class="auth-screen">
         <div class="auth-card">
-          <h1 class="auth-title">Set Your PIN</h1>
+          <div class="wordmark-wrap" style={{ marginBottom: "var(--sp-2)" }}>
+            <span class="wordmark wordmark-md" style={{ color: "var(--text)" }}>TRACE</span>
+            <span class="wordmark-rule"></span>
+          </div>
+          <h2 style={{ fontSize: "var(--text-lg)", fontWeight: 600, marginTop: "var(--sp-3)", marginBottom: "var(--sp-1)" }}>Set Your PIN</h2>
           <p class="auth-subtitle">
             Your PIN protects the encryption key on this device. You'll enter it each time you open TRACE.
           </p>
@@ -90,8 +94,17 @@ export function Onboarding({ onComplete }: OnboardingProps) {
         </div>
 
         <div style={{ display: "flex", alignItems: "center", gap: "var(--sp-3)", marginBottom: "var(--sp-4)" }}>
-          <Icon name={current.icon} size={24} class="text-accent" />
-          <h2 style={{ fontSize: "var(--text-xl)", fontWeight: 700 }}>{current.title}</h2>
+          {step === 0 ? (
+            <div class="wordmark-wrap">
+              <span class="wordmark wordmark-md" style={{ color: "var(--text)" }}>TRACE</span>
+              <span class="wordmark-rule"></span>
+            </div>
+          ) : (
+            <>
+              <Icon name={current.icon} size={24} class="text-accent" />
+              <h2 style={{ fontSize: "var(--text-xl)", fontWeight: 700 }}>{current.title}</h2>
+            </>
+          )}
         </div>
 
         <div class="onboarding-content">{current.content}</div>

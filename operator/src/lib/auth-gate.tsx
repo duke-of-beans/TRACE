@@ -45,8 +45,11 @@ export function LoginScreen({ onAuth }: AuthGateProps) {
     <div className="min-h-screen flex items-center justify-center" style={{ background: "var(--bg)" }}>
       <div className="w-full max-w-sm p-8">
         <div className="text-center mb-8">
-          <div className="font-bold text-2xl tracking-[0.15em] mb-1" style={{ color: "var(--accent)" }}>TRACE</div>
-          <div className="text-[10px] tracking-widest uppercase" style={{ color: "var(--text-muted)" }}>Operator Console</div>
+          <div style={{ display: "inline-block" }}>
+            <span style={{ fontFamily: "'Exo 2', system-ui, sans-serif", fontWeight: 100, fontSize: 32, letterSpacing: "0.22em", color: "var(--accent)" }}>TRACE</span>
+            <span style={{ display: "block", height: 1, background: "var(--accent)", opacity: 0.5, marginTop: 4 }}></span>
+          </div>
+          <div className="text-[10px] mt-2 tracking-widest uppercase" style={{ color: "var(--text-muted)" }}>Operator Console</div>
         </div>
         <div className="space-y-4">
           <div>

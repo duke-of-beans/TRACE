@@ -64,8 +64,11 @@ export function App() {
           {/* Sidebar */}
           <aside className="w-56 flex flex-col" style={{ background: "var(--surface)", borderRight: "1px solid var(--border)" }}>
             <div className="px-5 py-4" style={{ borderBottom: "1px solid var(--border)" }}>
-              <div className="font-bold text-lg tracking-[0.15em]" style={{ color: "var(--accent)" }}>TRACE</div>
-              <div className="text-[10px] mt-0.5 tracking-widest" style={{ color: "var(--text-muted)" }}>OPERATOR CONSOLE</div>
+              <div style={{ display: "inline-block" }}>
+                <span style={{ fontFamily: "'Exo 2', system-ui, sans-serif", fontWeight: 100, fontSize: 18, letterSpacing: "0.22em", color: "var(--accent)" }}>TRACE</span>
+                <span style={{ display: "block", height: 1, background: "var(--accent)", opacity: 0.4, marginTop: 3 }}></span>
+              </div>
+              <div className="text-[9px] mt-1 tracking-widest uppercase" style={{ color: "var(--text-muted)" }}>Operator Console</div>
             </div>
 
             <nav className="flex-1 py-2" role="navigation" aria-label="Main navigation">
