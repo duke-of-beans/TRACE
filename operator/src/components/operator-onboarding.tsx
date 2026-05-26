@@ -1,85 +1,50 @@
 /**
  * TRACE Operator — Onboarding
+ * Redesigned: visual-first, fixed card, pinned nav.
  */
 import { useState } from "react";
 import { Icon } from "./icon.js";
 
 const STEPS = [
   {
-    title: "Welcome",
-    icon: "shield",
-    useWordmark: true,
-    content: `Tracking, Reporting, Analysis, and Community Evidence.
-
-Your reporters are out in the field collecting sightings. This dashboard is where you make sense of it all. Review reports, build vehicle profiles, spot patterns, and manage your team.
-
-This quick tour covers the main tools. Takes about 2 minutes.`,
+    icon: "shield", title: "Welcome to TRACE",
+    body: "Tracking, Reporting, Analysis, and Community Evidence. Your reporters collect sightings. This console is where you triage, investigate, and dispatch.",
+    detail: null,
   },
   {
-    title: "Your Dashboard",
-    icon: "grid",
-    plain: "The sidebar on the left is your main navigation. Dashboard gives you the overview. Triage is where new sightings arrive. Intel Map shows everything on a map. Vehicles and Actors are your case files. Admin is where you configure the system. You can also use number keys 1 through 7 to switch pages.",
-    content: `Dashboard: stats at a glance.
-Triage: review incoming sightings.
-Intel Map: geospatial view with filtering and time playback.
-Vehicles: dossiers, search, status tracking.
-Actors: profiles of known individuals.
-Admin: configure types, levels, reporters, notifications.
-Security: device management and remote controls.
-
-Keyboard shortcut overlay: press ? on any page.`,
+    icon: "grid", title: "Your workspace",
+    body: "The sidebar navigates between Triage, Intel Map, Vehicles, Actors, Admin, and Security. Number keys 1-7 switch pages. Press ? for all shortcuts.",
+    detail: "Dashboard: stats at a glance. Triage: incoming sightings. Intel Map: geospatial view. Vehicles/Actors: case files. Admin: configuration. Security: device management.",
   },
   {
-    title: "Reviewing Sightings",
-    icon: "zap",
-    plain: "When a reporter sees something, it lands in your Triage queue. You open each sighting, read the details, and pick an action. Approve adds it to tracking. Flag marks it for follow-up. Dismiss removes it. Escalate marks it urgent. You can do all of this with your keyboard.",
-    content: `A = Approve, F = Flag, D = Dismiss, E = Escalate.
-N = Next sighting, P = Previous.
-
-New sightings appear in real time when the server is running locally. On the hosted version, refresh to check for new entries.`,
+    icon: "zap", title: "Triage incoming sightings",
+    body: "New reports land here. Each shows MATCH or NEW PLATE. Approve, flag, dismiss, or escalate. All keyboard-driven.",
+    detail: "Shortcuts: A (approve), F (flag), D (dismiss), E (escalate), N/P (next/previous). New sightings appear in real time.",
   },
   {
-    title: "Tracking Vehicles",
-    icon: "car",
-    plain: "Every vehicle starts at the lowest suspicion level. As more sightings come in, you can promote it up the ladder. The levels are configurable, but the defaults are: Noted, Watching, Suspicious, Confirmed, Priority. You can also set rules in Admin so vehicles promote automatically when they hit certain thresholds.",
-    content: `Each vehicle has a dossier: plate, description, sighting history, map of locations, linked actors.
-
-Suspicion levels and their promotion rules are fully editable in Admin. Actors (known individuals) have their own parallel ladder.`,
+    icon: "car", title: "Vehicle tracking",
+    body: "Every vehicle starts at the lowest suspicion level. As sightings accumulate, promote through the ladder. Levels and rules are fully configurable in Admin.",
+    detail: "Each vehicle has a dossier: plate, description, sighting history, map of locations, linked actors. Suspicion levels and auto-promotion rules editable in Admin.",
   },
   {
-    title: "Adding Reporters",
-    icon: "user",
-    plain: "To bring someone onto your team, go to Admin and generate an invite code. Hand it to them in person or through a secure channel. They enter the code in the reporter app and they are in. No email or account creation needed. You will know them only by their callsign.",
-    content: `Invite codes: XXXX-XXXX format, single-use, valid 7 days.
-Reporters identified by callsign only. Real names are never visible in operational data.`,
+    icon: "user", title: "Invite reporters",
+    body: "Generate an invite code in Admin. Hand it over in person or via Signal. No email, no account creation. Reporters are identified by callsign only.",
+    detail: "Invite codes: XXXX-XXXX format, single-use, valid 7 days. Real identities are encrypted in a separate vault inaccessible during normal operations.",
   },
   {
-    title: "Device Controls",
-    icon: "shield",
-    plain: "If a reporter's phone is lost or a situation changes, you have remote controls in the Security section. Suspend blocks their access (reversible). Kill erases TRACE data from their device on its next check-in. There is also an option to do this for every device at once. Phones that go offline for 72 hours erase themselves automatically.",
-    content: `Suspend: blocks access, reversible.
-Kill: erases device data on next server contact.
-Nuke All: every device in the chapter. Double-confirmed.
-Auto-wipe: 72-hour offline timer, handled by the device.`,
+    icon: "shield", title: "Remote device controls",
+    body: "Lost phone? Compromised reporter? Suspend blocks access (reversible). Kill erases TRACE data from the device. Both take effect on next check-in.",
+    detail: "Nuke All: wipe every device in the chapter (double-confirmed). Auto-wipe: devices that go offline for 72 hours erase themselves automatically.",
   },
   {
-    title: "Reporting Issues",
-    icon: "info",
-    plain: "TRACE is open-source and actively maintained. If you encounter a bug, something breaks, or a feature is confusing, report it. Your reporters can tell you about issues they hit, and you can relay them or have them file directly. Reports help every chapter, not just yours.",
-    content: `Report bugs and feature requests at:
-github.com/duke-of-beans/TRACE/issues
-
-Include: what you were doing, what happened, what you expected. Screenshots help.
-
-Your feedback shapes the roadmap. Every report is read.`,
+    icon: "info", title: "Report issues",
+    body: "Something break? File it. Your reporters can tell you about issues they hit, and you relay or have them file directly.",
+    detail: "github.com/duke-of-beans/TRACE/issues. Include what happened, what you expected, and screenshots if possible. Every report is read.",
   },
   {
-    title: "Try It Out",
-    icon: "compass",
-    plain: "The system is loaded with demo data so you can explore without consequences. Vehicles are labeled FAKE-001 through TEST-005, actors are named GHOST, SPARKS, and NINE. Click around, try the triage keyboard shortcuts, open a vehicle dossier, check the Intel Map. When you are ready for real data, clear the demo entries from Admin.",
-    content: `Demo vehicles: FAKE-001, FAKE-002, FAKE-003, TEST-004, TEST-005.
-Demo actors: GHOST (DEMO), SPARKS (DEMO), NINE (DEMO).
-Demo sightings, identifiers, and suspicion levels all prefixed DEMO or TEST.`,
+    icon: "compass", title: "Try it out",
+    body: "The system has demo data. Vehicles are FAKE-001 through TEST-005, actors are GHOST, SPARKS, and NINE. Explore freely, clear demo data from Admin when ready.",
+    detail: "All demo data is prefixed DEMO, FAKE, or TEST. The Intel Map shows sightings on a satellite view. Try the triage keyboard shortcuts.",
   },
 ];
 
@@ -87,90 +52,120 @@ type OperatorOnboardingProps = { onComplete: () => void };
 
 export function OperatorOnboarding({ onComplete }: OperatorOnboardingProps) {
   const [step, setStep] = useState(0);
+  const [showDetail, setShowDetail] = useState(false);
   const current = STEPS[step];
   const isLast = step === STEPS.length - 1;
+  const handleComplete = () => { localStorage.setItem("trace_op_onboarded", "true"); onComplete(); };
 
-  const handleComplete = () => {
-    localStorage.setItem("trace_op_onboarded", "true");
-    onComplete();
+  const goNext = () => {
+    if (isLast) { handleComplete(); return; }
+    setShowDetail(false);
+    setStep(s => s + 1);
   };
+  const goBack = () => { setShowDetail(false); setStep(s => s - 1); };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-8" style={{ background: "var(--bg)" }}>
+    <div className="fixed inset-0 flex items-center justify-center" style={{ background: "var(--bg)", zIndex: 9998 }}>
       <div style={{
-        maxWidth: 520, width: "100%",
-        height: "min(600px, 85vh)",
+        textAlign: "center", maxWidth: 420, width: "100%",
+        height: "min(520px, 80vh)",
         display: "flex", flexDirection: "column",
+        padding: 28, borderRadius: 16,
+        background: "var(--surface)", border: "1px solid var(--border)",
       }}>
-        {/* Dots — fixed at top */}
-        <div className="flex gap-1.5 justify-center mb-6" style={{ flexShrink: 0 }}>
-          {STEPS.map((_, i) => (
-            <div key={i} className="rounded-full" style={{
-              width: 8, height: 8,
-              background: i === step ? "var(--accent)" : i < step ? "var(--accent)" : "var(--border)",
-              opacity: i < step ? 0.4 : 1,
-              transition: "all 150ms ease",
-            }} />
-          ))}
-        </div>
-
-        {/* Card — scrollable content */}
-        <div className="rounded-xl p-8" style={{
-          background: "var(--surface)", border: "1px solid var(--border)",
-          flex: 1, minHeight: 0, overflowY: "auto",
+        {/* Icon area */}
+        <div style={{
+          height: 100, display: "flex", alignItems: "center", justifyContent: "center",
+          flexShrink: 0,
         }}>
-          <div className="flex items-center gap-3 mb-5">
-            {current.useWordmark ? (
-              <div style={{ display: "inline-block" }}>
-                <span style={{ fontFamily: "'Exo 2', system-ui, sans-serif", fontWeight: 100, fontSize: 32, letterSpacing: "0.22em", color: "var(--text)" }}>TRACE</span>
-                <span style={{ display: "block", height: 1, background: "var(--accent)", opacity: 0.5, marginTop: 4 }}></span>
-              </div>
-            ) : (
-              <>
-                <span style={{ color: "var(--accent)" }}><Icon name={current.icon} size={22} /></span>
-                <h2 className="text-lg font-semibold" style={{ color: "var(--text)" }}>{current.title}</h2>
-              </>
-            )}
-          </div>
-
-          {current.plain && (
-            <p className="text-sm leading-relaxed mb-4" style={{ color: "var(--text)", fontWeight: 500 }}>
-              {current.plain}
-            </p>
+          {step === 0 ? (
+            <div>
+              <span style={{
+                fontFamily: "'Exo 2', system-ui, sans-serif",
+                fontWeight: 100, fontSize: 36, letterSpacing: "0.22em",
+                color: "var(--accent)", display: "block",
+              }}>TRACE</span>
+              <span style={{ display: "block", height: 1, background: "var(--accent)", opacity: 0.4, marginTop: 6 }}></span>
+              <span style={{ display: "block", fontSize: 9, letterSpacing: "0.08em", color: "var(--text-muted)", marginTop: 6 }}>OPERATOR CONSOLE</span>
+            </div>
+          ) : (
+            <div style={{
+              width: 64, height: 64, borderRadius: "50%",
+              background: "rgba(99,102,241,0.12)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              color: "var(--accent)",
+            }}>
+              <Icon name={current.icon} size={28} />
+            </div>
           )}
-
-          <p className="text-sm leading-relaxed whitespace-pre-line" style={{ color: "var(--text-sec)" }}>
-            {current.content}
-          </p>
         </div>
 
-        {/* Navigation — pinned at bottom */}
-        <div style={{ flexShrink: 0, paddingTop: "var(--sp-6, 24px)" }}>
+        {/* Content */}
+        <div style={{
+          flex: 1, display: "flex", flexDirection: "column",
+          justifyContent: "flex-start", minHeight: 0,
+          textAlign: "center", padding: "0 8px", overflow: "auto",
+        }}>
+          <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 12, color: "var(--text)", lineHeight: 1.3 }}>
+            {current.title}
+          </h2>
+          <p style={{ fontSize: 14, color: "var(--text-sec)", lineHeight: 1.7, marginBottom: 12 }}>
+            {current.body}
+          </p>
+          {current.detail && (
+            <div style={{ marginTop: "auto" }}>
+              {!showDetail ? (
+                <button onClick={() => setShowDetail(true)} style={{
+                  background: "none", border: "none", color: "var(--text-muted)",
+                  fontSize: 11, cursor: "pointer", textDecoration: "underline", opacity: 0.7,
+                }}>Details</button>
+              ) : (
+                <div style={{
+                  fontSize: 11, color: "var(--text-muted)", lineHeight: 1.6,
+                  background: "var(--bg)", borderRadius: 8, padding: "10px 14px", textAlign: "left",
+                }}>{current.detail}</div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Navigation — PINNED at bottom */}
+        <div style={{ flexShrink: 0, paddingTop: 16 }}>
           <div className="flex gap-3">
             {step > 0 && (
-              <button onClick={() => setStep(s => s - 1)}
+              <button onClick={goBack}
                 className="px-5 py-2.5 rounded-lg text-sm font-medium transition"
-                style={{ background: "transparent", border: "1px solid var(--border)", color: "var(--text-sec)" }}>
+                style={{ background: "transparent", border: "1px solid var(--border)", color: "var(--text-sec)", flex: 1 }}>
                 Back
               </button>
             )}
-            <button
-              onClick={isLast ? handleComplete : () => setStep(s => s + 1)}
-              className="flex-1 py-2.5 rounded-lg text-sm font-semibold transition"
-              style={{ background: "var(--accent)", color: "var(--accent-text)" }}>
+            <button onClick={goNext}
+              className="py-2.5 rounded-lg text-sm font-semibold transition"
+              style={{ background: "var(--accent)", color: "var(--accent-text)", flex: step > 0 ? 2 : 1 }}>
               {isLast ? "Enter Dashboard" : "Continue"}
             </button>
           </div>
-          <p className="text-center mt-3 text-xs" style={{ color: "var(--text-muted)" }}>
-            {step + 1} of {STEPS.length}
+
+          <div style={{
+            display: "flex", alignItems: "center", justifyContent: "center",
+            gap: 6, marginTop: 12,
+          }}>
+            {STEPS.map((_, i) => (
+              <div key={i} style={{
+                width: i === step ? 16 : 6, height: 6,
+                borderRadius: 3,
+                background: i === step ? "var(--accent)" : i < step ? "var(--accent)" : "var(--border)",
+                opacity: i < step ? 0.4 : 1,
+                transition: "width 0.2s, opacity 0.2s",
+              }} />
+            ))}
             {!isLast && (
-              <span> · <button onClick={handleComplete} style={{
+              <button onClick={handleComplete} style={{
                 background: "none", border: "none", color: "var(--text-muted)",
-                cursor: "pointer", fontSize: "inherit", textDecoration: "underline",
-                opacity: 0.7,
-              }}>skip tour</button></span>
+                cursor: "pointer", fontSize: 11, marginLeft: 8, opacity: 0.6,
+              }}>skip</button>
             )}
-          </p>
+          </div>
         </div>
       </div>
     </div>

@@ -1,8 +1,8 @@
 /**
  * TRACE PWA — Security Briefing (post-auth only)
  *
+ * Redesigned: visual-first, fixed-height card, pinned nav.
  * Shown AFTER authentication. Bad actors never see this content.
- * PIN setup is handled separately by pin-setup.tsx before auth.
  */
 import { useState } from "preact/hooks";
 import { Icon } from "./icon.js";
@@ -10,99 +10,166 @@ import { Icon } from "./icon.js";
 type OnboardingProps = { onComplete: () => void };
 
 const STEPS = [
-  { title: "Welcome", icon: "shield",
-    content: `TRACE records and organizes vehicle sightings reported by community members. Tracking, Reporting, Analysis, and Community Evidence.
-
-Here is a quick overview of how the app works and what it does with your information. Takes about a minute.` },
-  { title: "Everything is Encrypted", icon: "lock",
-    plain: "All data on your phone is scrambled using your PIN. If someone picked up your phone, they could not read anything stored by this app without the PIN.",
-    content: `AES-256-GCM encryption. The key is derived from your PIN. Without the PIN, stored data is unreadable.` },
-  { title: "Photos Stay Private", icon: "camera",
-    plain: "Photos taken through TRACE do not appear in your camera roll. Identifying information like camera model and device serial number is automatically stripped before anything is stored or sent.",
-    content: `Photos go from the camera stream directly into encrypted storage. EXIF metadata (camera make, model, serial, lens data) is destroyed. GPS and timestamp are preserved for the sighting record.` },
-  { title: "Works Offline", icon: "radio",
-    plain: "No signal? No problem. Reports are saved on your phone and sent automatically when your connection comes back. You can see queued reports in Settings.",
-    content: `Reports are encrypted and queued locally. They upload automatically when connectivity returns. Queue count is visible in Settings.` },
-  { title: "Emergency Wipe", icon: "alert-triangle",
-    plain: "If you ever need to, you can erase everything TRACE has stored on your phone. One button, two taps, gone. The button is on the Report screen and in Settings.",
-    content: `Wipe destroys the encryption key first (making stored data unreadable), then clears all storage. This cannot be undone.` },
-  { title: "Automatic Check-In", icon: "clock",
-    plain: "The app checks in with the server in the background. If your phone cannot reach the server for 3 days, the app clears its data as a precaution. If you will be without signal, let your operator know beforehand.",
-    content: `Background sync contacts the server periodically. If contact fails for 72 hours, auto-wipe triggers. Grace period warnings appear before the deadline.` },
-  { title: "Your Callsign", icon: "user",
-    plain: "Your operator knows you by a callsign, not your real name. Your callsign was assigned when you received your invite code. Your real identity is encrypted separately and is not accessible during normal operations. Your PIN is yours alone. Do not share it with anyone.",
-    content: `Operators see callsigns only. Real identities are encrypted in a separate vault. The operator can revoke access or signal a device to clear its data remotely, but cannot access your PIN or decrypt your device.` },
-  { title: "Something Not Working?", icon: "info",
-    plain: "If anything in the app breaks or behaves unexpectedly, tell your operator. They can relay it to the development team. You can also report issues directly if you prefer.",
-    content: `Report issues: github.com/duke-of-beans/TRACE/issues
-
-What helps: what you were doing, what happened, what you expected. Screenshots if possible. Your report improves TRACE for every chapter.` },
+  {
+    icon: "shield", title: "Welcome to TRACE",
+    body: "Your chapter uses TRACE to collect and organize vehicle sightings. This quick tour explains how the app protects your information.",
+    detail: null,
+  },
+  {
+    icon: "lock", title: "Your data is encrypted",
+    body: "Everything stored on your phone is scrambled using your PIN. Without it, nothing is readable.",
+    detail: "AES-256-GCM encryption. The key is derived from your PIN via PBKDF2. Without the PIN, stored data is irrecoverable ciphertext.",
+  },
+  {
+    icon: "camera", title: "Photos stay off your camera roll",
+    body: "Photos taken through TRACE go straight into encrypted storage. Camera model and device info are stripped automatically.",
+    detail: "EXIF metadata (camera make, model, serial, lens data) is destroyed before storage or transmission. GPS and timestamp are preserved for the sighting record only.",
+  },
+  {
+    icon: "radio", title: "Works without a signal",
+    body: "No connection? Reports save on your phone and send automatically when you reconnect.",
+    detail: "Reports are encrypted and queued in IndexedDB. They upload automatically when connectivity returns. Queue count is visible in Settings.",
+  },
+  {
+    icon: "alert-triangle", title: "Emergency wipe",
+    body: "One button, two taps, everything gone. Find it on the Report screen and in Settings.",
+    detail: "Wipe destroys the encryption key first (making stored data unreadable), then clears all storage, caches, and service workers. Cannot be undone.",
+  },
+  {
+    icon: "clock", title: "Automatic check-in",
+    body: "The app contacts the server in the background. If it cannot connect for 3 days, it clears itself as a precaution.",
+    detail: "Background sync contacts the server periodically. If contact fails for 72 hours, auto-wipe triggers. Grace period warnings appear before the deadline.",
+  },
+  {
+    icon: "user", title: "You are a callsign, not a name",
+    body: "Your operator knows you by your callsign only. Your real identity is encrypted separately and inaccessible during normal operations.",
+    detail: "Operators see callsigns only. Real identities are stored in a separate database vault. The operator can revoke access remotely but cannot access your PIN or decrypt your device.",
+  },
+  {
+    icon: "info", title: "Something not working?",
+    body: "Tell your operator about any bugs or issues. They can report it, or you can file directly at the link below.",
+    detail: "Report issues: github.com/duke-of-beans/TRACE/issues. Include what you were doing, what happened, and what you expected.",
+  },
 ];
 
 export function Onboarding({ onComplete }: OnboardingProps) {
   const [step, setStep] = useState(0);
+  const [showDetail, setShowDetail] = useState(false);
   const current = STEPS[step];
   const isLast = step === STEPS.length - 1;
+
+  const goNext = () => {
+    if (isLast) { onComplete(); return; }
+    setShowDetail(false);
+    setStep(s => s + 1);
+  };
+  const goBack = () => {
+    setShowDetail(false);
+    setStep(s => s - 1);
+  };
 
   return (
     <div class="auth-screen">
       <div class="auth-card" style={{
-        textAlign: "left", maxWidth: 420,
-        height: "min(520px, 80vh)",
+        textAlign: "center", maxWidth: 400, width: "100%",
+        height: "min(480px, 80vh)",
         display: "flex", flexDirection: "column",
+        padding: "24px",
       }}>
-        {/* Dots — fixed at top */}
-        <div class="onboarding-dots" style={{ flexShrink: 0 }}>
-          {STEPS.map((_, i) => (
-            <div key={i} class={`onboarding-dot ${i === step ? "active" : i < step ? "done" : ""}`} />
-          ))}
-        </div>
-
-        {/* Content — scrolls */}
-        <div style={{ flex: 1, overflowY: "auto", minHeight: 0, paddingRight: "var(--sp-1)" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "var(--sp-3)", marginBottom: "var(--sp-4)" }}>
-            {step === 0 ? (
-              <div class="wordmark-wrap">
-                <span class="wordmark wordmark-md" style={{ color: "var(--text)" }}>TRACE</span>
-                <span class="wordmark-rule"></span>
-              </div>
-            ) : (
-              <>
-                <Icon name={current.icon} size={24} class="text-accent" />
-                <h2 style={{ fontSize: "var(--text-xl)", fontWeight: 700 }}>{current.title}</h2>
-              </>
-            )}
-          </div>
-
-          {current.plain && (
-            <p style={{ fontSize: "var(--text-base)", color: "var(--text)", lineHeight: "var(--leading-relaxed)", marginBottom: "var(--sp-4)", fontWeight: 500 }}>
-              {current.plain}
-            </p>
+        {/* Icon area */}
+        <div style={{
+          height: 100, display: "flex", alignItems: "center", justifyContent: "center",
+          flexShrink: 0,
+        }}>
+          {step === 0 ? (
+            <div>
+              <span style={{
+                fontFamily: "'Exo 2', system-ui, sans-serif",
+                fontWeight: 100, fontSize: 36, letterSpacing: "0.22em",
+                color: "var(--accent)", display: "block",
+              }}>TRACE</span>
+              <span style={{ display: "block", height: 1, background: "var(--accent)", opacity: 0.4, marginTop: 6 }}></span>
+            </div>
+          ) : (
+            <div style={{
+              width: 64, height: 64, borderRadius: "50%",
+              background: "rgba(99,102,241,0.12)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              color: "var(--accent)",
+            }}>
+              <Icon name={current.icon} size={28} />
+            </div>
           )}
-
-          <div class="onboarding-content">{current.content}</div>
         </div>
 
-        {/* Navigation — pinned at bottom */}
-        <div style={{ flexShrink: 0, paddingTop: "var(--sp-4)" }}>
-          <div style={{ display: "flex", gap: "var(--sp-3)" }}>
+        {/* Content area */}
+        <div style={{
+          flex: 1, display: "flex", flexDirection: "column",
+          justifyContent: "flex-start", minHeight: 0,
+          textAlign: "center", padding: "0 8px", overflow: "auto",
+        }}>
+          <h2 style={{
+            fontSize: 18, fontWeight: 700,
+            marginBottom: 12, color: "var(--text)",
+            lineHeight: 1.3,
+          }}>{current.title}</h2>
+
+          <p style={{
+            fontSize: 14, color: "var(--text-sec)",
+            lineHeight: 1.7, marginBottom: 12,
+          }}>{current.body}</p>
+
+          {current.detail && (
+            <div style={{ marginTop: "auto" }}>
+              {!showDetail ? (
+                <button onClick={() => setShowDetail(true)} style={{
+                  background: "none", border: "none", color: "var(--text-muted)",
+                  fontSize: 11, cursor: "pointer", textDecoration: "underline", opacity: 0.7,
+                }}>Technical details</button>
+              ) : (
+                <div style={{
+                  fontSize: 11, color: "var(--text-muted)", lineHeight: 1.6,
+                  background: "var(--surface-alt, rgba(0,0,0,0.2))",
+                  borderRadius: 8, padding: "10px 14px", textAlign: "left",
+                }}>
+                  {current.detail}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Navigation — PINNED at bottom */}
+        <div style={{ flexShrink: 0, paddingTop: 16 }}>
+          <div style={{ display: "flex", gap: 12 }}>
             {step > 0 && (
-              <button class="btn btn-secondary" style={{ flex: 1 }} onClick={() => setStep((s) => s - 1)}>Back</button>
+              <button class="btn btn-secondary" style={{ flex: 1 }} onClick={goBack}>Back</button>
             )}
-            <button class="btn btn-primary" style={{ flex: 2 }} onClick={isLast ? onComplete : () => setStep((s) => s + 1)}>
+            <button class="btn btn-primary" style={{ flex: step > 0 ? 2 : 1 }} onClick={goNext}>
               {isLast ? "Start Reporting" : "Continue"}
             </button>
           </div>
-          <p class="hint-text" style={{ textAlign: "center", marginTop: "var(--sp-3)" }}>
-            Step {step + 1} of {STEPS.length}
+
+          <div style={{
+            display: "flex", alignItems: "center", justifyContent: "center",
+            gap: 6, marginTop: 12,
+          }}>
+            {STEPS.map((_, i) => (
+              <div key={i} style={{
+                width: i === step ? 16 : 6, height: 6,
+                borderRadius: 3,
+                background: i === step ? "var(--accent)" : i < step ? "var(--accent)" : "var(--border)",
+                opacity: i < step ? 0.4 : 1,
+                transition: "width 0.2s, opacity 0.2s",
+              }} />
+            ))}
             {!isLast && (
-              <span> · <button onClick={onComplete} style={{
+              <button onClick={onComplete} style={{
                 background: "none", border: "none", color: "var(--text-muted)",
-                cursor: "pointer", fontSize: "inherit", textDecoration: "underline",
-                opacity: 0.7,
-              }}>skip</button></span>
+                cursor: "pointer", fontSize: 11, marginLeft: 8, opacity: 0.6,
+              }}>skip</button>
             )}
-          </p>
+          </div>
         </div>
       </div>
     </div>
