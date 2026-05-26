@@ -212,19 +212,27 @@ export function Intelligence() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-4">
         <h1 className="text-2xl font-bold">Intelligence Map</h1>
-        <div className="flex flex-wrap gap-2 text-xs">
-          <span className="px-2 py-1 rounded bg-trace-surface" style={{ color: "var(--text-muted)" }}>
-            {totalSightings} sightings
-          </span>
-          <span className="px-2 py-1 rounded bg-trace-surface" style={{ color: "var(--text-muted)" }}>
-            {heatmap.length} heat zones
-          </span>
-          <span className="px-2 py-1 rounded bg-trace-surface" style={{ color: "var(--text-muted)" }}>
-            {coOccurrences.length} co-occurrences
-          </span>
-          <span className="px-2 py-1 rounded bg-trace-surface" style={{ color: "var(--text-muted)" }}>
-            {corridors.length} corridors
-          </span>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => {
+              const mapEl = document.querySelector(".leaflet-container") as any;
+              const center = mapEl?._leaflet_map?.getCenter?.() || { lat: 38.9510, lng: -77.1460 };
+              setPlacingPin({ lat: center.lat, lng: center.lng });
+              setSelectedPin(null);
+              setSelectedMarker(null);
+            }}
+            className="px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2"
+            style={{ background: "var(--accent)", color: "var(--accent-text)" }}>
+            + Drop Pin
+          </button>
+          <div className="flex flex-wrap gap-2 text-xs">
+            <span className="px-2 py-1 rounded bg-trace-surface" style={{ color: "var(--text-muted)" }}>
+              {totalSightings} sightings
+            </span>
+            <span className="px-2 py-1 rounded bg-trace-surface" style={{ color: "var(--text-muted)" }}>
+              {corridors.length} corridors
+            </span>
+          </div>
         </div>
       </div>
 
@@ -449,23 +457,10 @@ export function Intelligence() {
         />
       )}
 
-      {/* Hint */}
-      <div className="flex items-center gap-3 mt-3 mb-2">
-        <button
-          onClick={() => {
-            const map = document.querySelector(".leaflet-container") as any;
-            if (map) {
-              // Simulate dropping at center
-              const center = map._leaflet_map?.getCenter?.() || { lat: 34.27, lng: -118.78 };
-              setPlacingPin({ lat: center.lat, lng: center.lng });
-            }
-          }}
-          className="px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2"
-          style={{ background: "var(--accent)", color: "var(--accent-text)" }}>
-          + Drop Pin
-        </button>
+      {/* Right-click hint */}
+      <div className="mt-3 mb-2">
         <span className="text-xs" style={{ color: "var(--text-muted)" }}>
-          or right-click anywhere on the map
+          Right-click anywhere on the map to drop a pin at that exact location.
         </span>
       </div>
     </div>

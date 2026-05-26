@@ -197,14 +197,14 @@ async function seed() {
   if (reporterIds.length > 0) {
     const now = Date.now();
     const sightingData = [
-      { plate: "FAKE-001", lat: 34.2694, lng: -118.7815, desc: "DEMO: Circling the block on Oak St, stopped twice",     hoursAgo: 2,  dir: "N" },
-      { plate: "FAKE-001", lat: 34.2710, lng: -118.7830, desc: "DEMO: Parked outside convenience store for 45 min",     hoursAgo: 26, dir: "E" },
-      { plate: "FAKE-001", lat: 34.2650, lng: -118.7790, desc: "DEMO: Driving slowly through residential area at 1am",  hoursAgo: 50, dir: "S" },
-      { plate: "FAKE-002", lat: 34.2700, lng: -118.7800, desc: "DEMO: Following another vehicle on Main St",            hoursAgo: 5,  dir: "W" },
-      { plate: "FAKE-002", lat: 34.2720, lng: -118.7850, desc: "DEMO: Parked with engine running, two occupants",       hoursAgo: 30, dir: "NE" },
-      { plate: "FAKE-003", lat: 34.2680, lng: -118.7770, desc: "DEMO: Loading boxes from garage into truck bed",        hoursAgo: 12, dir: "SW" },
-      { plate: "FAKE-003", lat: 34.2690, lng: -118.7810, desc: "DEMO: Speeding through school zone",                    hoursAgo: 72, dir: "E" },
-      { plate: "TEST-004", lat: 34.2715, lng: -118.7840, desc: "DEMO: Parked near park, driver on phone",               hoursAgo: 8,  dir: "N" },
+      { plate: "FAKE-001", lat: 38.9510, lng: -77.1460, desc: "DEMO: Circling the block on Dolley Madison Blvd, stopped twice", hoursAgo: 2,  dir: "N" },
+      { plate: "FAKE-001", lat: 38.9530, lng: -77.1490, desc: "DEMO: Parked outside coffee shop for 45 min",                   hoursAgo: 26, dir: "E" },
+      { plate: "FAKE-001", lat: 38.9480, lng: -77.1420, desc: "DEMO: Driving slowly through residential area at 1am",           hoursAgo: 50, dir: "S" },
+      { plate: "FAKE-002", lat: 38.9500, lng: -77.1450, desc: "DEMO: Following another vehicle on Chain Bridge Rd",             hoursAgo: 5,  dir: "W" },
+      { plate: "FAKE-002", lat: 38.9540, lng: -77.1510, desc: "DEMO: Parked with engine running, two occupants",                hoursAgo: 30, dir: "NE" },
+      { plate: "FAKE-003", lat: 38.9460, lng: -77.1400, desc: "DEMO: Loading boxes from garage into truck bed",                 hoursAgo: 12, dir: "SW" },
+      { plate: "FAKE-003", lat: 38.9490, lng: -77.1440, desc: "DEMO: Speeding through school zone",                             hoursAgo: 72, dir: "E" },
+      { plate: "TEST-004", lat: 38.9520, lng: -77.1480, desc: "DEMO: Parked near park, driver on phone",                        hoursAgo: 8,  dir: "N" },
     ];
     for (const s of sightingData) {
       const rid = reporterIds[Math.floor(Math.random() * reporterIds.length)];

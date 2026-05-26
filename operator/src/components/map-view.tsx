@@ -102,7 +102,7 @@ export function IntelMap({
   onPlacePin,
   onPinClick,
   onMarkerClick,
-  center = [34.0, -118.5],
+  center = [38.9510, -77.1460],
   zoom = 12,
   height = "500px",
 }: IntelMapProps) {
