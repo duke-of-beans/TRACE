@@ -6,6 +6,7 @@
  */
 import { useState } from "react";
 import { useToast, useConfirm, HelpTip } from "../components/ux/index.js";
+import { Icon } from "../components/icon.js";
 
 const authHeaders = (): Record<string, string> => {
   const token = localStorage.getItem("trace_op_token");

@@ -9,6 +9,7 @@ import { api } from "../lib/api.js";
 import { useHotkeys } from "../lib/hotkeys.js";
 import { connect, onEvent } from "../lib/ws.js";
 import { useToast, useConfirm, EmptyState, EMPTY_STATES, SkeletonList, HelpTip } from "../components/ux/index.js";
+import { Icon } from "../components/icon.js";
 
 export function Triage() {
   const [sightings, setSightings] = useState<any[]>([]);
@@ -130,13 +131,15 @@ export function Triage() {
       {/* Queue list */}
       <div className="w-80 space-y-2 max-h-[calc(100vh-3rem)] overflow-auto">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-lg font-semibold">
+          <h2 className="text-lg font-semibold" style={{ color: "var(--text)" }}>
             {sightings.length} pending
             {liveCount > 0 && (
-              <span className="ml-2 inline-block w-2 h-2 rounded-full bg-trace-confirm animate-pulse" />
+              <span className="ml-2 inline-block w-2 h-2 rounded-full animate-pulse" style={{ background: "var(--success)" }} />
             )}
           </h2>
-          <button onClick={load} className="text-xs text-trace-accent">↻</button>
+          <button onClick={load} className="text-xs" style={{ color: "var(--accent)" }} aria-label="Refresh">
+            <Icon name="clock" size={14} />
+          </button>
         </div>
         {sightings.map((s, i) => (
           <button
@@ -148,14 +151,14 @@ export function Triage() {
                 : "border-trace-border bg-trace-bg hover:bg-trace-surface"
             }`}
           >
-            <div className="font-mono text-sm font-bold tracking-wider">
+            <div className="font-mono text-sm font-bold tracking-wider" style={{ color: "var(--text)" }}>
               {s.plate || "No plate"}
             </div>
-            <div className="text-xs text-gray-500 mt-1">
+            <div className="text-xs mt-1" style={{ color: "var(--text-muted)" }}>
               {new Date(s.submittedAt).toLocaleString()}
             </div>
             {s.activityDescription && (
-              <div className="text-xs text-gray-400 mt-1 truncate">{s.activityDescription}</div>
+              <div className="text-xs mt-1 truncate" style={{ color: "var(--text-sec)" }}>{s.activityDescription}</div>
             )}
           </button>
         ))}
@@ -170,25 +173,25 @@ export function Triage() {
                 <h3 className="text-2xl font-mono font-bold tracking-widest">
                   {current.plate || "No plate"}
                 </h3>
-                <p className="text-sm text-gray-500 mt-1">
+                <p className="text-sm mt-1" style={{ color: "var(--text-sec)" }}>
                   Observed {new Date(current.observedAt).toLocaleString()}
                 </p>
               </div>
-              <span className="text-xs text-gray-600 bg-trace-bg px-3 py-1 rounded">
+              <span className="text-xs px-3 py-1 rounded font-mono" style={{ color: "var(--text-muted)", background: "var(--bg)" }}>
                 {current.id?.slice(0, 8)}
               </span>
             </div>
 
             {current.vehicleDescription && (
               <div className="mb-4">
-                <label className="text-xs text-gray-500 uppercase tracking-wider">Vehicle</label>
+                <label className="text-xs uppercase tracking-wider" style={{ color: "var(--text-sec)" }}>Vehicle</label>
                 <p className="mt-1">{current.vehicleDescription}</p>
               </div>
             )}
 
             {current.activityDescription && (
               <div className="mb-4">
-                <label className="text-xs text-gray-500 uppercase tracking-wider">Activity</label>
+                <label className="text-xs uppercase tracking-wider" style={{ color: "var(--text-sec)" }}>Activity</label>
                 <p className="mt-1">{current.activityDescription}</p>
               </div>
             )}
@@ -196,14 +199,15 @@ export function Triage() {
             <div className="grid grid-cols-2 gap-4 mb-4">
               {current.direction && (
                 <div>
-                  <label className="text-xs text-gray-500 uppercase tracking-wider">Direction</label>
+                  <label className="text-xs uppercase tracking-wider" style={{ color: "var(--text-sec)" }}>Direction</label>
                   <p className="mt-1 text-lg font-semibold">{current.direction}</p>
                 </div>
               )}
               {current.lat && (
                 <div>
-                  <label className="text-xs text-gray-500 uppercase tracking-wider">Location</label>
+                  <label className="text-xs uppercase tracking-wider" style={{ color: "var(--text-sec)" }}>Location</label>
                   <p className="mt-1 font-mono text-sm">
+                    <Icon name="map-pin" size={12} className="inline mr-1" />
                     {current.lat.toFixed(4)}, {current.lng?.toFixed(4)}
                   </p>
                 </div>
@@ -212,17 +216,17 @@ export function Triage() {
 
             {current.notes && (
               <div className="mb-6">
-                <label className="text-xs text-gray-500 uppercase tracking-wider">Notes</label>
-                <p className="mt-1 text-gray-300">{current.notes}</p>
+                <label className="text-xs uppercase tracking-wider" style={{ color: "var(--text-sec)" }}>Notes</label>
+                <p className="mt-1" style={{ color: "var(--text-sec)" }}>{current.notes}</p>
               </div>
             )}
 
             {/* Action buttons */}
-            <div className="flex gap-3 pt-4 border-t border-trace-border">
-              <ActionBtn label="Approve" shortcut="A" color="bg-trace-confirm" onClick={approve} />
-              <ActionBtn label="Flag" shortcut="F" color="bg-trace-warning" onClick={flag} />
-              <ActionBtn label="Dismiss" shortcut="D" color="bg-gray-600" onClick={dismiss} />
-              <ActionBtn label="Escalate" shortcut="E" color="bg-trace-danger" onClick={escalate} />
+            <div className="flex gap-3 pt-4" style={{ borderTop: "1px solid var(--border)" }}>
+              <ActionBtn label="Approve" shortcut="A" bg="var(--success)" onClick={approve} icon="check" />
+              <ActionBtn label="Flag" shortcut="F" bg="var(--warning)" onClick={flag} icon="alert-triangle" />
+              <ActionBtn label="Dismiss" shortcut="D" bg="var(--surface-alt)" onClick={dismiss} icon="x" textColor="var(--text-sec)" />
+              <ActionBtn label="Escalate" shortcut="E" bg="var(--danger)" onClick={escalate} icon="zap" />
             </div>
           </div>
         </div>
@@ -231,13 +235,12 @@ export function Triage() {
   );
 }
 
-function ActionBtn(props: { label: string; shortcut: string; color: string; onClick: () => void }) {
+function ActionBtn({ label, shortcut, bg, onClick, icon, textColor }: { label: string; shortcut: string; bg: string; onClick: () => void; icon: string; textColor?: string }) {
   return (
-    <button
-      onClick={props.onClick}
-      className={`${props.color} text-white px-4 py-2 rounded-lg text-sm font-semibold hover:opacity-90 transition`}
-    >
-      {props.label} <span className="text-xs opacity-60 ml-1">[{props.shortcut}]</span>
+    <button onClick={onClick} className="px-4 py-2 rounded-lg text-sm font-semibold hover:opacity-90 transition flex items-center gap-2"
+      style={{ background: bg, color: textColor || "#fff", minHeight: 44 }}>
+      <Icon name={icon} size={14} />
+      {label} <span className="text-xs opacity-60">[{shortcut}]</span>
     </button>
   );
 }
