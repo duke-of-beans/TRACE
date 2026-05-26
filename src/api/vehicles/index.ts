@@ -118,3 +118,28 @@ vehiclesRouter.post("/:id/promote", async (c) => {
 
   return c.json({ status: "promoted", vehicleId, toLevelId }, 200);
 });
+
+// --- GET /vehicles/search-plates — auto-suggest as reporter types ---
+vehiclesRouter.get("/search-plates", async (c) => {
+  const q = c.req.query("q")?.toUpperCase().trim();
+  if (!q || q.length < 2) return c.json([]);
+
+  const chapterId = c.req.header("x-chapter-id") || "";
+  const matches = await opsDb
+    .select({
+      id: vehicles.id,
+      plate: vehicles.plate,
+      make: vehicles.make,
+      model: vehicles.model,
+      color: vehicles.color,
+      suspicionLevelId: vehicles.suspicionLevelId,
+    })
+    .from(vehicles)
+    .where(and(
+      eq(vehicles.chapterId, chapterId),
+      ilike(vehicles.plate, `%${q}%`),
+    ))
+    .limit(5);
+
+  return c.json(matches);
+});

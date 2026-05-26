@@ -137,6 +137,15 @@ export function ReporterMap() {
     } catch { /* silent */ }
   };
 
+  const handleOutcome = async (id: string, outcome: string) => {
+    try {
+      await api.submitOutcome(id, { outcome, notes: "" });
+      if (navigator.vibrate) navigator.vibrate(100);
+      setSelectedDispatch(null);
+      loadDispatches();
+    } catch { /* silent */ }
+  };
+
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "calc(100vh - 80px)", position: "relative" }}>
       {/* Header */}
@@ -216,9 +225,25 @@ export function ReporterMap() {
               </button>
             )}
             {selectedDispatch.assigned && selectedDispatch.myAssignment?.status === "on_scene" && (
-              <span style={{ fontSize: "var(--text-sm)", color: "var(--success)", fontWeight: 600, display: "flex", alignItems: "center", gap: "var(--sp-1)" }}>
-                ✓ On Scene — submit a report from the Report tab
-              </span>
+              <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: "var(--sp-2)" }}>
+                <span style={{ fontSize: "var(--text-xs)", color: "var(--success)", fontWeight: 600, display: "flex", alignItems: "center", gap: "var(--sp-1)" }}>
+                  ✓ On Scene — report outcome:
+                </span>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--sp-2)" }}>
+                  <button onClick={() => handleOutcome(selectedDispatch.id, "confirmed")} class="btn btn-primary" style={{ fontSize: "var(--text-xs)" }}>
+                    Confirmed
+                  </button>
+                  <button onClick={() => handleOutcome(selectedDispatch.id, "not_found")} class="btn btn-secondary" style={{ fontSize: "var(--text-xs)" }}>
+                    Not Found
+                  </button>
+                  <button onClick={() => handleOutcome(selectedDispatch.id, "fled")} class="btn btn-secondary" style={{ fontSize: "var(--text-xs)" }}>
+                    Suspect Fled
+                  </button>
+                  <button onClick={() => handleOutcome(selectedDispatch.id, "false_alarm")} class="btn btn-secondary" style={{ fontSize: "var(--text-xs)" }}>
+                    False Alarm
+                  </button>
+                </div>
+              </div>
             )}
             <button onClick={() => openInMaps(selectedDispatch.lat, selectedDispatch.lng)}
               class="btn btn-secondary" style={{ flex: selectedDispatch.assigned ? 0 : 1 }}

@@ -337,6 +337,9 @@ export const sightingPhotos = ops.table("sighting_photos", {
   exifTimestamp: timestamp("exif_timestamp", { withTimezone: true }),
   // thumbnail stored locally, full-res in Vault C
   thumbnailPath: text("thumbnail_path"),
+  // base64-encoded photo data (MVP: stored in DB; production: move to object storage)
+  photoData: text("photo_data"),
+  mimeType: varchar("mime_type", { length: 32 }).default("image/jpeg"),
   sortOrder: smallint("sort_order").default(0),
   createdAt: createdAt(),
 });

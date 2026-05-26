@@ -72,6 +72,23 @@ sightingsRouter.post("/", async (c) => {
   // real-time: push to operator triage queue
   emitNewSighting(chapterId, sighting);
 
+  // Store photos if provided (base64-encoded)
+  if (body.photos && Array.isArray(body.photos)) {
+    for (let i = 0; i < body.photos.length && i < 5; i++) {
+      const photo = body.photos[i];
+      if (photo?.data) {
+        await opsDb.insert(sightingPhotos).values({
+          sightingId: sighting.id,
+          photoData: photo.data,
+          mimeType: photo.mimeType || "image/jpeg",
+          exifLat: photo.lat || null,
+          exifLng: photo.lng || null,
+          sortOrder: i,
+        });
+      }
+    }
+  }
+
   // push notifications
   dispatch({
     event: "new_sighting",
@@ -177,4 +194,21 @@ sightingsRouter.post("/:id/feedback", async (c) => {
   }).returning();
 
   return c.json(fb, 201);
+});
+
+// --- GET /sightings/:id/photos — get photos for a sighting ---
+sightingsRouter.get("/:id/photos", async (c) => {
+  const sightingId = c.req.param("id");
+  const photos = await opsDb
+    .select({
+      id: sightingPhotos.id,
+      mimeType: sightingPhotos.mimeType,
+      photoData: sightingPhotos.photoData,
+      exifLat: sightingPhotos.exifLat,
+      exifLng: sightingPhotos.exifLng,
+      sortOrder: sightingPhotos.sortOrder,
+    })
+    .from(sightingPhotos)
+    .where(eq(sightingPhotos.sightingId, sightingId));
+  return c.json(photos);
 });

@@ -29,6 +29,13 @@
       "when": 1779792428611,
       "tag": "0003_operator-auth",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1779825189381,
+      "tag": "0004_photo-data",
+      "breakpoints": true
     }
   ]
 }

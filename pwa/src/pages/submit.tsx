@@ -56,7 +56,27 @@ export function Submit() {
   const [checkPlate, setCheckPlate] = useState("");
   const [checkResult, setCheckResult] = useState<any>(null);
   const [checking, setChecking] = useState(false);
+  const [plateSuggestions, setPlateSuggestions] = useState<any[]>([]);
+  const suggestTimer = useRef<any>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  // Debounced plate auto-suggest
+  const handlePlateInput = (val: string) => {
+    const upper = val.toUpperCase();
+    setDraft((d) => ({ ...d, plate: upper }));
+    setPlateSuggestions([]);
+    if (suggestTimer.current) clearTimeout(suggestTimer.current);
+    if (upper.length >= 3) {
+      suggestTimer.current = setTimeout(async () => {
+        try {
+          const res = await fetch(`${(import.meta as any).env?.VITE_API_URL || "/api/v1"}/vehicles/search-plates?q=${encodeURIComponent(upper)}`, {
+            headers: { Authorization: `Bearer ${localStorage.getItem("trace_token") || ""}` },
+          });
+          if (res.ok) setPlateSuggestions(await res.json());
+        } catch {}
+      }, 300);
+    }
+  };
 
   const handlePhotos = async (e: Event) => {
     const rawFiles = Array.from((e.target as HTMLInputElement).files || []);
@@ -93,6 +113,17 @@ export function Submit() {
   const handleSubmit = async () => {
     setSubmitting(true);
     const jitteredTime = applyJitter(new Date(draft.observedAt));
+
+    // Convert photos to base64
+    const photoPayloads: { data: string; mimeType: string; lat?: number; lng?: number }[] = [];
+    for (const file of draft.photos) {
+      try {
+        const buffer = await file.arrayBuffer();
+        const base64 = btoa(String.fromCharCode(...new Uint8Array(buffer)));
+        photoPayloads.push({ data: base64, mimeType: file.type || "image/jpeg" });
+      } catch {}
+    }
+
     const payload = {
       lat: draft.lat || 0, lng: draft.lng || 0,
       observedAt: jitteredTime.toISOString(),
@@ -101,11 +132,14 @@ export function Submit() {
       activityDescription: draft.activityDescription || undefined,
       direction: draft.direction || undefined,
       notes: draft.notes || undefined,
+      photos: photoPayloads.length > 0 ? photoPayloads : undefined,
     };
     try {
       const result = await api.submitSighting(payload) as any;
       setSubmittedId(result?.id || null);
       setSubmitted(true);
+      // Vibrate on success
+      if (navigator.vibrate) navigator.vibrate(100);
       // Poll for feedback
       if (result?.id) {
         const pollInterval = setInterval(async () => {
@@ -356,12 +390,40 @@ export function Submit() {
       )}
 
       {/* License Plate */}
-      <div style={{ marginBottom: "var(--sp-4)" }}>
+      <div style={{ marginBottom: "var(--sp-4)", position: "relative" }}>
         <label class="section-label" for="plate">License Plate</label>
         <input id="plate" placeholder="ABC 1234" value={draft.plate}
-          onInput={(e) => setDraft((d) => ({ ...d, plate: (e.target as HTMLInputElement).value.toUpperCase() }))}
+          onInput={(e) => handlePlateInput((e.target as HTMLInputElement).value)}
+          onFocus={() => { if (draft.plate.length >= 3) handlePlateInput(draft.plate); }}
           class="input input-plate"
         />
+        {plateSuggestions.length > 0 && (
+          <div style={{
+            position: "absolute", top: "100%", left: 0, right: 0, zIndex: 10,
+            background: "var(--surface)", border: "1px solid var(--border)",
+            borderRadius: "var(--radius)", marginTop: 2, overflow: "hidden",
+            boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
+          }}>
+            {plateSuggestions.map((s: any) => (
+              <button key={s.id}
+                onClick={() => { setDraft((d) => ({ ...d, plate: s.plate })); setPlateSuggestions([]); }}
+                style={{
+                  display: "flex", alignItems: "center", gap: "var(--sp-2)",
+                  padding: "var(--sp-2) var(--sp-3)", width: "100%",
+                  background: "none", border: "none", borderBottom: "1px solid var(--border)",
+                  cursor: "pointer", textAlign: "left",
+                  color: "var(--text)", fontSize: "var(--text-sm)",
+                }}>
+                <span style={{
+                  fontSize: "8px", fontWeight: 700, padding: "1px 6px", borderRadius: 3,
+                  background: "rgba(220,38,38,0.15)", color: "#DC2626",
+                }}>MATCH</span>
+                <span style={{ fontFamily: "monospace", fontWeight: 600, letterSpacing: "0.1em" }}>{s.plate}</span>
+                {s.color && <span style={{ fontSize: "var(--text-xs)", color: "var(--text-muted)" }}>{s.color} {s.make} {s.model}</span>}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Vehicle Description */}

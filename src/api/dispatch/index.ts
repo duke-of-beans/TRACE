@@ -16,9 +16,39 @@ import {
   dispatchEvents, dispatchAssignments, dispatchOutcomes,
   dispatchEventTypes, sightings, sightingFeedback, vehicles,
 } from "../../db/schema/vault-a.js";
-import { eq, and, desc, inArray } from "drizzle-orm";
+import { eq, and, desc, inArray, lt, ne } from "drizzle-orm";
 
 export const dispatchRouter = new Hono();
+
+// Auto-close stale dispatches (lazy: runs on read, no cron)
+async function autoCloseStale(chapterId: string) {
+  const now = new Date();
+  // Get event types with auto-close configured
+  const types = await opsDb.select().from(dispatchEventTypes)
+    .where(eq(dispatchEventTypes.chapterId, chapterId));
+  const typeMap = new Map(types.map(t => [t.id, t]));
+
+  // Get all non-closed dispatches
+  const open = await opsDb.select().from(dispatchEvents)
+    .where(and(
+      eq(dispatchEvents.chapterId, chapterId),
+      ne(dispatchEvents.status, "closed"),
+      ne(dispatchEvents.status, "expired"),
+    ));
+
+  for (const d of open) {
+    const et = d.eventTypeId ? typeMap.get(d.eventTypeId) : null;
+    const autoCloseH = et?.autoCloseHours || 0;
+    if (autoCloseH > 0) {
+      const deadline = new Date(new Date(d.createdAt!).getTime() + autoCloseH * 60 * 60 * 1000);
+      if (now > deadline) {
+        await opsDb.update(dispatchEvents)
+          .set({ status: "expired", closedAt: now, closedBy: "system", closeReason: "Auto-expired" })
+          .where(eq(dispatchEvents.id, d.id));
+      }
+    }
+  }
+}
 
 // ============================================================
 // DISPATCH EVENT TYPES (admin CRUD)
@@ -60,6 +90,9 @@ dispatchRouter.get("/", async (c) => {
   const chapterId = c.req.header("x-chapter-id") || "";
   const status = c.req.query("status"); // open, responding, on_scene, closed, expired
   const limit = parseInt(c.req.query("limit") || "50");
+
+  // Lazy auto-close stale dispatches on read
+  await autoCloseStale(chapterId).catch(() => {});
 
   const conditions = [eq(dispatchEvents.chapterId, chapterId)];
   if (status) conditions.push(eq(dispatchEvents.status, status));
