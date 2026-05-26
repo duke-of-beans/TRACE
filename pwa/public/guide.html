@@ -274,9 +274,32 @@
 <p style="font-size:15px; color:var(--text-sec); text-align:center; margin-bottom:20px; line-height:1.8;">
   TRACE is a vehicle tracking system for neighborhood chapters. Reporters submit sightings from a phone app. Operators review, dispatch, and track from a desktop console.
 </p>
-<p style="font-size:14px; color:var(--text-muted); text-align:center; margin-bottom:56px; line-height:1.8;">
+<p style="font-size:14px; color:var(--text-muted); text-align:center; margin-bottom:36px; line-height:1.8;">
   TRACE requires two services: a <strong style="color:var(--text-sec)">database</strong> (stores your records) and a <strong style="color:var(--text-sec)">web host</strong> (serves the app to devices). Both are free. Both use industry-standard encryption. You control both accounts and can delete everything at any time.
 </p>
+
+<!-- What you're setting up -->
+<div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px 24px;margin-bottom:48px;">
+  <h3 style="font-size:15px;margin-bottom:10px;">What you are setting up</h3>
+  <p style="font-size:13px;color:var(--text-sec);line-height:1.7;margin-bottom:10px;">
+    TRACE is open-source software. The code is publicly available and can be reviewed by anyone. Nothing is installed on your computer. Instead, you create your own private copy running on your own cloud accounts.
+  </p>
+  <p style="font-size:13px;color:var(--text-sec);line-height:1.7;margin-bottom:10px;">
+    The setup process creates three things:
+  </p>
+  <p style="font-size:13px;color:var(--text-sec);line-height:1.7;margin-bottom:4px;">
+    <strong style="color:var(--text)">1. A database</strong> on Neon (where your sighting records, vehicle data, and accounts are stored)
+  </p>
+  <p style="font-size:13px;color:var(--text-sec);line-height:1.7;margin-bottom:4px;">
+    <strong style="color:var(--text)">2. A website</strong> on Vercel (what reporters and operators open in their browser)
+  </p>
+  <p style="font-size:13px;color:var(--text-sec);line-height:1.7;margin-bottom:10px;">
+    <strong style="color:var(--text)">3. A code copy</strong> on GitHub (the source code that Vercel builds from)
+  </p>
+  <p style="font-size:13px;color:var(--text-sec);line-height:1.7;">
+    All three are under your accounts. No one else has access. Your chapter's TRACE instance is completely separate from every other chapter's instance. There is no central server, no shared database, and no way for one chapter to see another's data.
+  </p>
+</div>
 
 <!-- STEP 1 -->
 <div class="step">
@@ -318,7 +341,8 @@
 <div class="step">
   <div class="step-number">2</div>
   <h2>Deploy the application</h2>
-  <p>Vercel serves the TRACE application over HTTPS. Each deployment runs in isolated serverless functions. Free tier supports thousands of daily requests. Vercel requires a GitHub account. GitHub stores the code. Vercel compiles and serves it. You will not need GitHub after this step.</p>
+  <p>The Deploy button below does three things automatically: it copies the TRACE code to your GitHub account, connects it to Vercel, and builds your website. You do not need to download or install anything. The entire application runs in the cloud on your accounts.</p>
+  <p>Vercel serves the application over HTTPS. Each request runs in an isolated serverless function. Free tier supports thousands of daily requests.</p>
 
   <ol class="instructions">
     <li>Click the <strong>Deploy</strong> button below. It opens Vercel.</li>
@@ -393,6 +417,7 @@
 <div class="step">
   <div class="step-number">4</div>
   <h2>Create the operator account</h2>
+  <p>The operator console is a website, not installed software. Open it in any browser on any computer. Nothing is stored on your machine. All data lives in the database from Step 1.</p>
   <p>TRACE does not use email addresses or real names for accounts. Operators authenticate with a <strong>callsign</strong> (a code name) and an <strong>access code</strong> (a passphrase, 6+ characters). No identifying information enters the system. If the database were compromised, an attacker would find callsigns, not people.</p>
   <p>This screen appears once, on first access. After the first operator is created, it becomes a standard login.</p>
 
