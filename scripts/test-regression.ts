@@ -54,7 +54,7 @@ const tests: Record<string, () => Promise<void>> = {
     const res = await fetch(`${API}/admin/reporters/generate-invite`, {
       method: "POST",
       headers: headers(token),
-      body: JSON.stringify({ callsign: "CHAR-TEST" }),
+      body: JSON.stringify({ callsign: `CHAR-${Date.now().toString(36)}` }),
     });
     const data = await res.json() as any;
     const code = data.inviteCode.replace("-", "");
