@@ -6,7 +6,7 @@
  */
 import { get, set, del, keys } from "idb-keyval";
 
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3100/api/v1";
+const API_BASE = import.meta.env.VITE_API_URL || "/api/v1";
 
 let sessionToken: string | null = null;
 

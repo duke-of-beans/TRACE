@@ -8,7 +8,7 @@
  */
 import { useState } from "react";
 
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3100/api/v1";
+const API_BASE = import.meta.env.VITE_API_URL || "/api/v1";
 
 export function setToken(token: string) {
   localStorage.setItem("trace_op_token", token);

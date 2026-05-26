@@ -338,7 +338,7 @@ export function Intelligence() {
 
 // helpers
 function getApiBase() {
-  return import.meta.env.VITE_API_URL || "http://localhost:3100/api/v1";
+  return import.meta.env.VITE_API_URL || "/api/v1";
 }
 
 function authHeaders(): RequestInit {

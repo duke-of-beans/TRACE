@@ -7,7 +7,7 @@ import { IntelMap } from "../components/map-view.js";
 import { Icon } from "../components/icon.js";
 import { useToast, useConfirm, EmptyState, EMPTY_STATES, SkeletonList, HelpTip, ErrorBoundary } from "../components/ux/index.js";
 
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3100/api/v1";
+const API_BASE = import.meta.env.VITE_API_URL || "/api/v1";
 const inputCls = "w-full bg-trace-bg border border-trace-border rounded-lg px-3 py-2 text-sm focus:border-trace-accent focus:outline-none transition-colors";
 
 export function Vehicles() {

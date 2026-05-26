@@ -8,7 +8,7 @@ import { useState } from "react";
 import { useToast, useConfirm, HelpTip } from "../components/ux/index.js";
 import { Icon } from "../components/icon.js";
 
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3100/api/v1";
+const API_BASE = import.meta.env.VITE_API_URL || "/api/v1";
 const authHeaders = (): Record<string, string> => {
   const token = localStorage.getItem("trace_op_token");
   return { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) };

@@ -27,7 +27,7 @@ const PREDICATE_TYPES = [
 
 const inputCls = "w-full bg-trace-bg border border-trace-border rounded-lg px-3 py-2 text-sm text-gray-200 focus:border-trace-accent focus:outline-none transition-colors placeholder:text-gray-600";
 
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3100/api/v1";
+const API_BASE = import.meta.env.VITE_API_URL || "/api/v1";
 
 function authHeaders(): Record<string, string> {
   const token = localStorage.getItem("trace_op_token");

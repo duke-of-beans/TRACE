@@ -44,7 +44,7 @@ export function App() {
 
   useEffect(() => {
     if (locked || isWiped()) return;
-    const apiBase = import.meta.env.VITE_API_URL || "http://localhost:3100/api/v1";
+    const apiBase = import.meta.env.VITE_API_URL || "/api/v1";
     if (authed) {
       startDeadManSwitch();
       startHeartbeat(apiBase);

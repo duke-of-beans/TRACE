@@ -11,7 +11,7 @@ import { loadDeviceKey, encryptData, decryptData } from "./crypto.js";
 const QUEUE_PREFIX = "tq_"; // trace queue
 const RETRY_BASE_MS = 5000;
 const RETRY_MAX_MS = 300000; // 5 minutes max
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3100/api/v1";
+const API_BASE = import.meta.env.VITE_API_URL || "/api/v1";
 
 let retryTimer: ReturnType<typeof setTimeout> | null = null;
 let retryAttempt = 0;
