@@ -1,5 +1,5 @@
 # TRACE — Session Handoff
-# Updated: 2026-05-26 | Post-UX + Docs Session
+# Updated: 2026-05-26 | Post Auth + Productization Session
 # Deployment: https://trace-jet.vercel.app (Vercel + Neon PostgreSQL)
 
 ## PROJECT OVERVIEW
@@ -61,32 +61,59 @@ Seed: use pooler URL with `npx tsx src/db/seed.ts`
 
 ## AUTH
 
-- **Reporter:** invite code (TEST-CODE for demo) → PIN setup → onboarding
-- **Operator:** callsign OPERATOR (blank access code for demo)
+- **Reporter:** invite code → PIN setup → onboarding. TEST-CODE works in dev mode.
+- **Operator:** callsign + access code via `/auth/operator-login`. Dev mode: code optional. Prod: required.
+- **Bootstrap:** `/setup/bootstrap` creates first operator + chapter. Self-locking after first use.
+- **Operator management:** Admin panel > Operators tab. Create with callsign + access code.
 - Dev-login disabled by `TRACE_DISABLE_DEV_LOGIN=true`
 - Test code disabled by `TRACE_DISABLE_TEST_CODE=true`
 - Operator login checks role — rejects non-operator/admin
 - Dev-login never auto-creates operator accounts
+- Access codes stored as SHA-256 hashes in `ident.reporter_identities.access_code_hash`
 
-## WHAT WAS BUILT THIS SESSION (Latest: UX + Docs)
+## WHAT WAS BUILT THIS SESSION (Latest: Auth + Productization)
 
-### UX Fixes (deployed)
-- **Right-click pin instant feedback** — Fixed: temp pulsing marker was being cleared on re-render because `onPinClick` (inline function) was in dispatch pins useEffect deps. Moved callbacks to useRef, removed from effect deps. Added @keyframes pulse CSS. Temp pin now stays visible from right-click until form submit.
-- **Sighting marker detail panel** — New: clicking any sighting marker on the Intel Map now opens a SightingDetailPanel below the map showing plate, activity, observation time, heading, coordinates, and a "Create dispatch here" button. Added `onMarkerClick` prop to IntelMap and `MapMarker.data` field.
-- **Dispatch enrichment timing** — Fixed: event type labels/colors were missing on dispatch pins because enrichment ran before event types loaded (parallel fetch). Refactored to store raw dispatches separately with a useEffect that depends on `[rawDispatches, eventTypes]`.
-- **Login text** — Removed "Leave blank in dev mode" from operator portal login screen.
+### Security Model (deployed)
+- **access_code_hash** column added to `ident.reporter_identities` (migration 0003)
+- **`/api/v1/auth/operator-login`** — proper operator auth. Callsign + access code. Dev mode (default): access code optional. Prod mode (`TRACE_DISABLE_DEV_LOGIN=true`): access code required, verified against SHA-256 hash.
+- **`/api/v1/setup/status`** — returns `needsSetup` (no operators exist) + `devLoginEnabled`
+- **`/api/v1/setup/bootstrap`** — creates first operator + chapter in one shot. Self-locking: returns 403 once any operator exists. Creates session immediately.
+- Setup router registered in both `src/index.ts` and `api/index.ts` (Vercel entry)
+- Same codebase for dev and prod. Env-var driven behavior.
 
-### Documentation (pushed)
-- **README.md** — Complete rewrite: quick deploy guide, architecture, security model, how-it-works, local dev, PWA installation instructions.
-- **docs/CHAPTER_SETUP.md** — Step-by-step chapter deployment guide for non-technical users: fork, Neon DB, Vercel deploy, schema setup, first operator creation, security hardening, reporter onboarding, PWA installation, troubleshooting.
-- **.env.example** — Updated with DATABASE_URL, security flags, clearer comments.
+### Bootstrap (Option B, deployed)
+- Operator login screen checks `/setup/status` on mount
+- If `needsSetup: true` → shows "First-Time Setup" form (chapter name, callsign, access code)
+- Self-locking after first operator created
+- Bootstrap creates chapter + operator + session, logs user in immediately
 
-### Infrastructure
-- Migrations applied to Neon (verified up-to-date)
-- Seed data applied
-- Deployed to Vercel: https://trace-jet.vercel.app
+### Operator Management (Option C, deployed)
+- `GET /admin/operators` — lists all operators with status
+- `POST /admin/operators/create` — callsign + access code (min 6 chars)
+- `PUT /admin/operators/:id/access-code` — update access code
+- "Operators" tab in Admin panel with create UI
 
-### Previous Session (Dispatch System Build)
+### Portal Guide Sections (deployed)
+- **Operator:** "Operator Guide" button in sidebar footer opens modal overlay covering all 6 pages with descriptions and keyboard shortcuts
+- **Reporter:** "Quick Guide" section in Settings tab with compact descriptions of Report, Check Plate, Map, and History tabs
+
+### Favicons (deployed)
+- `operator/public/favicon.svg` — dark gradient, geometric thin T mark in TRACE accent blue, accent dash
+- `pwa/public/favicon.svg` — same family, rounder corners for mobile
+- PNG icons generated (192x192, 512x512) via `scripts/gen-icons.cjs`
+
+### Branded PDFs (in repo)
+- `docs/pdf/TRACE_Overview.pdf` — branded README with TRACE dark theme, accent headers, code blocks
+- `docs/pdf/TRACE_Chapter_Setup_Guide.pdf` — full setup guide in PDF
+- `docs/pdf/TRACE_Dispatch_Design.pdf` — dispatch system design doc
+- Generator: `python scripts/gen-pdfs.py` (uses reportlab, TRACE brand colors)
+
+### Dependency Tracking System
+- `DEPENDENCIES.md` — full dependency graph: source → dependent artifacts
+- `scripts/check-deps.py` — reads git diff, maps changed files to dependent artifacts, prints alerts. Returns exit code 1 if updates needed.
+- Rules: schema changes → migration + docs + PDFs. Auth changes → login screen + docs + .env.example. Voice/design changes → all UI copy + PDFs.
+
+### Previous: UX + Docs Session
 
 ### Dispatch System (Full Stack)
 - **Design document:** DISPATCH_DESIGN.md — 5 workflows, 12 little things, 4-phase plan
