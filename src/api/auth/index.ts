@@ -178,10 +178,10 @@ authRouter.post("/verify", async (c) => {
   });
 });
 
-// --- POST /auth/dev-login — DEV ONLY: login by callsign without invite code ---
-// Remove this endpoint before production deployment.
+// --- POST /auth/dev-login — DEV/DEMO login by callsign without invite code ---
+// Disable by setting TRACE_DISABLE_DEV_LOGIN=true in env.
 authRouter.post("/dev-login", async (c) => {
-  if (process.env.NODE_ENV === "production") {
+  if (process.env.TRACE_DISABLE_DEV_LOGIN === "true") {
     return c.json({ error: "Dev login disabled in production" }, 403);
   }
 
