@@ -334,16 +334,16 @@ textarea.input {
 
 .pin-input {
   width: 100%;
-  padding: var(--sp-4);
+  padding: var(--sp-3) var(--sp-4);
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   color: var(--text);
-  font-size: 28px;
+  font-size: 20px;
   font-family: var(--font-mono);
   text-align: center;
-  letter-spacing: 12px;
-  min-height: 56px;
+  letter-spacing: 8px;
+  min-height: 48px;
 }
 .pin-input:focus {
   outline: none;

@@ -21,6 +21,23 @@ authRouter.post("/invite-code", async (c) => {
   if (!code) return c.json({ error: "Code required" }, 400);
 
   const normalized = code.replace(/[-\s]/g, "").toUpperCase();
+
+  // DEV MODE: accept TEST-CODE for testing. Disable in production.
+  if (process.env.NODE_ENV !== "production" && normalized === "TESTCODE") {
+    const [chapter] = await opsDb.select().from(chapters).limit(1);
+    if (!chapter) return c.json({ error: "No chapter. Run seed." }, 500);
+
+    const callsign = `TEST-${Date.now().toString(36).toUpperCase()}`;
+    const [reporter] = await opsDb.insert(reporters).values({ chapterId: chapter.id, callsign }).returning();
+    const [identity] = await identDb.insert(reporterIdentities).values({ reporterId: reporter.id, role: "reporter" }).returning();
+
+    const sessionToken = randomBytes(32).toString("hex");
+    const sessionHash = createHash("sha256").update(sessionToken).digest("hex");
+    await identDb.insert(sessions).values({ identityId: identity.id, tokenHash: sessionHash, expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) });
+
+    console.log(`[DEV] Test code accepted. Reporter: ${callsign}`);
+    return c.json({ status: "authenticated", sessionToken, reporterId: reporter.id, role: "reporter" });
+  }
   const codeHash = createHash("sha256").update(normalized).digest("hex");
 
   const [link] = await identDb
