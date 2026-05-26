@@ -90,3 +90,45 @@ self.addEventListener("notificationclick", (event) => {
     self.clients.openWindow("/")
   );
 });
+
+// Background Sync: heartbeat check-in (fires when connectivity restored)
+self.addEventListener("sync", (event) => {
+  if (event.tag === "trace-heartbeat-once") {
+    event.waitUntil(doHeartbeat());
+  }
+});
+
+// Periodic Background Sync: heartbeat every 6h (Chrome/Edge Android)
+self.addEventListener("periodicsync", (event) => {
+  if (event.tag === "trace-heartbeat") {
+    event.waitUntil(doHeartbeat());
+  }
+});
+
+// Heartbeat: ping server, check for kill signal, record check-in
+async function doHeartbeat() {
+  try {
+    // we can't access localStorage from SW, so just ping the status endpoint
+    const res = await fetch("/api/v1/auth/status", {
+      headers: { "Content-Type": "application/json" },
+    });
+    if (res.headers.get("x-trace-kill") === "true") {
+      // kill signal — wipe everything
+      const keys = await caches.keys();
+      await Promise.all(keys.map((k) => caches.delete(k)));
+      const dbs = await indexedDB.databases();
+      await Promise.all(dbs.map((db) => {
+        return new Promise((resolve) => {
+          if (!db.name) { resolve(); return; }
+          const req = indexedDB.deleteDatabase(db.name);
+          req.onsuccess = resolve;
+          req.onerror = resolve;
+          req.onblocked = resolve;
+        });
+      }));
+      await self.registration.unregister();
+    }
+  } catch {
+    // offline — sync will retry when connectivity returns
+  }
+}

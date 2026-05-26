@@ -4,6 +4,7 @@
 import { useState, useEffect } from "react";
 import { api } from "../lib/api.js";
 import { IntelMap } from "../components/map-view.js";
+import { Icon } from "../components/icon.js";
 import { useToast, EmptyState, EMPTY_STATES, SkeletonList, HelpTip, ErrorBoundary } from "../components/ux/index.js";
 
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3100/api/v1";

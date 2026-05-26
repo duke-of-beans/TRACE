@@ -17,7 +17,7 @@ import { getToken, setToken, clearToken } from "./lib/api.js";
 import { getQueueCount } from "./lib/queue.js";
 import { isWiped } from "./lib/panic.js";
 import { hasPIN, isLocked, lock, setupAutoLock } from "./lib/app-lock.js";
-import { startDeadManSwitch, startHeartbeat } from "./lib/deadman.js";
+import { startDeadManSwitch, startHeartbeat, hoursUntilExpiry, checkTTLStatus, getTTLHours } from "./lib/deadman.js";
 import { toggleTheme, getTheme } from "../../shared/design/theme.js";
 
 const DEFAULT_TTL_HOURS = 24;
@@ -247,9 +247,11 @@ function SettingsPage({ authed, ttlHours, theme, onShowSecurity, onShowJoin, onS
       </div>
 
       <div class="info-card">
-        <div class="info-card-label">Check-In Window</div>
-        <div class="info-card-value" style={{ color: "var(--accent)" }}>{ttlHours} hours</div>
-        <div class="info-card-detail">App auto-clears if no server contact within this window.</div>
+        <div class="info-card-label">Check-In Status</div>
+        <div class="info-card-value" style={{ color: checkTTLStatus() === "ok" ? "var(--success)" : checkTTLStatus() === "warning" ? "var(--warning)" : "var(--danger)" }}>
+          {checkTTLStatus() === "ok" ? `${hoursUntilExpiry()}h remaining` : checkTTLStatus() === "warning" ? `Warning: ${hoursUntilExpiry()}h until auto-wipe` : "Expired — data at risk"}
+        </div>
+        <div class="info-card-detail">Auto-clears after {getTTLHours()}h without server contact. Background sync extends this automatically.</div>
       </div>
 
       <button class="btn btn-secondary btn-full" onClick={onShowSecurity} style={{ marginBottom: "var(--sp-3)", justifyContent: "flex-start" }}>
