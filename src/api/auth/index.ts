@@ -22,8 +22,8 @@ authRouter.post("/invite-code", async (c) => {
 
   const normalized = code.replace(/[-\s]/g, "").toUpperCase();
 
-  // DEV MODE: accept TEST-CODE for testing. Disable in production.
-  if (process.env.NODE_ENV !== "production" && normalized === "TESTCODE") {
+  // DEMO MODE: accept TEST-CODE for testing. Disable with TRACE_DISABLE_TEST_CODE=true.
+  if (process.env.TRACE_DISABLE_TEST_CODE !== "true" && normalized === "TESTCODE") {
     const [chapter] = await opsDb.select().from(chapters).limit(1);
     if (!chapter) return c.json({ error: "No chapter. Run seed." }, 500);
 
