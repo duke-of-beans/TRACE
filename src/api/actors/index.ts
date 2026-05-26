@@ -43,6 +43,32 @@ actorsRouter.get("/:id", async (c) => {
   return c.json(actor);
 });
 
+// --- PUT /actors/:id ---
+actorsRouter.put("/:id", async (c) => {
+  const id = c.req.param("id");
+  const body = await c.req.json();
+  const { alias, physicalDescription, notes, status } = body;
+  const [updated] = await opsDb
+    .update(actors)
+    .set({ alias, physicalDescription, notes, status, updatedAt: new Date() })
+    .where(eq(actors.id, id))
+    .returning();
+  if (!updated) return c.json({ error: "Not found" }, 404);
+  return c.json(updated);
+});
+
+// --- DELETE /actors/:id — soft delete ---
+actorsRouter.delete("/:id", async (c) => {
+  const id = c.req.param("id");
+  const [retired] = await opsDb
+    .update(actors)
+    .set({ status: "inactive", updatedAt: new Date() })
+    .where(eq(actors.id, id))
+    .returning();
+  if (!retired) return c.json({ error: "Not found" }, 404);
+  return c.json(retired);
+});
+
 // --- POST /actors/:id/vehicles — link actor to vehicle ---
 actorsRouter.post("/:id/vehicles", async (c) => {
   const actorId = c.req.param("id");

@@ -80,6 +80,32 @@ vehiclesRouter.get("/:id", async (c) => {
   return c.json(vehicle);
 });
 
+// --- PUT /vehicles/:id — update vehicle ---
+vehiclesRouter.put("/:id", async (c) => {
+  const id = c.req.param("id");
+  const body = await c.req.json();
+  const { plate, make, model, year, color, description, notes, status } = body;
+  const [updated] = await opsDb
+    .update(vehicles)
+    .set({ plate, make, model, year, color, description, notes, status, updatedAt: new Date() })
+    .where(eq(vehicles.id, id))
+    .returning();
+  if (!updated) return c.json({ error: "Not found" }, 404);
+  return c.json(updated);
+});
+
+// --- DELETE /vehicles/:id — retire vehicle ---
+vehiclesRouter.delete("/:id", async (c) => {
+  const id = c.req.param("id");
+  const [retired] = await opsDb
+    .update(vehicles)
+    .set({ status: "retired", retiredAt: new Date(), updatedAt: new Date() })
+    .where(eq(vehicles.id, id))
+    .returning();
+  if (!retired) return c.json({ error: "Not found" }, 404);
+  return c.json(retired);
+});
+
 // --- POST /vehicles/:id/promote — change suspicion level ---
 vehiclesRouter.post("/:id/promote", async (c) => {
   const vehicleId = c.req.param("id");

@@ -49,8 +49,26 @@ export const api = {
 
   // Admin
   getVehicleTypes: () => request<any[]>("/admin/vehicle-types"),
+  createVehicleType: (data: any) => request("/admin/vehicle-types", { method: "POST", body: JSON.stringify(data) }),
+  updateVehicleType: (id: string, data: any) => request(`/admin/vehicle-types/${id}`, { method: "PUT", body: JSON.stringify(data) }),
+  deleteVehicleType: (id: string) => request(`/admin/vehicle-types/${id}`, { method: "DELETE" }),
+
   getSuspicionLevels: () => request<any[]>("/admin/suspicion-levels"),
+  createSuspicionLevel: (data: any) => request("/admin/suspicion-levels", { method: "POST", body: JSON.stringify(data) }),
+  updateSuspicionLevel: (id: string, data: any) => request(`/admin/suspicion-levels/${id}`, { method: "PUT", body: JSON.stringify(data) }),
+  deleteSuspicionLevel: (id: string) => request(`/admin/suspicion-levels/${id}`, { method: "DELETE" }),
+
+  getActorSuspicionLevels: () => request<any[]>("/admin/actor-suspicion-levels"),
+  getActorIdentifierTypes: () => request<any[]>("/admin/actor-identifier-types"),
+
   getChannels: () => request<any[]>("/admin/notifications/channels"),
   inviteReporter: (data: any) =>
     request("/admin/reporters/invite", { method: "POST", body: JSON.stringify(data) }),
+
+  // Vehicles CRUD
+  createVehicle: (data: any) => request("/vehicles", { method: "POST", body: JSON.stringify(data) }),
+  updateVehicle: (id: string, data: any) => request(`/vehicles/${id}`, { method: "PUT", body: JSON.stringify(data) }),
+
+  // Actors CRUD
+  updateActor: (id: string, data: any) => request(`/actors/${id}`, { method: "PUT", body: JSON.stringify(data) }),
 };

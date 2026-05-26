@@ -8,6 +8,7 @@ import { useState } from "react";
 import { useToast, useConfirm, HelpTip } from "../components/ux/index.js";
 import { Icon } from "../components/icon.js";
 
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3100/api/v1";
 const authHeaders = (): Record<string, string> => {
   const token = localStorage.getItem("trace_op_token");
   return { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) };
@@ -98,7 +99,7 @@ function DeviceControl() {
       confirmLabel: "Suspend",
     });
     if (!ok) return;
-    const res = await fetch(`/api/v1/admin/reporters/${reporterId}/suspend`, { method: "POST", headers: authHeaders() });
+    const res = await fetch(`${API_BASE}/admin/reporters/${reporterId}/suspend`, { method: "POST", headers: authHeaders() });
     if (res.ok) toast("Reporter suspended", "success");
     else toast("Failed to suspend", "error");
   };
@@ -112,14 +113,14 @@ function DeviceControl() {
       danger: true,
     });
     if (!ok) return;
-    const res = await fetch(`/api/v1/admin/reporters/${reporterId}/kill`, { method: "POST", headers: authHeaders() });
+    const res = await fetch(`${API_BASE}/admin/reporters/${reporterId}/kill`, { method: "POST", headers: authHeaders() });
     if (res.ok) toast("Kill signal sent", "success");
     else toast("Failed to send kill", "error");
   };
 
   const handleReactivate = async () => {
     if (!reporterId) { toast("Enter a reporter ID", "warning"); return; }
-    const res = await fetch(`/api/v1/admin/reporters/${reporterId}/reactivate`, { method: "POST", headers: authHeaders() });
+    const res = await fetch(`${API_BASE}/admin/reporters/${reporterId}/reactivate`, { method: "POST", headers: authHeaders() });
     if (res.ok) toast("Reporter reactivated", "success");
     else toast("Failed to reactivate", "error");
   };
@@ -139,7 +140,7 @@ function DeviceControl() {
       danger: true,
     });
     if (!ok2) return;
-    const res = await fetch("/api/v1/admin/nuke", { method: "POST", headers: authHeaders() });
+    const res = await fetch(`${API_BASE}/admin/nuke`, { method: "POST", headers: authHeaders() });
     if (res.ok) {
       const data = await res.json();
       toast(`${data.reportersKilled} device(s) killed`, "error");
@@ -208,7 +209,7 @@ function EmergencyPanel() {
     });
     if (!ok2) return;
 
-    const res = await fetch("/api/v1/admin/nuke", { method: "POST", headers: authHeaders() });
+    const res = await fetch(`${API_BASE}/admin/nuke`, { method: "POST", headers: authHeaders() });
     if (res.ok) {
       const data = await res.json();
       toast(`Chapter nuked. ${data.reportersKilled} device(s) killed.`, "error");

@@ -4,6 +4,8 @@
 import { useState } from "react";
 import { Icon } from "../components/icon.js";
 
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3100/api/v1";
+
 export function setToken(token: string) {
   localStorage.setItem("trace_op_token", token);
 }
@@ -20,7 +22,7 @@ export function LoginScreen({ onAuth }: AuthGateProps) {
     setLoading(true);
     setError("");
     try {
-      const res = await fetch("/api/v1/auth/dev-login", {
+      const res = await fetch(`${API_BASE}/auth/dev-login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
@@ -29,7 +31,7 @@ export function LoginScreen({ onAuth }: AuthGateProps) {
         const data = await res.json();
         if (data.sessionToken) { setToken(data.sessionToken); onAuth(); return; }
       }
-      await fetch("/api/v1/auth/magic-link", {
+      await fetch(`${API_BASE}/auth/magic-link`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
