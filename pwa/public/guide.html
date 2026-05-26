@@ -6,332 +6,306 @@
 <title>TRACE: Chapter Setup Guide</title>
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Exo+2:wght@100;200;300;400&family=DM+Sans:wght@400;500;600;700&display=swap');
-  
   :root {
-    --bg: #0a0e1a;
-    --surface: #131829;
-    --surface-alt: #1a2036;
-    --border: #252d44;
-    --accent: #4fc3f7;
-    --accent-soft: rgba(79,195,247,0.1);
-    --text: #e2e8f0;
-    --text-sec: #94a3b8;
-    --text-muted: #64748b;
-    --success: #22c55e;
-    --warning: #d97706;
-    --danger: #dc2626;
+    --bg: #0F172A;
+    --surface: #1E293B;
+    --surface-alt: #334155;
+    --border: #334155;
+    --accent: #818CF8;
+    --accent-hover: #6366F1;
+    --accent-soft: rgba(129,140,248,0.1);
+    --accent-text: #FFFFFF;
+    --text: #F1F5F9;
+    --text-sec: #94A3B8;
+    --text-muted: #64748B;
+    --success: #16A34A;
+    --warning: #D97706;
+    --danger: #DC2626;
+    --font: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    --font-mono: "SF Mono", "Cascadia Code", "Fira Code", ui-monospace, monospace;
   }
-  
+
+  @media (prefers-color-scheme: light) {
+    :root {
+      --bg: #F8FAFC;
+      --surface: #FFFFFF;
+      --surface-alt: #F1F5F9;
+      --border: #E2E8F0;
+      --accent: #4F46E5;
+      --accent-hover: #4338CA;
+      --accent-soft: rgba(79,70,229,0.06);
+      --accent-text: #FFFFFF;
+      --text: #1E293B;
+      --text-sec: #64748B;
+      --text-muted: #94A3B8;
+    }
+  }
+
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  
+
   body {
-    font-family: 'DM Sans', system-ui, sans-serif;
+    font-family: var(--font);
     background: var(--bg);
     color: var(--text);
     line-height: 1.7;
     -webkit-font-smoothing: antialiased;
   }
-  
-  .container { max-width: 680px; margin: 0 auto; padding: 0 24px; }
-  
-  /* Hero */
+
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code { font-family: var(--font-mono); font-size: 0.9em; }
+
+  .container { max-width: 660px; margin: 0 auto; padding: 0 24px; }
+
   .hero {
     text-align: center;
     padding: 80px 24px 60px;
     position: relative;
-    overflow: hidden;
-  }
-  .hero::before {
-    content: '';
-    position: absolute;
-    top: -100px; left: 50%; transform: translateX(-50%);
-    width: 600px; height: 600px;
-    background: radial-gradient(circle, rgba(79,195,247,0.06) 0%, transparent 70%);
-    pointer-events: none;
   }
   .hero-brand {
-    font-family: 'Exo 2', sans-serif;
     font-weight: 100;
-    font-size: 48px;
+    font-size: 44px;
     letter-spacing: 0.25em;
     color: var(--accent);
     margin-bottom: 8px;
   }
   .hero-sub {
-    font-size: 13px;
-    letter-spacing: 0.15em;
+    font-size: 12px;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
     color: var(--text-muted);
-    margin-bottom: 32px;
+    margin-bottom: 6px;
+  }
+  .hero-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-bottom: 24px;
   }
   .hero-time {
     display: inline-flex;
     align-items: center;
     gap: 8px;
     background: var(--accent-soft);
-    border: 1px solid rgba(79,195,247,0.2);
+    border: 1px solid var(--border);
     border-radius: 100px;
     padding: 8px 20px;
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 600;
     color: var(--accent);
   }
-  
-  /* Steps */
-  .step {
-    margin-bottom: 64px;
-    position: relative;
-  }
+
+  .step { margin-bottom: 56px; }
   .step-number {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 36px; height: 36px;
+    width: 32px; height: 32px;
     border-radius: 50%;
     background: var(--accent);
-    color: var(--bg);
+    color: var(--accent-text);
     font-weight: 700;
-    font-size: 16px;
-    margin-bottom: 16px;
-  }
-  .step h2 {
-    font-size: 22px;
-    font-weight: 700;
+    font-size: 14px;
     margin-bottom: 12px;
-    color: var(--text);
   }
-  .step p {
-    font-size: 15px;
-    color: var(--text-sec);
-    margin-bottom: 16px;
-  }
+  .step h2 { font-size: 20px; font-weight: 700; margin-bottom: 10px; }
+  .step p { font-size: 14px; color: var(--text-sec); margin-bottom: 14px; line-height: 1.7; }
   .step strong { color: var(--text); }
-  
-  /* Mockups */
+
   .mockup {
     background: var(--surface);
     border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 24px;
-    margin: 20px 0;
-    position: relative;
-    overflow: hidden;
+    border-radius: 10px;
+    padding: 20px;
+    margin: 16px 0;
   }
   .mockup-header {
     display: flex;
     align-items: center;
-    gap: 6px;
-    margin-bottom: 16px;
-    padding-bottom: 12px;
+    gap: 5px;
+    margin-bottom: 14px;
+    padding-bottom: 10px;
     border-bottom: 1px solid var(--border);
   }
-  .mockup-dot {
-    width: 10px; height: 10px; border-radius: 50%;
-  }
+  .mockup-dot { width: 8px; height: 8px; border-radius: 50%; }
   .mockup-url {
     flex: 1;
     background: var(--surface-alt);
-    border-radius: 6px;
-    padding: 4px 12px;
-    font-size: 11px;
+    border-radius: 4px;
+    padding: 3px 10px;
+    font-size: 10px;
     color: var(--text-muted);
-    font-family: monospace;
+    font-family: var(--font-mono);
     margin-left: 8px;
   }
   .mockup-label {
-    font-size: 10px;
+    font-size: 9px;
     letter-spacing: 0.1em;
     text-transform: uppercase;
     color: var(--text-muted);
-    margin-bottom: 12px;
+    margin-bottom: 10px;
     font-weight: 600;
   }
-  
-  /* Instruction list */
-  .instructions {
-    list-style: none;
-    counter-reset: inst;
-  }
+
+  .instructions { list-style: none; counter-reset: inst; }
   .instructions li {
     counter-increment: inst;
-    padding: 12px 0 12px 40px;
+    padding: 10px 0 10px 36px;
     position: relative;
-    font-size: 15px;
+    font-size: 14px;
     color: var(--text-sec);
-    border-bottom: 1px solid rgba(255,255,255,0.03);
+    border-bottom: 1px solid var(--accent-soft);
   }
   .instructions li::before {
     content: counter(inst);
     position: absolute;
-    left: 0; top: 14px;
-    width: 24px; height: 24px;
+    left: 0; top: 12px;
+    width: 22px; height: 22px;
     border-radius: 50%;
-    background: var(--surface-alt);
+    background: var(--surface);
     border: 1px solid var(--border);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 700;
     color: var(--accent);
   }
   .instructions li:last-child { border-bottom: none; }
-  
-  /* Callouts */
+
   .callout {
     background: var(--accent-soft);
     border-left: 3px solid var(--accent);
     border-radius: 0 8px 8px 0;
-    padding: 16px 20px;
-    margin: 16px 0;
-    font-size: 14px;
+    padding: 14px 18px;
+    margin: 14px 0;
+    font-size: 13px;
     color: var(--text-sec);
+    line-height: 1.7;
   }
   .callout strong { color: var(--accent); }
-  
-  .callout-warn {
-    background: rgba(217,119,6,0.08);
-    border-left-color: var(--warning);
-  }
+  .callout-warn { background: rgba(217,119,6,0.06); border-left-color: var(--warning); }
   .callout-warn strong { color: var(--warning); }
-  
-  /* Mockup elements */
+
   .mock-input {
     background: var(--surface-alt);
     border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 10px 14px;
+    border-radius: 6px;
+    padding: 8px 12px;
     width: 100%;
-    font-size: 13px;
+    font-size: 12px;
     color: var(--text-muted);
-    margin-bottom: 10px;
-    font-family: monospace;
+    margin-bottom: 8px;
+    font-family: var(--font-mono);
   }
   .mock-btn {
     display: inline-block;
     background: var(--accent);
-    color: var(--bg);
+    color: var(--accent-text);
     padding: 10px 24px;
-    border-radius: 8px;
-    font-size: 14px;
+    border-radius: 6px;
+    font-size: 13px;
     font-weight: 600;
     text-align: center;
     width: 100%;
     margin-top: 4px;
   }
-  .mock-btn-outline {
-    background: transparent;
-    border: 1px solid var(--border);
-    color: var(--text-sec);
-  }
   .mock-label {
-    font-size: 10px;
+    font-size: 9px;
     text-transform: uppercase;
     letter-spacing: 0.08em;
     color: var(--text-muted);
     margin-bottom: 4px;
     font-weight: 600;
   }
-  
-  /* Phone mockup */
+
   .phone-frame {
-    width: 220px;
-    margin: 20px auto;
+    width: 200px;
+    margin: 16px auto;
     background: var(--surface);
     border: 2px solid var(--border);
-    border-radius: 24px;
-    padding: 12px;
-    position: relative;
+    border-radius: 20px;
+    padding: 10px;
   }
   .phone-notch {
-    width: 80px; height: 6px;
+    width: 60px; height: 5px;
     background: var(--border);
     border-radius: 3px;
-    margin: 0 auto 12px;
+    margin: 0 auto 10px;
   }
   .phone-screen {
     background: var(--bg);
-    border-radius: 12px;
-    padding: 16px;
-    min-height: 200px;
+    border-radius: 10px;
+    padding: 14px;
+    min-height: 180px;
   }
-  
-  /* Arrow / connector */
-  .arrow-down {
-    text-align: center;
-    padding: 8px 0;
-    color: var(--text-muted);
-    font-size: 20px;
-  }
-  
-  /* Footer */
+
+  details { cursor: pointer; }
+  details summary { user-select: none; }
+
   .footer {
     text-align: center;
-    padding: 60px 24px;
+    padding: 48px 24px;
     border-top: 1px solid var(--border);
-    margin-top: 40px;
+    margin-top: 32px;
   }
-  .footer p { font-size: 13px; color: var(--text-muted); }
-  .footer a { color: var(--accent); text-decoration: none; }
-  
-  /* Responsive */
+  .footer p { font-size: 12px; color: var(--text-muted); }
+
   @media (max-width: 600px) {
-    .hero { padding: 48px 16px 40px; }
-    .hero-brand { font-size: 36px; }
+    .hero { padding: 48px 16px 36px; }
+    .hero-brand { font-size: 32px; }
     .container { padding: 0 16px; }
-    .step h2 { font-size: 18px; }
+    .step h2 { font-size: 17px; }
+    .mockup { padding: 14px; }
+    .phone-frame { width: 180px; }
   }
 </style>
 </head>
 <body>
 
-<!-- Hero -->
 <div class="hero">
   <div class="hero-brand">TRACE</div>
   <div class="hero-sub">Tracking · Reporting · Analysis · Community Evidence</div>
-  <div style="font-size:12px; color:var(--text-muted); margin-bottom:24px;">Chapter Setup Guide</div>
-  <div class="hero-time">⏱ About 10 minutes · No coding required</div>
+  <div class="hero-label">Chapter Setup Guide</div>
+  <div class="hero-time">About 10 minutes. No coding required.</div>
 </div>
 
 <div class="container">
 
-<p style="font-size:16px; color:var(--text-sec); text-align:center; margin-bottom:24px; line-height:1.8;">
+<p style="font-size:15px; color:var(--text-sec); text-align:center; margin-bottom:20px; line-height:1.8;">
   TRACE is a vehicle tracking system for neighborhood chapters. Reporters submit sightings from a phone app. Operators review, dispatch, and track from a desktop console.
 </p>
-<p style="font-size:15px; color:var(--text-muted); text-align:center; margin-bottom:60px; line-height:1.8;">
+<p style="font-size:14px; color:var(--text-muted); text-align:center; margin-bottom:56px; line-height:1.8;">
   TRACE requires two services: a <strong style="color:var(--text-sec)">database</strong> (stores your records) and a <strong style="color:var(--text-sec)">web host</strong> (serves the app to devices). Both are free. Both use industry-standard encryption. You control both accounts and can delete everything at any time.
 </p>
 
-<!-- ====== STEP 1 ====== -->
+<!-- STEP 1 -->
 <div class="step">
   <div class="step-number">1</div>
-  <h2>Create your database</h2>
-  <p>The database stores all sighting records, vehicle profiles, dispatch events, and reporter accounts. Neon hosts PostgreSQL databases with encryption at rest and TLS in transit. The free tier covers chapters with up to 50 reporters. Your database is isolated to your account. Neon staff cannot read your data without your connection credentials.</p>
-  
+  <h2>Create the database</h2>
+  <p>The database stores all sighting records, vehicle profiles, dispatch events, and accounts. Neon hosts PostgreSQL databases with encryption at rest (AES-256) and in transit (TLS 1.3). SOC 2 Type II certified. Free tier covers chapters with up to 50 reporters. Your database is isolated to your account. Neon staff cannot read your data without your connection credentials.</p>
+
   <ol class="instructions">
-    <li>Go to <strong><a href="https://neon.tech" target="_blank" style="color:var(--accent)">neon.tech</a></strong> and click <strong>Sign Up</strong>. Google account works, or use a separate email/password.</li>
+    <li>Go to <strong><a href="https://neon.tech" target="_blank">neon.tech</a></strong> and click <strong>Sign Up</strong>. Google account works, or use a separate email and password.</li>
     <li>Click <strong>New Project</strong>. Name it anything. Pick the region closest to your area.</li>
     <li>After creation, you will see a <strong>Connection String</strong>. It is a long string of characters. Click the <strong>copy button</strong> next to it.</li>
   </ol>
 
-  <!-- Neon mockup -->
   <div class="mockup">
     <div class="mockup-header">
       <div class="mockup-dot" style="background:#ff5f56"></div>
       <div class="mockup-dot" style="background:#ffbd2e"></div>
       <div class="mockup-dot" style="background:#27c93f"></div>
-      <div class="mockup-url">console.neon.tech › your-project</div>
+      <div class="mockup-url">console.neon.tech</div>
     </div>
-    <div class="mockup-label">What you'll see</div>
-    <div style="display:flex; align-items:center; gap:12px; margin-bottom:12px;">
-      <div style="width:8px;height:8px;border-radius:50%;background:var(--success)"></div>
-      <span style="font-size:14px;font-weight:600;">Your project is ready</span>
+    <div class="mockup-label">What you will see</div>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+      <div style="width:7px;height:7px;border-radius:50%;background:var(--success)"></div>
+      <span style="font-size:13px;font-weight:600;">Project ready</span>
     </div>
     <div class="mock-label">Connection String</div>
-    <div style="display:flex; gap:8px; align-items:center;">
-      <div class="mock-input" style="margin:0; flex:1; overflow:hidden; white-space:nowrap; text-overflow:ellipsis;">postgresql://neondb_owner:abc123@ep-cool-frost-12345.us-east-1.aws.neon.tech/neondb?sslmode=require</div>
-      <div style="background:var(--accent);color:var(--bg);padding:8px 16px;border-radius:8px;font-size:12px;font-weight:700;white-space:nowrap;cursor:pointer;">📋 Copy</div>
+    <div style="display:flex;gap:8px;align-items:center;">
+      <div class="mock-input" style="margin:0;flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">postgresql://neondb_owner:abc123@ep-cool-frost-12345.neon.tech/neondb?sslmode=require</div>
+      <div style="background:var(--accent);color:var(--accent-text);padding:7px 14px;border-radius:6px;font-size:11px;font-weight:700;white-space:nowrap;">Copy</div>
     </div>
   </div>
 
@@ -340,88 +314,82 @@
   </div>
 </div>
 
-<!-- ====== STEP 2 ====== -->
+<!-- STEP 2 -->
 <div class="step">
   <div class="step-number">2</div>
-  <h2>Deploy the TRACE application</h2>
-  <p>Vercel serves the TRACE application to browsers and phones. All traffic is encrypted via HTTPS. The application runs in isolated serverless functions with no shared state between chapters. The free tier supports thousands of daily requests.</p>
-  <p>Vercel requires a GitHub account. GitHub stores the application code. Vercel compiles and serves it. You will not need to use GitHub after this step unless you update TRACE.</p>
+  <h2>Deploy the application</h2>
+  <p>Vercel serves the TRACE application over HTTPS. Each deployment runs in isolated serverless functions. Free tier supports thousands of daily requests. Vercel requires a GitHub account. GitHub stores the code. Vercel compiles and serves it. You will not need GitHub after this step.</p>
 
   <ol class="instructions">
     <li>Click the <strong>Deploy</strong> button below. It opens Vercel.</li>
     <li>Sign in with <strong>GitHub</strong>. If you do not have an account, create one. It requires an email and password.</li>
-    <li>Vercel asks for <strong>DATABASE_URL</strong>. Paste the connection string you copied in Step 1.</li>
-    <li>Click <strong>Deploy</strong>. Wait about 2 minutes while it builds your website.</li>
+    <li>Vercel asks for <strong>DATABASE_URL</strong>. Paste the connection string from Step 1.</li>
+    <li>Click <strong>Deploy</strong>. Build takes about 2 minutes.</li>
   </ol>
 
-  <!-- Deploy button -->
-  <div style="text-align:center; margin:24px 0;">
-    <a href="https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fduke-of-beans%2FTRACE&env=DATABASE_URL&envDescription=Paste%20your%20Neon%20connection%20string%20here&envLink=https%3A%2F%2Fneon.tech&project-name=trace&repository-name=TRACE" 
+  <div style="text-align:center;margin:20px 0;">
+    <a href="https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fduke-of-beans%2FTRACE&env=DATABASE_URL&envDescription=Paste%20your%20Neon%20connection%20string%20here&envLink=https%3A%2F%2Fneon.tech&project-name=trace&repository-name=TRACE"
        target="_blank"
-       style="display:inline-block; background:white; color:#000; padding:14px 32px; border-radius:8px; font-size:16px; font-weight:700; text-decoration:none; transition:opacity 0.2s;">
-      ▲ Deploy with Vercel
+       style="display:inline-block;background:var(--text);color:var(--bg);padding:12px 28px;border-radius:6px;font-size:14px;font-weight:700;text-decoration:none;">
+      Deploy with Vercel
     </a>
   </div>
 
-  <!-- Vercel mockup -->
   <div class="mockup">
     <div class="mockup-header">
       <div class="mockup-dot" style="background:#ff5f56"></div>
       <div class="mockup-dot" style="background:#ffbd2e"></div>
       <div class="mockup-dot" style="background:#27c93f"></div>
-      <div class="mockup-url">vercel.com › new › clone</div>
+      <div class="mockup-url">vercel.com</div>
     </div>
-    <div class="mockup-label">What Vercel asks you</div>
+    <div class="mockup-label">What Vercel asks</div>
     <div class="mock-label">DATABASE_URL</div>
     <div class="mock-input">postgresql://neondb_owner:abc123@ep-cool-...</div>
-    <div style="font-size:11px; color:var(--text-muted); margin-bottom:16px;">Paste your Neon connection string here</div>
+    <div style="font-size:10px;color:var(--text-muted);margin-bottom:14px;">Paste your Neon connection string here</div>
     <div class="mock-btn">Deploy</div>
   </div>
 
   <div class="callout">
-    <strong>After deployment,</strong> Vercel provides a URL like <code style="color:var(--accent)">trace-abc123.vercel.app</code>. This is your TRACE instance. Bookmark it. This is also the URL your reporters will use.
+    <strong>After deployment,</strong> Vercel provides a URL like <code>trace-abc123.vercel.app</code>. This is your TRACE instance. Bookmark it. This is also the URL reporters will use.
   </div>
 </div>
 
-<!-- ====== STEP 3 ====== -->
+<!-- STEP 3 -->
 <div class="step">
   <div class="step-number">3</div>
   <h2>Create the database tables</h2>
-  <p>The database from Step 1 is empty. This step creates the table structure TRACE uses to organize sightings, vehicles, dispatches, and accounts. You paste one file into the Neon SQL editor and run it. One time only. Takes 30 seconds.</p>
+  <p>The database from Step 1 is empty. This creates the table structure for sightings, vehicles, dispatches, and accounts. Paste one file into the Neon SQL editor and run it. One time only. Takes 30 seconds.</p>
 
   <ol class="instructions">
-    <li>Go back to <strong><a href="https://console.neon.tech" target="_blank" style="color:var(--accent)">Neon</a></strong> and click your project.</li>
+    <li>Go back to <strong><a href="https://console.neon.tech" target="_blank">Neon</a></strong> and click your project.</li>
     <li>Click <strong>SQL Editor</strong> in the left sidebar.</li>
-    <li>Open <strong><a href="https://github.com/duke-of-beans/TRACE/blob/main/setup.sql" target="_blank" style="color:var(--accent)">this file</a></strong> on GitHub. Click the <strong>copy raw file</strong> button (top-right of the code).</li>
-    <li>Paste the entire thing into the Neon SQL Editor.</li>
+    <li>Open <strong><a href="https://github.com/duke-of-beans/TRACE/blob/main/setup.sql" target="_blank">this file</a></strong> on GitHub. Click the <strong>copy raw file</strong> button (top-right of the code block).</li>
+    <li>Paste the entire contents into the Neon SQL Editor.</li>
     <li>Click <strong>Run</strong>.</li>
   </ol>
 
-  <!-- SQL Editor mockup -->
   <div class="mockup">
     <div class="mockup-header">
       <div class="mockup-dot" style="background:#ff5f56"></div>
       <div class="mockup-dot" style="background:#ffbd2e"></div>
       <div class="mockup-dot" style="background:#27c93f"></div>
-      <div class="mockup-url">console.neon.tech › SQL Editor</div>
+      <div class="mockup-url">console.neon.tech &rsaquo; SQL Editor</div>
     </div>
-    <div style="background:var(--bg); border-radius:8px; padding:16px; font-family:monospace; font-size:11px; color:var(--accent); margin-bottom:12px; max-height:100px; overflow:hidden; position:relative;">
+    <div style="background:var(--bg);border-radius:6px;padding:14px;font-family:var(--font-mono);font-size:10px;color:var(--accent);margin-bottom:10px;max-height:80px;overflow:hidden;position:relative;">
       <div style="opacity:0.7">CREATE SCHEMA IF NOT EXISTS "ops";</div>
       <div style="opacity:0.7">CREATE SCHEMA IF NOT EXISTS "ident";</div>
-      <div style="opacity:0.7">CREATE SCHEMA IF NOT EXISTS "evidence";</div>
-      <div style="opacity:0.5">-- ... (lots more lines) ...</div>
-      <div style="opacity:0.7">-- DONE! Your database is ready.</div>
-      <div style="position:absolute;bottom:0;left:0;right:0;height:30px;background:linear-gradient(transparent,var(--surface))"></div>
+      <div style="opacity:0.5">-- ... (the rest of the file) ...</div>
+      <div style="position:absolute;bottom:0;left:0;right:0;height:24px;background:linear-gradient(transparent,var(--surface))"></div>
     </div>
-    <div class="mock-btn" style="width:auto; display:inline-block; padding:8px 24px;">▶ Run</div>
+    <div class="mock-btn" style="width:auto;display:inline-block;padding:6px 20px;font-size:12px;">Run</div>
   </div>
 
   <div class="callout">
-    <strong>Expected output:</strong> a series of "CREATE TABLE" statements. Errors about objects "already existing" are normal and harmless. The file is safe to run multiple times.
+    <strong>Expected output:</strong> a series of CREATE TABLE statements. Errors about objects "already existing" are normal. The file is safe to run multiple times.
   </div>
 </div>
 
-<!-- ====== STEP 4 ====== -->
+<!-- STEP 4 -->
 <div class="step">
   <div class="step-number">4</div>
   <h2>Create the operator account</h2>
@@ -429,15 +397,14 @@
   <p>This screen appears once, on first access. After the first operator is created, it becomes a standard login.</p>
 
   <ol class="instructions">
-    <li>Go to <strong>your-app.vercel.app/operator/</strong> (your Vercel URL + <code style="color:var(--accent)">/operator/</code>)</li>
-    <li>You'll see a <strong>First-Time Setup</strong> screen.</li>
-    <li>Enter your <strong>chapter name</strong> (e.g., "Westside Watch")</li>
+    <li>Go to <strong>your-app.vercel.app/operator/</strong> (your Vercel URL + <code>/operator/</code>)</li>
+    <li>The <strong>First-Time Setup</strong> screen appears.</li>
+    <li>Enter a <strong>chapter name</strong> (e.g. "Westside Watch")</li>
     <li>Choose a <strong>callsign</strong> (your operator code name, e.g. "ALPHA" or "DISPATCH-1")</li>
     <li>Choose an <strong>access code</strong> (passphrase, at least 6 characters). Store this securely.</li>
-    <li>Click <strong>Create Operator & Start</strong></li>
+    <li>Click <strong>Create Operator &amp; Start</strong></li>
   </ol>
 
-  <!-- Bootstrap mockup -->
   <div class="mockup">
     <div class="mockup-header">
       <div class="mockup-dot" style="background:#ff5f56"></div>
@@ -445,26 +412,25 @@
       <div class="mockup-dot" style="background:#27c93f"></div>
       <div class="mockup-url">your-app.vercel.app/operator/</div>
     </div>
-    <div style="text-align:center; margin-bottom:20px;">
-      <div style="font-family:'Exo 2',sans-serif; font-weight:100; font-size:28px; letter-spacing:0.22em; color:var(--accent);">TRACE</div>
-      <div style="font-size:9px; letter-spacing:0.15em; color:var(--text-muted); text-transform:uppercase; margin-top:4px;">First-Time Setup</div>
+    <div style="text-align:center;margin-bottom:16px;">
+      <div style="font-weight:100;font-size:24px;letter-spacing:0.22em;color:var(--accent);">TRACE</div>
+      <div style="font-size:8px;letter-spacing:0.12em;color:var(--text-muted);text-transform:uppercase;margin-top:4px;">First-Time Setup</div>
     </div>
     <div class="mock-label">Chapter Name</div>
     <div class="mock-input">Westside Watch</div>
-    <div class="mock-label">Your Callsign</div>
-    <div class="mock-input" style="text-transform:uppercase; letter-spacing:2px;">ALPHA</div>
+    <div class="mock-label">Callsign</div>
+    <div class="mock-input" style="text-transform:uppercase;letter-spacing:2px;">ALPHA</div>
     <div class="mock-label">Access Code</div>
-    <div class="mock-input" style="letter-spacing:3px;">••••••••</div>
-    <div style="font-size:10px; color:var(--text-muted); margin-bottom:12px;">You will use this callsign and code to log in. Store it securely.</div>
-    <div class="mock-btn">Create Operator & Start</div>
+    <div class="mock-input" style="letter-spacing:3px;">********</div>
+    <div class="mock-btn">Create Operator &amp; Start</div>
   </div>
 
   <div class="callout">
-    <strong>After login,</strong> the operator console loads with an onboarding walkthrough covering each section. You can skip it and access it later from the sidebar.
+    <strong>After login,</strong> the operator console loads with a walkthrough covering each section. You can skip it and access it later from the sidebar.
   </div>
 </div>
 
-<!-- ====== STEP 5 ====== -->
+<!-- STEP 5 -->
 <div class="step">
   <div class="step-number">5</div>
   <h2>Invite reporters</h2>
@@ -473,187 +439,184 @@
   <ol class="instructions">
     <li>In the operator console, click <strong>Admin</strong> in the left sidebar.</li>
     <li>Click the <strong>Reporters</strong> tab.</li>
-    <li>Type a <strong>callsign</strong> for the reporter. This is their code name, not their real name. (e.g., "SCOUT-1")</li>
+    <li>Type a <strong>callsign</strong> for the reporter. Code name, not real name. (e.g. "SCOUT-1")</li>
     <li>Click <strong>Generate Invite Code</strong>.</li>
-    <li>You'll see a code like <strong style="color:var(--accent); font-family:monospace;">ABCD-EFGH</strong>. Send it to the reporter via Signal, WhatsApp, or in person.</li>
+    <li>Deliver the code to the reporter via Signal or in person.</li>
   </ol>
 
-  <!-- Admin mockup -->
   <div class="mockup">
     <div class="mockup-header">
       <div class="mockup-dot" style="background:#ff5f56"></div>
       <div class="mockup-dot" style="background:#ffbd2e"></div>
       <div class="mockup-dot" style="background:#27c93f"></div>
-      <div class="mockup-url">your-app.vercel.app/operator/ › Admin › Reporters</div>
+      <div class="mockup-url">operator &rsaquo; Admin &rsaquo; Reporters</div>
     </div>
     <div class="mock-label">Reporter Callsign</div>
-    <div class="mock-input" style="text-transform:uppercase; letter-spacing:1px;">SCOUT-1</div>
-    <div class="mock-btn" style="margin-bottom:16px;">Generate Invite Code</div>
-    <div style="background:var(--bg); border-radius:8px; padding:16px; text-align:center;">
-      <div style="font-size:10px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:8px;">Invite Code for SCOUT-1</div>
-      <div style="font-family:monospace; font-size:28px; font-weight:700; letter-spacing:0.15em; color:var(--accent);">KXMP-7VNQ</div>
-      <div style="font-size:11px; color:var(--text-muted); margin-top:8px;">Expires in 7 days · Single use</div>
+    <div class="mock-input" style="text-transform:uppercase;letter-spacing:1px;">SCOUT-1</div>
+    <div class="mock-btn" style="margin-bottom:14px;">Generate Invite Code</div>
+    <div style="background:var(--bg);border-radius:6px;padding:14px;text-align:center;">
+      <div style="font-size:9px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px;">Invite Code for SCOUT-1</div>
+      <div style="font-family:var(--font-mono);font-size:24px;font-weight:700;letter-spacing:0.15em;color:var(--accent);">KXMP-7VNQ</div>
+      <div style="font-size:10px;color:var(--text-muted);margin-top:6px;">Single use. Expires in 7 days.</div>
     </div>
   </div>
 
   <div class="callout-warn callout">
-    <strong>Deliver codes through encrypted channels only.</strong> Signal, in person, or encrypted email. Do not post codes in group chats or public channels. Each code is single-use and expires in 7 days.
+    <strong>Deliver codes through encrypted channels only.</strong> Signal, in person, or encrypted email. Do not post codes in group chats or public channels.
   </div>
 </div>
 
-<!-- ====== STEP 6 ====== -->
+<!-- STEP 6 -->
 <div class="step">
   <div class="step-number">6</div>
   <h2>Reporter app installation</h2>
-  <p>TRACE is a Progressive Web App. It installs from the browser directly to the home screen. No App Store. No Google Play. No download history. No app purchase record. Once installed, it runs full-screen with push notifications, indistinguishable from a native app.</p>
+  <p>TRACE is a Progressive Web App. It installs from the browser directly to the home screen. No App Store. No Google Play. No download history. No app purchase record. Once installed, it runs full-screen with push notifications.</p>
 
-  <div style="display:flex; gap:24px; justify-content:center; flex-wrap:wrap; margin:32px 0;">
-    <!-- iPhone -->
+  <div style="display:flex;gap:20px;justify-content:center;flex-wrap:wrap;margin:28px 0;">
     <div>
-      <div style="text-align:center; margin-bottom:8px;">
-        <span style="font-size:12px; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.1em;">iPhone (use Safari)</span>
+      <div style="text-align:center;margin-bottom:6px;">
+        <span style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.1em;">iPhone (Safari)</span>
       </div>
       <div class="phone-frame">
         <div class="phone-notch"></div>
         <div class="phone-screen">
           <div style="text-align:center;">
-            <div style="font-family:'Exo 2',sans-serif; font-weight:100; font-size:18px; letter-spacing:0.2em; color:var(--accent); margin-bottom:16px;">TRACE</div>
-            <div style="font-size:10px; color:var(--text-muted); margin-bottom:20px;">Enter invite code</div>
-            <div class="mock-input" style="font-size:16px; text-align:center; letter-spacing:3px; padding:8px;">KXMP-7VNQ</div>
-            <div class="mock-btn" style="font-size:11px; padding:8px; margin-top:8px;">Join Chapter</div>
+            <div style="font-weight:100;font-size:16px;letter-spacing:0.2em;color:var(--accent);margin-bottom:14px;">TRACE</div>
+            <div style="font-size:9px;color:var(--text-muted);margin-bottom:16px;">Enter invite code</div>
+            <div class="mock-input" style="font-size:14px;text-align:center;letter-spacing:3px;padding:6px;">KXMP-7VNQ</div>
+            <div class="mock-btn" style="font-size:10px;padding:6px;margin-top:6px;">Join Chapter</div>
           </div>
         </div>
       </div>
-      <div style="text-align:center; margin-top:12px; max-width:220px;">
-        <div style="font-size:11px; color:var(--text-sec); line-height:1.6;">
-          Tap <strong style="color:var(--text);">Share</strong> button →<br>
-          <strong style="color:var(--text);">Add to Home Screen</strong> →<br>
-          <strong style="color:var(--text);">Add</strong>
+      <div style="text-align:center;margin-top:10px;max-width:200px;">
+        <div style="font-size:10px;color:var(--text-sec);line-height:1.6;">
+          Tap <strong style="color:var(--text)">Share</strong> button,<br>
+          <strong style="color:var(--text)">Add to Home Screen</strong>,<br>
+          <strong style="color:var(--text)">Add</strong>
         </div>
       </div>
     </div>
 
-    <!-- Android -->
     <div>
-      <div style="text-align:center; margin-bottom:8px;">
-        <span style="font-size:12px; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.1em;">Android (use Chrome)</span>
+      <div style="text-align:center;margin-bottom:6px;">
+        <span style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.1em;">Android (Chrome)</span>
       </div>
       <div class="phone-frame">
         <div class="phone-notch"></div>
         <div class="phone-screen">
           <div style="text-align:center;">
-            <div style="font-family:'Exo 2',sans-serif; font-weight:100; font-size:18px; letter-spacing:0.2em; color:var(--accent); margin-bottom:16px;">TRACE</div>
-            <div style="font-size:10px; color:var(--text-muted); margin-bottom:20px;">Enter invite code</div>
-            <div class="mock-input" style="font-size:16px; text-align:center; letter-spacing:3px; padding:8px;">KXMP-7VNQ</div>
-            <div class="mock-btn" style="font-size:11px; padding:8px; margin-top:8px;">Join Chapter</div>
+            <div style="font-weight:100;font-size:16px;letter-spacing:0.2em;color:var(--accent);margin-bottom:14px;">TRACE</div>
+            <div style="font-size:9px;color:var(--text-muted);margin-bottom:16px;">Enter invite code</div>
+            <div class="mock-input" style="font-size:14px;text-align:center;letter-spacing:3px;padding:6px;">KXMP-7VNQ</div>
+            <div class="mock-btn" style="font-size:10px;padding:6px;margin-top:6px;">Join Chapter</div>
           </div>
         </div>
       </div>
-      <div style="text-align:center; margin-top:12px; max-width:220px;">
-        <div style="font-size:11px; color:var(--text-sec); line-height:1.6;">
-          Tap <strong style="color:var(--text);">⋮ menu</strong> →<br>
-          <strong style="color:var(--text);">Add to Home Screen</strong> →<br>
-          <strong style="color:var(--text);">Add</strong>
+      <div style="text-align:center;margin-top:10px;max-width:200px;">
+        <div style="font-size:10px;color:var(--text-sec);line-height:1.6;">
+          Tap <strong style="color:var(--text)">three-dot menu</strong>,<br>
+          <strong style="color:var(--text)">Add to Home Screen</strong>,<br>
+          <strong style="color:var(--text)">Add</strong>
         </div>
       </div>
     </div>
   </div>
 
   <div class="callout">
-    <strong>What to send your reporter:</strong><br>
-    <div style="background:var(--bg); border-radius:8px; padding:12px 16px; margin-top:8px; font-size:13px; line-height:1.7;">
+    <strong>Message to send your reporter:</strong><br>
+    <div style="background:var(--bg);border-radius:6px;padding:10px 14px;margin-top:6px;font-size:12px;line-height:1.7;">
       Open this link on your phone:<br>
       <span style="color:var(--accent);">your-app.vercel.app</span><br><br>
-      Add it to your home screen so it works like an app.<br>
-      Your invite code is: <strong style="color:var(--accent); font-family:monospace;">KXMP-7VNQ</strong>
+      Add it to your home screen.<br>
+      Your invite code is: <strong style="color:var(--accent);font-family:var(--font-mono);">KXMP-7VNQ</strong>
     </div>
   </div>
 </div>
 
-<!-- ====== DONE ====== -->
-<div style="text-align:center; padding:40px 0 20px; border-top:1px solid var(--border); margin-top:20px;">
-  <h2 style="font-size:24px; margin-bottom:12px;">Setup complete.</h2>
-  <p style="color:var(--text-sec); font-size:15px; max-width:400px; margin:0 auto; line-height:1.8;">
+<!-- DONE -->
+<div style="text-align:center;padding:36px 0 16px;border-top:1px solid var(--border);margin-top:16px;">
+  <h2 style="font-size:20px;margin-bottom:10px;">Setup complete.</h2>
+  <p style="color:var(--text-sec);font-size:14px;max-width:380px;margin:0 auto;line-height:1.7;">
     The chapter is operational. Reporters submit sightings from their phones. The operator console receives them for triage, dispatch, and tracking.
   </p>
 </div>
 
-<!-- Troubleshooting & Info -->
-<div style="margin-top:48px; margin-bottom:48px;">
-  <h3 style="font-size:16px; margin-bottom:16px; color:var(--text-muted);">Common Questions</h3>
-  
-  <details style="margin-bottom:12px; border:1px solid var(--border); border-radius:8px; padding:12px 16px;">
-    <summary style="font-size:14px; font-weight:600; cursor:pointer; color:var(--text-sec);">It says "Connection failed" when I log in</summary>
-    <p style="font-size:13px; color:var(--text-muted); margin-top:8px;">Check that your DATABASE_URL is set correctly in Vercel. Go to your Vercel project → Settings → Environment Variables. The URL should start with <code>postgresql://</code>.</p>
-  </details>
-  
-  <details style="margin-bottom:12px; border:1px solid var(--border); border-radius:8px; padding:12px 16px;">
-    <summary style="font-size:14px; font-weight:600; cursor:pointer; color:var(--text-sec);">Reporter can't install the app on iPhone</summary>
-    <p style="font-size:13px; color:var(--text-muted); margin-top:8px;">Must use <strong>Safari</strong>. Chrome on iPhone does not support app installation. Open the URL in Safari, tap Share, then Add to Home Screen.</p>
-  </details>
-  
-  <details style="margin-bottom:12px; border:1px solid var(--border); border-radius:8px; padding:12px 16px;">
-    <summary style="font-size:14px; font-weight:600; cursor:pointer; color:var(--text-sec);">Invite code isn't working</summary>
-    <p style="font-size:13px; color:var(--text-muted); margin-top:8px;">Codes expire after 7 days and can only be used once. Generate a new one from Admin → Reporters.</p>
-  </details>
-  
-  <details style="margin-bottom:12px; border:1px solid var(--border); border-radius:8px; padding:12px 16px;">
-    <summary style="font-size:14px; font-weight:600; cursor:pointer; color:var(--text-sec);">How do I add more operators?</summary>
-    <p style="font-size:13px; color:var(--text-muted); margin-top:8px;">Go to Admin → Operators tab → Add Operator. Each operator gets their own callsign and access code.</p>
-  </details>
-  
-  <details style="margin-bottom:12px; border:1px solid var(--border); border-radius:8px; padding:12px 16px;">
-    <summary style="font-size:14px; font-weight:600; cursor:pointer; color:var(--text-sec);">How do I update TRACE when new versions come out?</summary>
-    <p style="font-size:13px; color:var(--text-muted); margin-top:8px;">In your GitHub repository, click "Sync fork" → "Update branch." Vercel automatically deploys the update. Your data in Neon is untouched. updates only change the app, not your records.</p>
+<!-- FAQ -->
+<div style="margin-top:40px;margin-bottom:40px;">
+  <h3 style="font-size:15px;margin-bottom:14px;color:var(--text-muted);">Common Questions</h3>
+
+  <details style="margin-bottom:10px;border:1px solid var(--border);border-radius:6px;padding:10px 14px;">
+    <summary style="font-size:13px;font-weight:600;color:var(--text-sec);">Connection failed on login</summary>
+    <p style="font-size:12px;color:var(--text-muted);margin-top:6px;">Verify DATABASE_URL in Vercel. Go to your Vercel project, Settings, Environment Variables. The value should start with <code>postgresql://</code>.</p>
   </details>
 
-  <h3 style="font-size:16px; margin-bottom:16px; margin-top:32px; color:var(--text-muted);">Your Accounts & Security</h3>
+  <details style="margin-bottom:10px;border:1px solid var(--border);border-radius:6px;padding:10px 14px;">
+    <summary style="font-size:13px;font-weight:600;color:var(--text-sec);">Reporter cannot install on iPhone</summary>
+    <p style="font-size:12px;color:var(--text-muted);margin-top:6px;">Must use Safari. Chrome on iPhone does not support PWA installation. Open the URL in Safari, tap Share, then Add to Home Screen.</p>
+  </details>
 
-  <details style="margin-bottom:12px; border:1px solid var(--border); border-radius:8px; padding:12px 16px;">
-    <summary style="font-size:14px; font-weight:600; cursor:pointer; color:var(--text-sec);">What accounts were created?</summary>
-    <div style="font-size:13px; color:var(--text-muted); margin-top:8px; line-height:1.7;">
-      <p style="margin-bottom:8px;"><strong style="color:var(--text-sec)">Neon</strong>. database host. Sighting records, vehicle data, and reporter accounts are stored here. Free tier covers small-to-medium chapters. <a href="https://console.neon.tech" style="color:var(--accent)" target="_blank">console.neon.tech</a></p>
-      <p style="margin-bottom:8px;"><strong style="color:var(--text-sec)">Vercel</strong>. web host. Serves the application to browsers and phones. Free tier covers most chapters. <a href="https://vercel.com/dashboard" style="color:var(--accent)" target="_blank">vercel.com/dashboard</a></p>
-      <p><strong style="color:var(--text-sec)">GitHub</strong>. code repository. Stores the application source that Vercel compiles. Not used after initial deployment. <a href="https://github.com" style="color:var(--accent)" target="_blank">github.com</a></p>
+  <details style="margin-bottom:10px;border:1px solid var(--border);border-radius:6px;padding:10px 14px;">
+    <summary style="font-size:13px;font-weight:600;color:var(--text-sec);">Invite code not working</summary>
+    <p style="font-size:12px;color:var(--text-muted);margin-top:6px;">Codes expire after 7 days and can only be used once. Generate a new one from Admin, Reporters tab.</p>
+  </details>
+
+  <details style="margin-bottom:10px;border:1px solid var(--border);border-radius:6px;padding:10px 14px;">
+    <summary style="font-size:13px;font-weight:600;color:var(--text-sec);">Adding more operators</summary>
+    <p style="font-size:12px;color:var(--text-muted);margin-top:6px;">Admin, Operators tab, Add Operator. Each operator gets their own callsign and access code.</p>
+  </details>
+
+  <details style="margin-bottom:10px;border:1px solid var(--border);border-radius:6px;padding:10px 14px;">
+    <summary style="font-size:13px;font-weight:600;color:var(--text-sec);">Updating TRACE</summary>
+    <p style="font-size:12px;color:var(--text-muted);margin-top:6px;">In your GitHub repository, click "Sync fork," then "Update branch." Vercel deploys the update automatically. Data in Neon is unaffected.</p>
+  </details>
+
+  <h3 style="font-size:15px;margin-bottom:14px;margin-top:28px;color:var(--text-muted);">Accounts and Security</h3>
+
+  <details style="margin-bottom:10px;border:1px solid var(--border);border-radius:6px;padding:10px 14px;">
+    <summary style="font-size:13px;font-weight:600;color:var(--text-sec);">What accounts were created</summary>
+    <div style="font-size:12px;color:var(--text-muted);margin-top:6px;line-height:1.7;">
+      <p style="margin-bottom:6px;"><strong style="color:var(--text-sec)">Neon</strong> stores the database. <a href="https://console.neon.tech" target="_blank">console.neon.tech</a></p>
+      <p style="margin-bottom:6px;"><strong style="color:var(--text-sec)">Vercel</strong> serves the application. <a href="https://vercel.com/dashboard" target="_blank">vercel.com/dashboard</a></p>
+      <p><strong style="color:var(--text-sec)">GitHub</strong> stores the source code. Not used after initial deployment. <a href="https://github.com" target="_blank">github.com</a></p>
     </div>
   </details>
 
-  <details style="margin-bottom:12px; border:1px solid var(--border); border-radius:8px; padding:12px 16px;">
-    <summary style="font-size:14px; font-weight:600; cursor:pointer; color:var(--text-sec);">How is the data stored?</summary>
-    <div style="font-size:13px; color:var(--text-muted); margin-top:8px; line-height:1.7;">
-      <p style="margin-bottom:8px;">All data is stored in your Neon database. Neon encrypts data at rest (AES-256) and in transit (TLS 1.3). Neon holds SOC 2 Type II certification. Your database is isolated to your account. Neon cannot access your data without your connection credentials.</p>
-      <p>TRACE separates reporter identities from sighting data at the database level. Sighting records, vehicle profiles, and dispatch events are stored in one schema. Reporter identities (callsign-to-person mappings) are stored in a separate, isolated schema. A full export of the sighting data reveals zero real identities. The separation is structural, not policy.</p>
+  <details style="margin-bottom:10px;border:1px solid var(--border);border-radius:6px;padding:10px 14px;">
+    <summary style="font-size:13px;font-weight:600;color:var(--text-sec);">How data is stored</summary>
+    <div style="font-size:12px;color:var(--text-muted);margin-top:6px;line-height:1.7;">
+      <p style="margin-bottom:6px;">All data is in your Neon database. Neon encrypts at rest (AES-256) and in transit (TLS 1.3). SOC 2 Type II certified. Your database is isolated to your account.</p>
+      <p>TRACE separates reporter identities from sighting data at the database level. Sighting records, vehicle profiles, and dispatch events are in one schema. Reporter identity mappings are in a separate, isolated schema. A full export of the sighting data reveals zero real identities. The separation is structural, not policy.</p>
     </div>
   </details>
 
-  <details style="margin-bottom:12px; border:1px solid var(--border); border-radius:8px; padding:12px 16px;">
-    <summary style="font-size:14px; font-weight:600; cursor:pointer; color:var(--text-sec);">Who can access the TRACE URL?</summary>
-    <p style="font-size:13px; color:var(--text-muted); margin-top:8px; line-height:1.7;">The Vercel URL (e.g. <code>trace-abc123.vercel.app</code>) is not indexed by search engines or listed in any directory. Only people you share it with can find it. The reporter app requires a valid invite code to access any functionality. The operator console requires a callsign and access code. An unauthenticated visitor sees a login screen and nothing else.</p>
+  <details style="margin-bottom:10px;border:1px solid var(--border);border-radius:6px;padding:10px 14px;">
+    <summary style="font-size:13px;font-weight:600;color:var(--text-sec);">Who can access the URL</summary>
+    <p style="font-size:12px;color:var(--text-muted);margin-top:6px;line-height:1.7;">The Vercel URL is not indexed by search engines or listed in any directory. The reporter app requires a valid invite code. The operator console requires a callsign and access code. An unauthenticated visitor sees a login screen and nothing else.</p>
   </details>
 
-  <details style="margin-bottom:12px; border:1px solid var(--border); border-radius:8px; padding:12px 16px;">
-    <summary style="font-size:14px; font-weight:600; cursor:pointer; color:var(--text-sec);">How do I shut everything down and delete my data?</summary>
-    <div style="font-size:13px; color:var(--text-muted); margin-top:8px; line-height:1.7;">
-      <p style="margin-bottom:8px;">Three steps remove all data from all servers:</p>
-      <p style="margin-bottom:4px;"><strong style="color:var(--text-sec)">1. Delete your Neon project</strong>. go to <a href="https://console.neon.tech" style="color:var(--accent)" target="_blank">console.neon.tech</a>, click your project → Settings → Delete Project. This permanently destroys all sighting data, vehicle records, and reporter accounts.</p>
-      <p style="margin-bottom:4px;"><strong style="color:var(--text-sec)">2. Delete your Vercel project</strong>. go to <a href="https://vercel.com/dashboard" style="color:var(--accent)" target="_blank">vercel.com/dashboard</a>, click your project → Settings → scroll to bottom → Delete Project. Your website goes offline immediately.</p>
-      <p style="margin-bottom:4px;"><strong style="color:var(--text-sec)">3. (Optional) Delete the GitHub repo</strong>. go to github.com, open your TRACE repository → Settings → scroll to bottom → Delete this repository.</p>
-      <p>After these three steps, no trace of your chapter exists on any server. Reporter apps will stop working immediately and show an error screen.</p>
+  <details style="margin-bottom:10px;border:1px solid var(--border);border-radius:6px;padding:10px 14px;">
+    <summary style="font-size:13px;font-weight:600;color:var(--text-sec);">Shutting down and deleting all data</summary>
+    <div style="font-size:12px;color:var(--text-muted);margin-top:6px;line-height:1.7;">
+      <p style="margin-bottom:6px;">Three steps remove all data from all servers:</p>
+      <p style="margin-bottom:4px;"><strong style="color:var(--text-sec)">1. Delete the Neon project</strong> at <a href="https://console.neon.tech" target="_blank">console.neon.tech</a>. Project, Settings, Delete Project. Destroys all records permanently.</p>
+      <p style="margin-bottom:4px;"><strong style="color:var(--text-sec)">2. Delete the Vercel project</strong> at <a href="https://vercel.com/dashboard" target="_blank">vercel.com/dashboard</a>. Project, Settings, scroll to bottom, Delete Project. The application goes offline immediately.</p>
+      <p style="margin-bottom:4px;"><strong style="color:var(--text-sec)">3. Delete the GitHub repository</strong> (optional). Repository, Settings, scroll to bottom, Delete this repository.</p>
+      <p>After these steps, no data from the chapter exists on any server. Reporter apps stop functioning immediately.</p>
     </div>
   </details>
 
-  <details style="margin-bottom:12px; border:1px solid var(--border); border-radius:8px; padding:12px 16px;">
-    <summary style="font-size:14px; font-weight:600; cursor:pointer; color:var(--text-sec);">Do any of these services cost money?</summary>
-    <p style="font-size:13px; color:var(--text-muted); margin-top:8px; line-height:1.7;">All three services (Neon, Vercel, GitHub) have generous free tiers. A chapter with up to ~50 reporters and thousands of sightings will stay within free limits. None of them require a credit card to sign up. If you ever approach a limit, the service will warn you before charging anything.</p>
+  <details style="margin-bottom:10px;border:1px solid var(--border);border-radius:6px;padding:10px 14px;">
+    <summary style="font-size:13px;font-weight:600;color:var(--text-sec);">Cost</summary>
+    <p style="font-size:12px;color:var(--text-muted);margin-top:6px;line-height:1.7;">All three services (Neon, Vercel, GitHub) have free tiers. A chapter with up to 50 reporters and thousands of sightings stays within free limits. No credit card required. Each service warns before any charges.</p>
   </details>
 </div>
 
-</div><!-- container -->
+</div>
 
 <div class="footer">
-  <p style="font-family:'Exo 2',sans-serif; font-weight:100; font-size:20px; letter-spacing:0.2em; color:var(--accent); margin-bottom:12px;">TRACE</p>
+  <p style="font-weight:100;font-size:18px;letter-spacing:0.2em;color:var(--accent);margin-bottom:8px;">TRACE</p>
   <p>Tracking · Reporting · Analysis · Community Evidence</p>
-  <p style="margin-top:8px;"><a href="https://github.com/duke-of-beans/TRACE">GitHub</a></p>
+  <p style="margin-top:6px;"><a href="https://github.com/duke-of-beans/TRACE">Source</a></p>
 </div>
 
 </body>
