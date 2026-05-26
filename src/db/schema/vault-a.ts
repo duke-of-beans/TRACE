@@ -383,3 +383,25 @@ export const auditLog = ops.table("audit_log", {
   index("audit_log_chapter_created").on(t.chapterId, t.createdAt),
   index("audit_log_target").on(t.targetType, t.targetId),
 ]);
+
+// ============================================================
+// FEEDBACK (bug reports, feature requests — semi-public)
+// ============================================================
+export const feedback = ops.table("feedback", {
+  id: id(),
+  chapterId: uuid("chapter_id").references(() => chapters.id),
+  reporterId: uuid("reporter_id"),
+  callsign: varchar("callsign", { length: 64 }),
+  type: varchar("type", { length: 16 }).notNull().default("bug"),    // bug | feature | other
+  title: varchar("title", { length: 256 }).notNull(),
+  description: text("description").notNull(),
+  severity: varchar("severity", { length: 16 }).default("medium"),   // low | medium | high | critical
+  page: varchar("page", { length: 128 }),                            // route where submitted
+  metadata: jsonb("metadata").default({}),                            // device info, errors
+  status: varchar("status", { length: 16 }).default("open"),         // open | acknowledged | resolved | closed
+  operatorNotes: text("operator_notes"),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+}, (t) => [
+  index("feedback_chapter_status").on(t.chapterId, t.status),
+]);

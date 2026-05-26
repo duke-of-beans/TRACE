@@ -11,10 +11,10 @@ import {
   actorSuspicionLevels, actorSuspicionPredicates, actorIdentifierTypes,
   actorIdentifiers, notificationChannels, notificationRules,
   reporters, vehicles, vehicleTypeAssignments, vehicleSuspicionHistory,
-  actors,
+  actors, feedback,
 } from "../../db/schema/vault-a.js";
 import { reporterIdentities, sessions, magicLinkTokens } from "../../db/schema/vault-b.js";
-import { eq, and, count } from "drizzle-orm";
+import { eq, and, count, desc } from "drizzle-orm";
 import { generateCasePackage } from "../../services/case-package.js";
 import { encryptFields } from "../../services/encryption.js";
 import { createHash, randomBytes } from "node:crypto";
@@ -546,6 +546,29 @@ adminRouter.post("/notifications/channels", async (c) => {
     .values({ chapterId, ...body })
     .returning();
   return c.json(ch, 201);
+});
+
+// ============================================================
+// FEEDBACK (bug reports — visible to operators)
+// ============================================================
+adminRouter.get("/feedback", async (c) => {
+  const chapterId = c.req.header("x-chapter-id") || "";
+  const status = c.req.query("status");
+  const where = status
+    ? and(eq(feedback.chapterId, chapterId), eq(feedback.status, status))
+    : eq(feedback.chapterId, chapterId);
+  const items = await opsDb.select().from(feedback).where(where).orderBy(desc(feedback.createdAt)).limit(100);
+  return c.json(items);
+});
+
+adminRouter.patch("/feedback/:id", async (c) => {
+  const id = c.req.param("id");
+  const { status: newStatus, operatorNotes } = await c.req.json();
+  const [updated] = await opsDb.update(feedback)
+    .set({ status: newStatus, operatorNotes, updatedAt: new Date() })
+    .where(eq(feedback.id, id)).returning();
+  if (!updated) return c.json({ error: "Not found" }, 404);
+  return c.json(updated);
 });
 
 // ============================================================

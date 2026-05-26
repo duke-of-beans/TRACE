@@ -22,10 +22,10 @@ This takes about 2 minutes.` },
 
 The encryption key is derived from the PIN you set. Without the PIN, the data on this device is unreadable ciphertext.` },
   { title: "Photos Stay in the App", icon: "camera",
-    plain: "Photos you take through TRACE do not appear in your phone's camera roll or photo gallery. Nobody browsing your phone will find them.",
+    plain: "Photos you take through TRACE do not appear in your phone's camera roll or photo gallery. All identifying information (camera model, device serial number) is automatically stripped from photos before they are stored or sent. Nobody can trace a photo back to your specific device.",
     content: `Photos taken through the TRACE camera go directly from the camera stream into encrypted storage. They are not saved to the device gallery.
 
-The file picker may create gallery copies. Use the camera when possible.` },
+Uploaded files are re-encoded through a scrubber that removes all EXIF metadata except GPS coordinates and timestamp. Camera make, model, serial number, software version, lens data, and device identifiers are destroyed before the photo leaves your device.` },
   { title: "Works Without Internet", icon: "radio",
     plain: "You can submit reports even when you have no signal. They are saved on your phone and sent automatically when your connection comes back.",
     content: `Reports are encrypted and queued locally when the server is unreachable. They upload automatically when connectivity returns.
@@ -42,10 +42,10 @@ This is on the Report screen (top right) and in Settings. It cannot be undone.` 
 
 If you will be without signal for an extended time, tell your operator beforehand.` },
   { title: "Your Operator", icon: "user",
-    plain: "Your chapter operator manages the system but cannot see your real identity. They know you only by your callsign. They can also remotely erase data from your phone if needed.",
+    plain: "Your chapter operator manages the system. They know you only by a callsign (a code name like FALCON-7). Your real identity is encrypted separately. When you received your invite code, your operator also assigned your callsign. That callsign is how they identify your reports.",
     content: `The operator can revoke access or signal a device to clear its data remotely. This fires on the device's next server contact.
 
-The operator works with callsigns only. They do not have access to the identity vault.` },
+The operator works with callsigns only. Real identities are encrypted in a separate vault the operator cannot access. Your PIN protects your device. Never share your PIN with anyone, including your operator.` },
 ];
 
 export function Onboarding({ onComplete }: OnboardingProps) {

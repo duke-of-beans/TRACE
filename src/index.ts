@@ -84,6 +84,26 @@ api.route("/vehicles", vehiclesRouter);
 api.route("/actors", actorsRouter);
 api.route("/geo", geoRouter);
 
+// Feedback — any authenticated user can submit
+api.post("/feedback", async (c) => {
+  const { feedback: feedbackTable } = await import("./db/schema/vault-a.js");
+  const { opsDb } = await import("./db/connection.js");
+  const body = await c.req.json();
+  const chapterId = c.req.header("x-chapter-id") || "";
+  const reporterId = c.req.header("x-reporter-id") || "";
+  const [item] = await opsDb.insert(feedbackTable).values({
+    chapterId, reporterId,
+    callsign: body.callsign || "",
+    type: body.type || "bug",
+    title: body.title,
+    description: body.description,
+    severity: body.severity || "medium",
+    page: body.page || "",
+    metadata: body.metadata || {},
+  }).returning();
+  return c.json(item, 201);
+});
+
 // Admin routes require operator or admin role
 api.use("/admin/*", operatorOnly);
 api.route("/admin", adminRouter);

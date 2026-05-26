@@ -9,6 +9,7 @@ import { api } from "../lib/api.js";
 import { enqueue } from "../lib/queue.js";
 import { applyJitter } from "../lib/jitter.js";
 import { DirectCamera } from "../components/camera.js";
+import { scrubPhoto } from "../lib/photo-scrub.js";
 import { Icon } from "../components/icon.js";
 import { panic } from "../lib/panic.js";
 
@@ -52,11 +53,25 @@ export function Submit() {
   const fileRef = useRef<HTMLInputElement>(null);
 
   const handlePhotos = async (e: Event) => {
-    const files = Array.from((e.target as HTMLInputElement).files || []);
-    if (files.length === 0) return;
-    const urls = files.map((f) => URL.createObjectURL(f));
+    const rawFiles = Array.from((e.target as HTMLInputElement).files || []);
+    if (rawFiles.length === 0) return;
+
+    // Scrub EXIF metadata from uploaded files — strips camera make/model,
+    // serial number, device ID, all MakerNote data. Extracts GPS first.
+    const scrubbed: File[] = [];
+    const urls: string[] = [];
     let lat = draft.lat;
     let lng = draft.lng;
+
+    for (const file of rawFiles) {
+      const { clean, meta } = await scrubPhoto(file);
+      scrubbed.push(new File([clean], file.name, { type: "image/jpeg" }));
+      urls.push(URL.createObjectURL(clean));
+      // Use EXIF GPS if we don't have a location yet
+      if (!lat && meta.lat) { lat = meta.lat; lng = meta.lng || null; }
+    }
+
+    // Fall back to device geolocation if no EXIF GPS
     if (!lat && navigator.geolocation) {
       try {
         const pos = await new Promise<GeolocationPosition>((resolve, reject) =>
@@ -66,7 +81,7 @@ export function Submit() {
         lng = pos.coords.longitude;
       } catch {}
     }
-    setDraft((d) => ({ ...d, photos: [...d.photos, ...files], photoUrls: [...d.photoUrls, ...urls], lat, lng }));
+    setDraft((d) => ({ ...d, photos: [...d.photos, ...scrubbed], photoUrls: [...d.photoUrls, ...urls], lat, lng }));
   };
 
   const handleSubmit = async () => {
