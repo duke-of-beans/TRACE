@@ -41,15 +41,24 @@ export function App() {
   useEffect(() => {
     if (locked || isWiped()) return;
     const apiBase = import.meta.env.VITE_API_URL || "http://localhost:3100/api/v1";
-    startDeadManSwitch();
-    startHeartbeat(apiBase);
-    const lockTimer = setTimeout(() => setupAutoLock(5 * 60 * 1000), 10000);
+
+    // only start background systems when authenticated
+    if (authed) {
+      startDeadManSwitch();
+      startHeartbeat(apiBase);
+    }
+
+    // only auto-lock when authenticated — don't lock during onboarding/join flow
+    const lockTimer = authed
+      ? setTimeout(() => setupAutoLock(5 * 60 * 1000), 10000)
+      : null;
+
     const interval = setInterval(async () => {
       setQueueCount(await getQueueCount());
-      if (isLocked()) setLocked(true);
+      if (authed && isLocked()) setLocked(true);
     }, 5000);
-    return () => { clearInterval(interval); clearTimeout(lockTimer); };
-  }, [locked]);
+    return () => { clearInterval(interval); if (lockTimer) clearTimeout(lockTimer); };
+  }, [locked, authed]);
 
   const handleSignOut = () => { clearToken(); lock(); setAuthed(false); setLocked(true); };
   const handleToggleTheme = () => { const t = toggleTheme("light"); setThemeState(t); };
@@ -104,20 +113,26 @@ function SubmitGate({ authed, onJoin }: { authed: boolean; onJoin: () => void })
     return (
       <div>
         <h1 class="page-title">Report Sighting</h1>
-        <div class="card" style={{ textAlign: "center", padding: "var(--sp-8) var(--sp-4)" }}>
-          <div style={{ color: "var(--text-muted)", marginBottom: "var(--sp-4)" }}>
-            <Icon name="lock" size={32} />
+        <div class="card" style={{ textAlign: "center", padding: "var(--sp-6) var(--sp-4)" }}>
+          <div style={{ color: "var(--text-muted)", marginBottom: "var(--sp-3)" }}>
+            <Icon name="send" size={32} />
           </div>
-          <h3 style={{ fontSize: "var(--text-lg)", fontWeight: 600, marginBottom: "var(--sp-2)" }}>Join your chapter to start reporting</h3>
+          <h3 style={{ fontSize: "var(--text-lg)", fontWeight: 600, marginBottom: "var(--sp-2)" }}>
+            Connect to your chapter
+          </h3>
           <p style={{ fontSize: "var(--text-sm)", color: "var(--text-sec)", marginBottom: "var(--sp-5)", lineHeight: "var(--leading-relaxed)" }}>
-            You need an invite code from your chapter operator before you can submit sightings.
-            Your operator will give you a code — it looks like XXXX-XXXX.
+            Your operator will give you an invite code to start reporting.
+            It looks like <strong style={{ fontFamily: "var(--font-mono)" }}>XXXX-XXXX</strong>.
           </p>
-          <button class="btn btn-primary btn-lg" onClick={onJoin}>
-            <Icon name="plus" size={16} /> Enter Invite Code
+          <button class="btn btn-primary btn-full btn-lg" onClick={onJoin}>
+            Enter Invite Code
           </button>
-          <p class="hint-text" style={{ marginTop: "var(--sp-4)" }}>
-            You can also enter it later in Settings.
+        </div>
+
+        <div style={{ textAlign: "center", marginTop: "var(--sp-4)" }}>
+          <p style={{ fontSize: "var(--text-xs)", color: "var(--text-muted)", lineHeight: "var(--leading-relaxed)" }}>
+            Don't have a code yet? No problem — explore the app and enter it
+            when you're ready. Go to <strong>Settings</strong> to enter it later.
           </p>
         </div>
       </div>
