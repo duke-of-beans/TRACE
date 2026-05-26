@@ -125,6 +125,28 @@ function DeviceControl() {
     else toast("Failed to reactivate", "error");
   };
 
+  const handleNukeAll = async () => {
+    const ok = await confirm({
+      title: "Kill ALL reporter devices?",
+      message: "This suspends every reporter, revokes all sessions, and pushes a kill signal to every device. All reporter devices will wipe their TRACE data.",
+      confirmLabel: "Kill All Devices",
+      danger: true,
+    });
+    if (!ok) return;
+    const ok2 = await confirm({
+      title: "Are you absolutely sure?",
+      message: "This cannot be easily undone. Every reporter will need to be re-onboarded.",
+      confirmLabel: "YES — NUKE ALL",
+      danger: true,
+    });
+    if (!ok2) return;
+    const res = await fetch("/api/v1/admin/nuke", { method: "POST", headers: authHeaders() });
+    if (res.ok) {
+      const data = await res.json();
+      toast(`${data.reportersKilled} device(s) killed`, "error");
+    } else toast("Nuke failed", "error");
+  };
+
   return (
     <div className="max-w-lg space-y-4">
       <div className="flex items-center gap-2 mb-2">
@@ -136,9 +158,30 @@ function DeviceControl() {
         placeholder="Reporter ID (UUID)" className="w-full bg-trace-bg border border-trace-border rounded-lg px-3 py-2 text-sm focus:border-trace-accent focus:outline-none" />
 
       <div className="flex gap-2">
-        <button onClick={handleSuspend} className="px-4 py-2 bg-trace-warning text-white rounded-lg text-sm font-semibold">Suspend</button>
-        <button onClick={handleKill} className="px-4 py-2 bg-trace-danger text-white rounded-lg text-sm font-semibold">Kill Device</button>
-        <button onClick={handleReactivate} className="px-4 py-2 bg-trace-confirm text-white rounded-lg text-sm font-semibold">Reactivate</button>
+        <button onClick={handleSuspend} className="px-4 py-2 rounded-lg text-sm font-semibold" style={{ background: "var(--warning)", color: "#fff" }}>
+          <Icon name="lock" size={14} className="inline mr-1" /> Suspend
+        </button>
+        <button onClick={handleKill} className="px-4 py-2 rounded-lg text-sm font-semibold" style={{ background: "var(--danger)", color: "#fff" }}>
+          <Icon name="skull" size={14} className="inline mr-1" /> Kill Device
+        </button>
+        <button onClick={handleReactivate} className="px-4 py-2 rounded-lg text-sm font-semibold" style={{ background: "var(--success)", color: "#fff" }}>
+          <Icon name="unlock" size={14} className="inline mr-1" /> Reactivate
+        </button>
+      </div>
+
+      {/* Nuke All — quick access */}
+      <div className="mt-8 pt-6" style={{ borderTop: "1px solid var(--border)" }}>
+        <div className="flex items-center gap-2 mb-2">
+          <Icon name="alert-triangle" size={16} className="text-trace-danger" />
+          <h2 className="font-semibold" style={{ color: "var(--danger)" }}>Kill All Devices</h2>
+        </div>
+        <p className="text-xs mb-3" style={{ color: "var(--text-muted)" }}>
+          Suspend every reporter, revoke all sessions, push kill signal to every device in the chapter.
+        </p>
+        <button onClick={handleNukeAll}
+          className="px-4 py-2 rounded-lg text-sm font-bold" style={{ background: "var(--danger)", color: "#fff" }}>
+          <Icon name="skull" size={14} className="inline mr-1" /> Nuke All Devices
+        </button>
       </div>
     </div>
   );

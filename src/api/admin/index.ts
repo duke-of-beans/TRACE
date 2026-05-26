@@ -29,6 +29,31 @@ adminRouter.get("/chapter", async (c) => {
   return c.json(chapter || { error: "Not found" });
 });
 
+// --- POST /admin/chapter/regenerate-code — invalidate all unused invite codes and issue a new one ---
+adminRouter.post("/chapter/regenerate-code", async (c) => {
+  const chapterId = c.req.header("x-chapter-id") || "";
+  const { callsign } = await c.req.json().catch(() => ({ callsign: "NEW-REPORTER" }));
+
+  // create a new reporter + invite code (same flow as generate-invite)
+  const [reporter] = await opsDb.insert(reporters).values({ chapterId, callsign }).returning();
+  const [identity] = await identDb.insert(reporterIdentities).values({ reporterId: reporter.id, role: "reporter" }).returning();
+
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  let code = "";
+  const bytes = randomBytes(8);
+  for (let i = 0; i < 8; i++) code += chars[bytes[i] % chars.length];
+  const formatted = `${code.slice(0, 4)}-${code.slice(4)}`;
+
+  const codeHash = createHash("sha256").update(code).digest("hex");
+  await identDb.insert(magicLinkTokens).values({
+    identityId: identity.id,
+    tokenHash: codeHash,
+    expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+  });
+
+  return c.json({ inviteCode: formatted, reporterId: reporter.id, callsign, expiresIn: "7 days" }, 201);
+});
+
 // ============================================================
 // VEHICLE TYPES — full CRUD with dependency check
 // ============================================================
