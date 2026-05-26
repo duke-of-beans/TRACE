@@ -49,10 +49,11 @@ export async function panic(): Promise<void> {
     console.log("[PANIC] IndexedDB wiped");
   } catch {}
 
-  // 3. WIPE ALL LOCAL STORAGE
+  // 3. WIPE ALL LOCAL STORAGE (but set wipe flag after)
   try { localStorage.clear(); } catch {}
   try { sessionStorage.clear(); } catch {}
-  console.log("[PANIC] Storage cleared");
+  try { localStorage.setItem("trace_wiped", "true"); } catch {}
+  console.log("[PANIC] Storage cleared, wipe flag set");
 
   // 4. WIPE ALL CACHES (Service Worker Cache API)
   try {
@@ -97,9 +98,19 @@ export async function panic(): Promise<void> {
 
 /**
  * Quick check: is the app in a genuinely wiped state?
- * Returns true ONLY if there's no encryption key in any form.
- * A PIN-locked app has trace_ek_wrapped — that's not wiped, it's locked.
+ * Returns true ONLY if the app was previously set up (had a token or PIN)
+ * and then wiped. A fresh install with no data is NOT wiped.
  */
 export function isWiped(): boolean {
-  return !localStorage.getItem("trace_ek") && !localStorage.getItem("trace_ek_wrapped");
+  // If there's a wipe flag set by panic(), it's definitely wiped
+  if (localStorage.getItem("trace_wiped") === "true") return true;
+  // If encryption keys exist in any form, not wiped
+  if (localStorage.getItem("trace_ek") || localStorage.getItem("trace_ek_wrapped")) return false;
+  // If there's evidence of prior setup (PIN hash, token, or checkin), but no keys, it was wiped
+  const hadSetup = localStorage.getItem("trace_pin_hash") ||
+                   localStorage.getItem("trace_token") ||
+                   localStorage.getItem("trace_last_checkin");
+  if (hadSetup) return true;
+  // No keys, no prior setup evidence = fresh install, not wiped
+  return false;
 }

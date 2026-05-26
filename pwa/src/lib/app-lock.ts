@@ -87,13 +87,13 @@ export function lock(): void {
 
 /**
  * Auto-lock after inactivity. NOT instant on background.
- * - 30s grace period when app goes to background (allows tab switches)
+ * - 5min grace period when app goes to background (allows tab switches)
  * - 5min inactivity timer (resets on interaction)
  */
 export function setupAutoLock(inactivityMs = 5 * 60 * 1000): void {
   let inactivityTimer: ReturnType<typeof setTimeout> | null = null;
   let backgroundTimer: ReturnType<typeof setTimeout> | null = null;
-  const BACKGROUND_GRACE = 30000; // 30s before locking in background
+  const BACKGROUND_GRACE = 5 * 60 * 1000; // 5 min before locking in background (allows tab switches)
 
   const resetInactivity = () => {
     if (inactivityTimer) clearTimeout(inactivityTimer);
