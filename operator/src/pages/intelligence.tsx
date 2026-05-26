@@ -216,7 +216,7 @@ export function Intelligence() {
           <button
             onClick={() => {
               const mapEl = document.querySelector(".leaflet-container") as any;
-              const center = mapEl?._leaflet_map?.getCenter?.() || { lat: 38.9510, lng: -77.1460 };
+              const center = mapEl?._leaflet_map?.getCenter?.() || { lat: 38.9310, lng: -77.1770 };
               setPlacingPin({ lat: center.lat, lng: center.lng });
               setSelectedPin(null);
               setSelectedMarker(null);

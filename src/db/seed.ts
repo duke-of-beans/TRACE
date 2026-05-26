@@ -197,14 +197,14 @@ async function seed() {
   if (reporterIds.length > 0) {
     const now = Date.now();
     const sightingData = [
-      { plate: "FAKE-001", lat: 38.9510, lng: -77.1460, desc: "DEMO: Circling the block on Dolley Madison Blvd, stopped twice", hoursAgo: 2,  dir: "N" },
-      { plate: "FAKE-001", lat: 38.9530, lng: -77.1490, desc: "DEMO: Parked outside coffee shop for 45 min",                   hoursAgo: 26, dir: "E" },
-      { plate: "FAKE-001", lat: 38.9480, lng: -77.1420, desc: "DEMO: Driving slowly through residential area at 1am",           hoursAgo: 50, dir: "S" },
-      { plate: "FAKE-002", lat: 38.9500, lng: -77.1450, desc: "DEMO: Following another vehicle on Chain Bridge Rd",             hoursAgo: 5,  dir: "W" },
-      { plate: "FAKE-002", lat: 38.9540, lng: -77.1510, desc: "DEMO: Parked with engine running, two occupants",                hoursAgo: 30, dir: "NE" },
-      { plate: "FAKE-003", lat: 38.9460, lng: -77.1400, desc: "DEMO: Loading boxes from garage into truck bed",                 hoursAgo: 12, dir: "SW" },
-      { plate: "FAKE-003", lat: 38.9490, lng: -77.1440, desc: "DEMO: Speeding through school zone",                             hoursAgo: 72, dir: "E" },
-      { plate: "TEST-004", lat: 38.9520, lng: -77.1480, desc: "DEMO: Parked near park, driver on phone",                        hoursAgo: 8,  dir: "N" },
+      { plate: "FAKE-001", lat: 38.9340, lng: -77.1770, desc: "DEMO: Circling the block near Old Dominion Dr, stopped twice",  hoursAgo: 2,  dir: "N" },
+      { plate: "FAKE-001", lat: 38.9285, lng: -77.1690, desc: "DEMO: Parked outside coffee shop on Chain Bridge Rd for 45 min", hoursAgo: 26, dir: "E" },
+      { plate: "FAKE-001", lat: 38.9410, lng: -77.1880, desc: "DEMO: Driving slowly through residential area at 1am",          hoursAgo: 50, dir: "S" },
+      { plate: "FAKE-002", lat: 38.9220, lng: -77.1720, desc: "DEMO: Following another vehicle on Elm St",                     hoursAgo: 5,  dir: "W" },
+      { plate: "FAKE-002", lat: 38.9370, lng: -77.1830, desc: "DEMO: Parked with engine running near Lewinsville Park",        hoursAgo: 30, dir: "NE" },
+      { plate: "FAKE-003", lat: 38.9180, lng: -77.1650, desc: "DEMO: Loading boxes from garage into truck bed",                hoursAgo: 12, dir: "SW" },
+      { plate: "FAKE-003", lat: 38.9310, lng: -77.1750, desc: "DEMO: Speeding through school zone on Kirby Rd",                hoursAgo: 72, dir: "E" },
+      { plate: "TEST-004", lat: 38.9260, lng: -77.1810, desc: "DEMO: Parked near park entrance, driver on phone",              hoursAgo: 8,  dir: "N" },
     ];
     for (const s of sightingData) {
       const rid = reporterIds[Math.floor(Math.random() * reporterIds.length)];

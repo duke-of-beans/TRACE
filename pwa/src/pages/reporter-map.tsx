@@ -32,7 +32,7 @@ export function ReporterMap() {
   useEffect(() => {
     navigator.geolocation?.getCurrentPosition(
       (pos) => setUserPos([pos.coords.latitude, pos.coords.longitude]),
-      () => setUserPos([38.9510, -77.1460]), // Default fallback
+      () => setUserPos([38.9310, -77.1770]), // Default fallback
       { enableHighAccuracy: true }
     );
   }, []);
