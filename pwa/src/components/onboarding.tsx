@@ -90,6 +90,13 @@ export function Onboarding({ onComplete }: OnboardingProps) {
           </div>
           <p class="hint-text" style={{ textAlign: "center", marginTop: "var(--sp-3)" }}>
             Step {step + 1} of {STEPS.length}
+            {!isLast && (
+              <span> · <button onClick={onComplete} style={{
+                background: "none", border: "none", color: "var(--text-muted)",
+                cursor: "pointer", fontSize: "inherit", textDecoration: "underline",
+                opacity: 0.7,
+              }}>skip</button></span>
+            )}
           </p>
         </div>
       </div>

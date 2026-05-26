@@ -152,6 +152,13 @@ export function OperatorOnboarding({ onComplete }: OperatorOnboardingProps) {
           </div>
           <p className="text-center mt-3 text-xs" style={{ color: "var(--text-muted)" }}>
             {step + 1} of {STEPS.length}
+            {!isLast && (
+              <span> · <button onClick={handleComplete} style={{
+                background: "none", border: "none", color: "var(--text-muted)",
+                cursor: "pointer", fontSize: "inherit", textDecoration: "underline",
+                opacity: 0.7,
+              }}>skip tour</button></span>
+            )}
           </p>
         </div>
       </div>
