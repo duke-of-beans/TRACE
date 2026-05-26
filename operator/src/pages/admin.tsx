@@ -49,6 +49,7 @@ export function Admin() {
     { key: "identifiers", label: "Actor Identifiers" },
     { key: "reporters", label: "Reporters" },
     { key: "channels",  label: "Notifications" },
+    { key: "feedback",  label: "Feedback" },
   ];
 
   return (
@@ -69,6 +70,7 @@ export function Admin() {
       {tab === "identifiers" && <ActorIdentifierTypesAdmin />}
       {tab === "reporters"   && <ReportersAdmin />}
       {tab === "channels"    && <ChannelsAdmin />}
+      {tab === "feedback"    && <FeedbackAdmin />}
     </div>
   );
 }
@@ -954,6 +956,116 @@ function LabeledInput({ label, value, onChange, placeholder }: {
     <div>
       <label className="text-xs text-gray-500 uppercase tracking-wider mb-1 block">{label}</label>
       <input value={value} onChange={(e) => onChange(e.target.value)} className={inputCls} placeholder={placeholder} />
+    </div>
+  );
+}
+
+// ============ Feedback — bug reports from reporters ============
+function FeedbackAdmin() {
+  const [items, setItems] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState("open");
+  const toast = useToast();
+
+  const load = () => {
+    setLoading(true);
+    const url = filter ? `/feedback?status=${filter}` : "/feedback";
+    apiFetch(url)
+      .then((r) => r.ok ? r.json() : [])
+      .then((d) => setItems(Array.isArray(d) ? d : []))
+      .catch(() => toast("Failed to load feedback", "error"))
+      .finally(() => setLoading(false));
+  };
+  useEffect(() => { load(); }, [filter]);
+
+  const updateStatus = async (id: string, status: string) => {
+    const res = await apiFetch(`/feedback/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify({ status }),
+    });
+    if (res.ok) { load(); toast(`Marked ${status}`, "success"); }
+    else toast("Failed to update", "error");
+  };
+
+  const SEVERITY_COLORS: Record<string, string> = {
+    critical: "#DC2626", high: "#EA580C", medium: "#D97706", low: "#94A3B8",
+  };
+
+  if (loading) return <SkeletonList count={3} />;
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-4">
+        <p className="text-sm" style={{ color: "var(--text-sec)" }}>
+          Bug reports and suggestions from reporters. Review, acknowledge, and resolve.
+        </p>
+      </div>
+
+      <div className="flex gap-1 mb-4">
+        {["open", "acknowledged", "resolved", ""].map((s) => (
+          <button key={s} onClick={() => setFilter(s)}
+            className={`px-3 py-1.5 rounded text-xs transition ${filter === s ? "bg-trace-accent text-white font-medium" : "text-gray-500 hover:text-gray-300"}`}
+          >{s || "All"}</button>
+        ))}
+      </div>
+
+      {items.length === 0 ? (
+        <div className="text-center py-12" style={{ color: "var(--text-muted)" }}>
+          <p className="text-sm">No {filter || ""} feedback items.</p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {items.map((item) => (
+            <div key={item.id} className="bg-trace-bg border border-trace-border rounded-lg p-4">
+              <div className="flex items-start justify-between mb-2">
+                <div>
+                  <span className="text-xs px-2 py-0.5 rounded mr-2" style={{
+                    background: item.type === "bug" ? "rgba(220,38,38,0.15)" : "rgba(79,70,229,0.15)",
+                    color: item.type === "bug" ? "#DC2626" : "#818CF8",
+                  }}>{item.type}</span>
+                  <span className="font-medium text-sm">{item.title}</span>
+                </div>
+                <span className="text-xs px-2 py-0.5 rounded" style={{
+                  background: `${SEVERITY_COLORS[item.severity] || "#94A3B8"}20`,
+                  color: SEVERITY_COLORS[item.severity] || "#94A3B8",
+                }}>{item.severity}</span>
+              </div>
+
+              <p className="text-sm mb-2" style={{ color: "var(--text-sec)" }}>{item.description}</p>
+
+              <div className="flex items-center gap-4 text-xs" style={{ color: "var(--text-muted)" }}>
+                {item.callsign && <span>From: {item.callsign}</span>}
+                {item.page && <span>Page: {item.page}</span>}
+                <span>{new Date(item.createdAt).toLocaleDateString()}</span>
+                <span className="px-1.5 py-0.5 rounded" style={{
+                  background: "var(--surface)", border: "1px solid var(--border)",
+                }}>{item.status}</span>
+              </div>
+
+              {item.status === "open" && (
+                <div className="flex gap-2 mt-3">
+                  <button onClick={() => updateStatus(item.id, "acknowledged")}
+                    className="px-3 py-1.5 rounded text-xs bg-trace-surface border border-trace-border hover:border-trace-accent transition">
+                    Acknowledge
+                  </button>
+                  <button onClick={() => updateStatus(item.id, "resolved")}
+                    className="px-3 py-1.5 rounded text-xs bg-trace-surface border border-trace-border hover:border-trace-accent transition">
+                    Resolve
+                  </button>
+                </div>
+              )}
+              {item.status === "acknowledged" && (
+                <div className="flex gap-2 mt-3">
+                  <button onClick={() => updateStatus(item.id, "resolved")}
+                    className="px-3 py-1.5 rounded text-xs bg-trace-surface border border-trace-border hover:border-trace-accent transition">
+                    Resolve
+                  </button>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

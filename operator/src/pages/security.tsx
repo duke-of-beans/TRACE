@@ -38,42 +38,33 @@ function SecurityOverview() {
   return (
     <div className="max-w-2xl space-y-6">
       <DocSection title="Reporter Device Security"
-        body={`Each reporter's device encrypts all TRACE data using AES-256-GCM. The encryption key is protected by the reporter's PIN. Without the PIN, the data on the device is irrecoverable ciphertext.
-
-Photos captured through TRACE's camera do not get saved to the device's photo gallery. The offline queue encrypts sighting data before storing it on the device.`} />
+        plain="Every reporter's phone encrypts all TRACE data so it cannot be read without their PIN. Photos taken through the app never appear in the phone's gallery. All identifying metadata (camera model, device serial number) is stripped from photos before they are stored or sent."
+        body={`AES-256-GCM encryption. Key derived from PIN via PBKDF2. Photos captured via getUserMedia bypass the gallery. Uploaded files are re-encoded through a canvas scrubber that destroys all EXIF metadata except GPS and timestamp.`} />
 
       <DocSection title="Remote Kill Capabilities"
-        body={`You can remotely wipe a reporter's device through three mechanisms:
-
-• Suspend: Revokes the reporter's sessions. Their app will lose access on next API call. Reversible.
-• Kill: Suspends the reporter AND sends a push notification that triggers the app's self-destruct sequence. Also fires on the reporter's next heartbeat check. The device wipes all TRACE data.
-• Nuke: Emergency kill for ALL reporters in the chapter simultaneously.
-
-Push-based kill works when the device has any internet connection. If the device is offline, the dead man's switch will fire after the configured check-in window (default 24 hours).`} />
+        plain="You can remotely erase TRACE data from any reporter's phone. Suspend blocks their access (reversible). Kill erases their device on next server contact. Nuke erases every device in the chapter at once."
+        body={`Suspend: revokes sessions, blocks API access. Reversible.
+Kill: suspends + pushes kill signal via web-push and heartbeat. Device clears all data on next contact.
+Nuke: suspends all reporters, revokes all sessions, pushes kill to all devices. Double-confirmed.`} />
 
       <DocSection title="Dead Man's Switch"
-        body={`Reporter devices are configured with a check-in window (default 24 hours). The app must successfully contact the server within this window. If it cannot, it automatically clears all data.
-
-This protects against a device being seized and kept offline to prevent remote wiping. The check-in window is configurable per chapter. If a reporter plans to be offline (travel, vacation), coordinate with them to either extend their window or pause the requirement temporarily.`} />
+        plain="Reporter phones automatically check in with the server in the background. If a phone cannot reach the server for 72 hours, it erases itself. This prevents someone from seizing a phone and keeping it offline to avoid a remote wipe."
+        body={`Default check-in window: 72 hours. Background sync via Service Worker periodic sync (6h interval). In-app heartbeat every 5 minutes. 4-hour grace period with warnings before auto-wipe. If a reporter will be offline, coordinate to avoid unintended wipe.`} />
 
       <DocSection title="PIN + Auto-Lock"
-        body={`Reporters set a PIN during onboarding. The PIN is required every time the app is opened. The app also auto-locks when:
+        plain="Reporters set a PIN during setup. It is required every time the app opens. If the phone switches to another app, TRACE locks after 30 seconds. After 10 wrong PIN attempts, the app erases everything."
+        body={`PIN required on every app launch. Auto-lock: 30 seconds background, 5 minutes inactivity. 10 incorrect attempts triggers automatic data wipe.`} />
 
-• The app goes to the background (user switches apps)
-• After 5 minutes of inactivity
-
-After 10 incorrect PIN attempts, the app automatically wipes all data. This prevents forced-access scenarios.`} />
+      <DocSection title="Photo Metadata Scrubbing"
+        plain="Every photo that passes through TRACE has its identifying information removed. Camera make, model, serial number, device ID, lens data, and software version are all destroyed. Only GPS coordinates and timestamp are preserved because they have operational value."
+        body={`Re-encoding via canvas produces a new JPEG with zero EXIF data. For uploaded files, GPS and timestamp are extracted before scrubbing. The scrubbed image is a clean re-encode with no MakerNote, no ICC profile, no thumbnail, no device fingerprint.`} />
 
       <DocSection title="Three-Vault Architecture"
-        body={`TRACE separates data into three cryptographically isolated vaults:
-
-Vault A (Operational): Vehicle data, sightings, actors — all pseudonymous. No real reporter identities. A full dump reveals zero personal information.
-
-Vault B (Identity): Reporter real names, emails, phones — encrypted at rest with a separate key. Only accessible for authentication flows.
-
-Vault C (Evidence): Write-once evidence locker with SHA-256 hash chain. Cannot be modified or deleted. Provides tamper-evident legal-grade evidence integrity.
-
-Each vault uses a separate database role with minimal privileges. The evidence vault physically cannot UPDATE or DELETE records.`} />
+        plain="Data is split into three separate locked databases. Operational data (vehicles, sightings) is in one. Reporter identities are in a second with a different key. Evidence is in a third that can only be added to, never changed or deleted. If one database is breached, the others stay locked."
+        body={`Vault A (Operational): pseudonymous. Zero reporter identities.
+Vault B (Identity): encrypted at rest, separate key.
+Vault C (Evidence): write-once, SHA-256 hash chain, append-only.
+Each vault uses a separate database role with minimal privileges.`} />
 
       <div className="p-4 bg-trace-surface rounded-lg border border-trace-border">
         <p className="text-xs text-gray-500 leading-relaxed">
@@ -151,8 +142,11 @@ function DeviceControl() {
     <div className="max-w-lg space-y-4">
       <div className="flex items-center gap-2 mb-2">
         <h2 className="font-semibold">Device Control</h2>
-        <HelpTip text="Manage individual reporter device access. Suspend revokes access. Kill wipes the device remotely." />
+        <HelpTip text="Enter a reporter ID to manage their device. Find IDs in Admin > Reporters." />
       </div>
+      <p className="text-sm mb-3" style={{ color: "var(--text-sec)" }}>
+        Suspend blocks a reporter's access (reversible). Kill erases their device on next server contact. Find reporter IDs in the Admin panel under Reporters.
+      </p>
 
       <input value={reporterId} onChange={(e) => setReporterId(e.target.value)}
         placeholder="Reporter ID (UUID)" className="w-full bg-trace-bg border border-trace-border rounded-lg px-3 py-2 text-sm focus:border-trace-accent focus:outline-none" />
@@ -222,16 +216,12 @@ function EmergencyPanel() {
     <div className="max-w-lg">
       <div className="p-6 bg-trace-surface rounded-lg border border-trace-danger/30">
         <h2 className="text-lg font-bold text-trace-danger mb-4">Emergency Kill Switch</h2>
-        <p className="text-sm text-gray-400 mb-4 leading-relaxed">
-          This will immediately suspend every reporter in the chapter, revoke all active sessions,
-          and push a kill signal to every device. Reporter devices will wipe all TRACE data
-          on next contact. If a device is offline, its dead man's switch will fire after
-          the configured check-in window.
+        <p className="text-sm mb-4 leading-relaxed" style={{ color: "var(--text)" }}>
+          This button erases TRACE from every reporter's phone in the chapter. All at once. Every reporter will need a new invite code to rejoin. Only use this if you believe the entire chapter is compromised.
         </p>
-        <p className="text-sm text-gray-400 mb-6 leading-relaxed">
-          Use this only if you believe the chapter's operational security has been
-          fundamentally compromised and continued data existence on any device
-          represents an unacceptable risk.
+        <p className="text-xs mb-4 leading-relaxed" style={{ color: "var(--text-muted)" }}>
+          Suspends all reporters, revokes all sessions, pushes kill signal to every device.
+          Offline devices are handled by the 72-hour check-in timer.
         </p>
         <button onClick={handleNuke}
           className="w-full py-3 bg-trace-danger text-white rounded-lg text-sm font-bold hover:opacity-90 transition">
@@ -242,11 +232,12 @@ function EmergencyPanel() {
   );
 }
 
-function DocSection({ title, body }: { title: string; body: string }) {
+function DocSection({ title, plain, body }: { title: string; plain?: string; body: string }) {
   return (
     <div className="bg-trace-surface rounded-lg p-5 border border-trace-border">
       <h3 className="text-sm font-semibold text-trace-accent mb-3">{title}</h3>
-      <p className="text-sm text-gray-400 leading-relaxed whitespace-pre-line">{body}</p>
+      {plain && <p className="text-sm mb-3 leading-relaxed" style={{ color: "var(--text)", fontWeight: 500 }}>{plain}</p>}
+      <p className="text-xs leading-relaxed whitespace-pre-line" style={{ color: "var(--text-muted)" }}>{body}</p>
     </div>
   );
 }

@@ -11,6 +11,7 @@ import { Onboarding } from "./components/onboarding.js";
 import { PinSetup } from "./components/pin-setup.js";
 import { PinLock } from "./components/pin-lock.js";
 import { PanicButton } from "./components/panic-button.js";
+import { FeedbackButton } from "./components/feedback-button.js";
 import { SecurityInfo } from "./components/security-info.js";
 import { Icon } from "./components/icon.js";
 import { getToken, setToken, clearToken } from "./lib/api.js";
@@ -258,6 +259,10 @@ function SettingsPage({ authed, ttlHours, theme, onShowSecurity, onShowJoin, onS
         <button class="btn btn-ghost btn-full" onClick={onSignOut} style={{ marginBottom: "var(--sp-3)", justifyContent: "flex-start" }}>
           <Icon name="log-out" size={16} /> Sign Out & Lock
         </button>
+      )}
+
+      {authed && (
+        <FeedbackButton />
       )}
 
       <PanicButton />
