@@ -17,6 +17,7 @@ import {
   ToastProvider, ConfirmProvider, ErrorBoundary, KeyboardOverlay, Tooltip,
 } from "./components/ux/index.js";
 import { LoginScreen, logout } from "./lib/auth-gate.js";
+import { OperatorOnboarding, needsOperatorOnboarding } from "./components/operator-onboarding.js";
 import { toggleTheme, getTheme } from "../../shared/design/theme.js";
 
 type Page = "dashboard" | "triage" | "intel" | "vehicles" | "actors" | "admin" | "security";
@@ -34,6 +35,7 @@ const NAV: { key: Page; label: string; shortcut: string; icon: string; desc: str
 export function App() {
   const [page, setPage] = useState<Page>("triage");
   const [authed, setAuthed] = useState(() => !!localStorage.getItem("trace_op_token"));
+  const [onboarded, setOnboarded] = useState(() => !needsOperatorOnboarding());
   const [theme, setThemeState] = useState(() => getTheme("dark"));
 
   useEffect(() => {
@@ -58,6 +60,8 @@ export function App() {
 
         {!authed ? (
           <LoginScreen onAuth={() => setAuthed(true)} />
+        ) : !onboarded ? (
+          <OperatorOnboarding onComplete={() => setOnboarded(true)} />
         ) : (
 
         <div className="flex h-screen" style={{ background: "var(--bg)", color: "var(--text)" }}>
