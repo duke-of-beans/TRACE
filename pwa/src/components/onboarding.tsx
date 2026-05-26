@@ -1,9 +1,10 @@
 /**
- * TRACE PWA — Onboarding + Security Briefing
+ * TRACE PWA — Security Briefing (post-auth only)
+ *
+ * Shown AFTER authentication. Bad actors never see this content.
+ * PIN setup is handled separately by pin-setup.tsx before auth.
  */
 import { useState } from "preact/hooks";
-import { setupPIN } from "../lib/app-lock.js";
-import { loadDeviceKey } from "../lib/crypto.js";
 import { Icon } from "./icon.js";
 
 type OnboardingProps = { onComplete: () => void };
@@ -19,7 +20,7 @@ This takes about 2 minutes.` },
     plain: "If someone got access to your phone, they could not read anything stored by this app. It is all scrambled using your PIN.",
     content: `Everything stored on this device is encrypted with AES-256-GCM. Photos, locations, notes, queued reports.
 
-The encryption key is derived from the PIN you set next. Without the PIN, the data on this device is unreadable ciphertext.` },
+The encryption key is derived from the PIN you set. Without the PIN, the data on this device is unreadable ciphertext.` },
   { title: "Photos Stay in the App", icon: "camera",
     plain: "Photos you take through TRACE do not appear in your phone's camera roll or photo gallery. Nobody browsing your phone will find them.",
     content: `Photos taken through the TRACE camera go directly from the camera stream into encrypted storage. They are not saved to the device gallery.
@@ -49,61 +50,8 @@ The operator works with callsigns only. They do not have access to the identity 
 
 export function Onboarding({ onComplete }: OnboardingProps) {
   const [step, setStep] = useState(0);
-  const [pin, setPin] = useState("");
-  const [pinConfirm, setPinConfirm] = useState("");
-  const [error, setError] = useState("");
-  const [setting, setSetting] = useState(false);
-
-  const isPinStep = step === STEPS.length;
-
-  const handlePinSubmit = async () => {
-    if (pin.length < 4 || pin.length > 6) { setError("PIN must be 4 to 6 digits"); return; }
-    if (pin !== pinConfirm) { setError("PINs do not match"); return; }
-    if (!/^\d+$/.test(pin)) { setError("PIN must be numbers only"); return; }
-    setSetting(true);
-    try {
-      const key = await loadDeviceKey();
-      if (key) {
-        const jwk = await crypto.subtle.exportKey("jwk", key);
-        await setupPIN(pin, jwk);
-      }
-      onComplete();
-    } catch {
-      setError("PIN setup failed. Try again.");
-      setSetting(false);
-    }
-  };
-
-  if (isPinStep) {
-    return (
-      <div class="auth-screen">
-        <div class="auth-card">
-          <div class="wordmark-wrap" style={{ marginBottom: "var(--sp-2)" }}>
-            <span class="wordmark wordmark-md" style={{ color: "var(--text)" }}>TRACE</span>
-            <span class="wordmark-rule"></span>
-          </div>
-          <h2 style={{ fontSize: "var(--text-lg)", fontWeight: 600, marginTop: "var(--sp-3)", marginBottom: "var(--sp-1)" }}>Set Your PIN</h2>
-          <p class="auth-subtitle">
-            Pick a 4 to 6 digit PIN. You will enter this every time you open the app. It protects all the data on your device.
-          </p>
-          <input type="password" inputMode="numeric" maxLength={6} placeholder="4 to 6 digit PIN" value={pin}
-            onInput={(e) => { setPin((e.target as HTMLInputElement).value); setError(""); }}
-            onKeyDown={(e) => e.key === "Enter" && pinConfirm && handlePinSubmit()}
-            class={`pin-input ${error ? "error" : ""}`} autoFocus />
-          <input type="password" inputMode="numeric" maxLength={6} placeholder="Confirm PIN" value={pinConfirm}
-            onInput={(e) => { setPinConfirm((e.target as HTMLInputElement).value); setError(""); }}
-            onKeyDown={(e) => e.key === "Enter" && handlePinSubmit()}
-            class="pin-input" style={{ marginTop: "var(--sp-3)" }} />
-          {error && <p class="error-text">{error}</p>}
-          <button onClick={handlePinSubmit} disabled={setting} class="btn btn-primary btn-full btn-lg" style={{ marginTop: "var(--sp-5)" }}>
-            {setting ? "Setting up..." : "Set PIN"}
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   const current = STEPS[step];
+  const isLast = step === STEPS.length - 1;
 
   return (
     <div class="auth-screen">
@@ -112,7 +60,6 @@ export function Onboarding({ onComplete }: OnboardingProps) {
           {STEPS.map((_, i) => (
             <div key={i} class={`onboarding-dot ${i === step ? "active" : i < step ? "done" : ""}`} />
           ))}
-          <div class="onboarding-dot" />
         </div>
 
         <div style={{ display: "flex", alignItems: "center", gap: "var(--sp-3)", marginBottom: "var(--sp-4)" }}>
@@ -141,13 +88,13 @@ export function Onboarding({ onComplete }: OnboardingProps) {
           {step > 0 && (
             <button class="btn btn-secondary" style={{ flex: 1 }} onClick={() => setStep((s) => s - 1)}>Back</button>
           )}
-          <button class="btn btn-primary" style={{ flex: 2 }} onClick={() => setStep((s) => s + 1)}>
-            {step === STEPS.length - 1 ? "Set Up PIN" : "Continue"}
+          <button class="btn btn-primary" style={{ flex: 2 }} onClick={isLast ? onComplete : () => setStep((s) => s + 1)}>
+            {isLast ? "Start Reporting" : "Continue"}
           </button>
         </div>
 
         <p class="hint-text" style={{ textAlign: "center", marginTop: "var(--sp-4)" }}>
-          Step {step + 1} of {STEPS.length + 1}
+          Step {step + 1} of {STEPS.length}
         </p>
       </div>
     </div>

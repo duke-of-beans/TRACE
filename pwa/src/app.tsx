@@ -1,14 +1,14 @@
 /**
  * TRACE PWA — App Root
  *
- * Gate flow: Wiped → Onboarding → PIN lock → Main app
- * Invite code is deferrable — reporters can skip and enter later in Settings.
- * Design system: Slate + Indigo, light mode default.
+ * Gate flow: Wiped → PIN setup → PIN lock → Invite code → Security briefing → Main app
+ * Security briefing is AFTER authentication. Bad actors see only PIN and invite screens.
  */
 import { useState, useEffect } from "preact/hooks";
 import { Submit } from "./pages/submit.js";
 import { History } from "./pages/history.js";
 import { Onboarding } from "./components/onboarding.js";
+import { PinSetup } from "./components/pin-setup.js";
 import { PinLock } from "./components/pin-lock.js";
 import { PanicButton } from "./components/panic-button.js";
 import { SecurityInfo } from "./components/security-info.js";
@@ -20,39 +20,35 @@ import { hasPIN, isLocked, lock, setupAutoLock } from "./lib/app-lock.js";
 import { startDeadManSwitch, startHeartbeat, hoursUntilExpiry, checkTTLStatus, getTTLHours } from "./lib/deadman.js";
 import { toggleTheme, getTheme } from "../../shared/design/theme.js";
 
-const DEFAULT_TTL_HOURS = 24;
 type Page = "submit" | "history" | "settings" | "security";
+
+function isBriefed(): boolean { return localStorage.getItem("trace_reporter_briefed") === "true"; }
+function markBriefed(): void { localStorage.setItem("trace_reporter_briefed", "true"); }
 
 export function App() {
   const [page, setPage] = useState<Page>("submit");
   const [queueCount, setQueueCount] = useState(0);
   const [locked, setLocked] = useState(true);
-  const [needsOnboarding, setNeedsOnboarding] = useState(false);
+  const [needsPinSetup, setNeedsPinSetup] = useState(false);
   const [authed, setAuthed] = useState(() => !!getToken());
-  const [ttlHours] = useState(() => parseInt(localStorage.getItem("trace_ttl_hours") || String(DEFAULT_TTL_HOURS)));
+  const [briefed, setBriefed] = useState(() => isBriefed());
+  const [ttlHours] = useState(() => parseInt(localStorage.getItem("trace_ttl_hours") || "72"));
   const [theme, setThemeState] = useState(() => getTheme("light"));
 
   useEffect(() => {
     if (isWiped()) return;
-    if (!hasPIN()) { setNeedsOnboarding(true); setLocked(false); }
+    if (!hasPIN()) { setNeedsPinSetup(true); setLocked(false); }
     else setLocked(isLocked());
   }, []);
 
   useEffect(() => {
     if (locked || isWiped()) return;
     const apiBase = import.meta.env.VITE_API_URL || "http://localhost:3100/api/v1";
-
-    // only start background systems when authenticated
     if (authed) {
       startDeadManSwitch();
       startHeartbeat(apiBase);
     }
-
-    // only auto-lock when authenticated — don't lock during onboarding/join flow
-    const lockTimer = authed
-      ? setTimeout(() => setupAutoLock(5 * 60 * 1000), 10000)
-      : null;
-
+    const lockTimer = authed ? setTimeout(() => setupAutoLock(5 * 60 * 1000), 10000) : null;
     const interval = setInterval(async () => {
       setQueueCount(await getQueueCount());
       if (authed && isLocked()) setLocked(true);
@@ -62,11 +58,18 @@ export function App() {
 
   const handleSignOut = () => { clearToken(); lock(); setAuthed(false); setLocked(true); };
   const handleToggleTheme = () => { const t = toggleTheme("light"); setThemeState(t); };
-  const handleAuth = () => { setAuthed(true); setPage("submit"); };
 
+  // Gate 1: wiped
   if (isWiped()) return <WipedState />;
-  if (needsOnboarding) return <Onboarding onComplete={() => { setNeedsOnboarding(false); setLocked(false); }} />;
+
+  // Gate 2: needs PIN setup (first install, no security details shown)
+  if (needsPinSetup) return <PinSetup onComplete={() => { setNeedsPinSetup(false); setLocked(false); }} />;
+
+  // Gate 3: PIN lock
   if (locked && hasPIN()) return <PinLock onUnlock={() => setLocked(false)} />;
+
+  // Gate 4: security briefing (AFTER auth, not before)
+  if (authed && !briefed) return <Onboarding onComplete={() => { markBriefed(); setBriefed(true); }} />;
 
   return (
     <div class="app-shell">
@@ -154,7 +157,7 @@ function SubmitGate({ authed, onJoin }: { authed: boolean; onJoin: () => void })
             <Icon name="send" size={32} />
           </div>
           <p style={{ fontSize: "var(--text-sm)", color: "var(--text-sec)", marginBottom: "var(--sp-4)", lineHeight: "var(--leading-relaxed)" }}>
-            You'll need an invite code from your operator before you can submit reports.
+            You need an invite code from your operator before you can submit reports.
           </p>
           <button class="btn btn-secondary" onClick={() => setSkipped(false)}>
             I have my code now
@@ -167,33 +170,22 @@ function SubmitGate({ authed, onJoin }: { authed: boolean; onJoin: () => void })
   return (
     <div>
       <h1 class="page-title">Get Started</h1>
-
       <div class="card" style={{ padding: "var(--sp-6)", textAlign: "center" }}>
         <p style={{ fontSize: "var(--text-sm)", color: "var(--text-sec)", marginBottom: "var(--sp-4)", lineHeight: "var(--leading-relaxed)" }}>
           Enter the invite code from your chapter operator to start reporting.
         </p>
-
-        <input
-          type="text"
-          placeholder="XXXX-XXXX"
-          value={code}
+        <input type="text" placeholder="XXXX-XXXX" value={code}
           onInput={(e) => handleInput((e.target as HTMLInputElement).value)}
           onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
-          autoFocus
-          class={`invite-input ${errorMsg ? "error" : ""}`}
-          aria-label="Invite code"
-        />
-
+          autoFocus class={`invite-input ${errorMsg ? "error" : ""}`} aria-label="Invite code" />
         {errorMsg && <p class="error-text">{errorMsg}</p>}
-
         <button onClick={handleSubmit} disabled={status === "loading"} class="btn btn-primary btn-full btn-lg" style={{ marginTop: "var(--sp-4)" }}>
           {status === "loading" ? "Verifying..." : "Join Chapter"}
         </button>
       </div>
-
       <div style={{ textAlign: "center", marginTop: "var(--sp-5)" }}>
         <button class="btn btn-ghost" onClick={() => setSkipped(true)}>
-          I don't have a code yet — skip for now
+          I don't have a code yet
         </button>
       </div>
     </div>
@@ -212,7 +204,6 @@ function SettingsPage({ authed, ttlHours, theme, onShowSecurity, onShowJoin, onS
     <div>
       <h1 class="page-title">Settings</h1>
 
-      {/* Join prompt if not authed */}
       {!authed && (
         <button class="btn btn-primary btn-full" onClick={onShowJoin}
           style={{ marginBottom: "var(--sp-4)", justifyContent: "flex-start" }}>
@@ -223,7 +214,7 @@ function SettingsPage({ authed, ttlHours, theme, onShowSecurity, onShowJoin, onS
       <div class="info-card">
         <div class="info-card-label">Chapter Status</div>
         <div class="info-card-value" style={{ color: authed ? "var(--success)" : "var(--warning)" }}>
-          {authed ? "Connected" : "Not joined — enter invite code to connect"}
+          {authed ? "Connected" : "Not joined"}
         </div>
       </div>
 
@@ -244,23 +235,23 @@ function SettingsPage({ authed, ttlHours, theme, onShowSecurity, onShowJoin, onS
       <div class="info-card">
         <div class="info-card-label">Device Encryption</div>
         <div class="info-card-value" style={{ color: "var(--success)" }}>AES-256-GCM active</div>
-        <div class="info-card-detail">All queued data encrypted. Photos bypass gallery.</div>
       </div>
 
       <div class="info-card">
         <div class="info-card-label">Check-In Status</div>
         <div class="info-card-value" style={{ color: checkTTLStatus() === "ok" ? "var(--success)" : checkTTLStatus() === "warning" ? "var(--warning)" : "var(--danger)" }}>
-          {checkTTLStatus() === "ok" ? `${hoursUntilExpiry()}h remaining` : checkTTLStatus() === "warning" ? `Warning: ${hoursUntilExpiry()}h until auto-wipe` : "Expired — data at risk"}
+          {checkTTLStatus() === "ok" ? `${hoursUntilExpiry()}h remaining` : checkTTLStatus() === "warning" ? `Warning: ${hoursUntilExpiry()}h until auto-wipe` : "Expired"}
         </div>
-        <div class="info-card-detail">Auto-clears after {getTTLHours()}h without server contact. Background sync extends this automatically.</div>
       </div>
 
-      <button class="btn btn-secondary btn-full" onClick={onShowSecurity} style={{ marginBottom: "var(--sp-3)", justifyContent: "flex-start" }}>
-        <Icon name="shield" size={16} /> How TRACE Protects You
-      </button>
+      {authed && (
+        <button class="btn btn-secondary btn-full" onClick={onShowSecurity} style={{ marginBottom: "var(--sp-3)", justifyContent: "flex-start" }}>
+          <Icon name="shield" size={16} /> How TRACE Works
+        </button>
+      )}
 
       <button class="btn btn-secondary btn-full" onClick={onToggleTheme} style={{ marginBottom: "var(--sp-3)", justifyContent: "flex-start" }}>
-        <Icon name="eye" size={16} /> {theme === "light" ? "Switch to Dark Mode" : "Switch to Light Mode"}
+        <Icon name="eye" size={16} /> {theme === "light" ? "Dark Mode" : "Light Mode"}
       </button>
 
       {authed && (
