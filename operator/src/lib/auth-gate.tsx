@@ -41,7 +41,7 @@ export function LoginScreen({ onAuth }: AuthGateProps) {
     return <BootstrapScreen onAuth={onAuth} />;
   }
 
-  return <OperatorLoginScreen onAuth={onAuth} devMode={status?.devLoginEnabled || false} />;
+  return <OperatorLoginScreen onAuth={onAuth} />;
 }
 
 // --- Bootstrap: first-run setup ---
@@ -132,7 +132,7 @@ function BootstrapScreen({ onAuth }: { onAuth: () => void }) {
 }
 
 // --- Operator Login ---
-function OperatorLoginScreen({ onAuth, devMode }: { onAuth: () => void; devMode: boolean }) {
+function OperatorLoginScreen({ onAuth }: { onAuth: () => void }) {
   const [callsign, setCallsign] = useState("");
   const [accessCode, setAccessCode] = useState("");
   const [error, setError] = useState("");
@@ -155,24 +155,22 @@ function OperatorLoginScreen({ onAuth, devMode }: { onAuth: () => void; devMode:
         if (data.sessionToken) { setToken(data.sessionToken); onAuth(); return; }
       }
 
-      // In dev mode, fall back to dev-login
-      if (devMode) {
-        const devRes = await fetch(`${API_BASE}/auth/dev-login`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ callsign: callsign.trim() }),
-        });
-        if (devRes.ok) {
-          const devData = await devRes.json();
-          if (devData.role !== "operator" && devData.role !== "admin") {
-            setError("Access denied. Operator or admin role required.");
-          } else if (devData.sessionToken) {
-            setToken(devData.sessionToken); onAuth(); return;
-          }
+      // Fallback: try dev-login (server rejects if dev mode is disabled)
+      const devRes = await fetch(`${API_BASE}/auth/dev-login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ callsign: callsign.trim() }),
+      });
+      if (devRes.ok) {
+        const devData = await devRes.json();
+        if (devData.role !== "operator" && devData.role !== "admin") {
+          setError("Access denied. Operator role required.");
+        } else if (devData.sessionToken) {
+          setToken(devData.sessionToken); onAuth(); return;
         }
       }
 
-      // Parse error from operator-login
+      // Parse error
       const errData = await res.json().catch(() => ({}));
       setError(errData.error || "Authentication failed. Check callsign and access code.");
     } catch { setError("Connection failed. Is the server running?"); }
@@ -201,7 +199,7 @@ function OperatorLoginScreen({ onAuth, devMode }: { onAuth: () => void; devMode:
             <label className="text-xs uppercase tracking-wider mb-1 block font-medium" style={{ color: "var(--text-sec)" }}>Access Code</label>
             <input type="password" value={accessCode} onChange={(e) => { setAccessCode(e.target.value); setError(""); }}
               onKeyDown={(e) => e.key === "Enter" && handleLogin()}
-              placeholder={devMode ? "Optional in dev mode" : "Required"} autoComplete="off"
+              placeholder="Enter access code" autoComplete="off"
               className="w-full rounded-lg px-4 py-3 text-sm transition-colors"
               style={{ ...inputStyle(), fontFamily: "var(--font-mono, monospace)", letterSpacing: "2px", textAlign: "center" }} />
             <p className="text-[10px] mt-1.5" style={{ color: "var(--text-muted)" }}>

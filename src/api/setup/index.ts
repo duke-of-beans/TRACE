@@ -29,7 +29,6 @@ setupRouter.get("/status", async (c) => {
     needsSetup: operatorCount === 0,
     operatorCount,
     chapterCount,
-    devLoginEnabled: process.env.TRACE_DISABLE_DEV_LOGIN !== "true",
   });
 });
 
