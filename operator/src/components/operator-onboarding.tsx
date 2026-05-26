@@ -11,72 +11,64 @@ const STEPS = [
     useWordmark: true,
     content: `Tracking, Reporting, Analysis, and Community Evidence.
 
-TRACE records vehicle sightings from field reporters, organizes them into patterns, and surfaces intelligence for chapter operators.
+Your reporters are out in the field collecting sightings. This dashboard is where you make sense of it all. Review reports, build vehicle profiles, spot patterns, and manage your team.
 
-You are logging in as an operator. You manage reporters, triage sightings, track vehicles and actors, and control device security.
-
-This covers the key systems. Takes about 3 minutes.`,
+This quick tour covers the main tools. Takes about 2 minutes.`,
   },
   {
-    title: "How Data is Separated",
-    icon: "lock",
-    plain: "Your chapter's data is split into three separate locked boxes. Operational data (vehicles, sightings) is in one box. Reporter identities are in a second box with a different lock. Evidence is in a third box that can only be added to, never changed or deleted. If one box is compromised, the others stay locked.",
-    content: `Vault A (Operational): Vehicles, sightings, actors, suspicion levels. Pseudonymous. A complete dump contains zero reporter identities.
+    title: "Your Dashboard",
+    icon: "grid",
+    plain: "The sidebar on the left is your main navigation. Dashboard gives you the overview. Triage is where new sightings arrive. Intel Map shows everything on a map. Vehicles and Actors are your case files. Admin is where you configure the system. You can also use number keys 1 through 7 to switch pages.",
+    content: `Dashboard: stats at a glance.
+Triage: review incoming sightings.
+Intel Map: geospatial view with filtering and time playback.
+Vehicles: dossiers, search, status tracking.
+Actors: profiles of known individuals.
+Admin: configure types, levels, reporters, notifications.
+Security: device management and remote controls.
 
-Vault B (Identity): Reporter names, authentication tokens, sessions. Encrypted at rest with a separate key.
-
-Vault C (Evidence): Write-once evidence locker. SHA-256 hash chain. Cannot be modified or deleted.
-
-Each vault uses a separate database role with minimal privileges.`,
+Keyboard shortcut overlay: press ? on any page.`,
   },
   {
-    title: "Reviewing Reports",
+    title: "Reviewing Sightings",
     icon: "zap",
-    plain: "When reporters submit sightings from the field, they land in your Triage queue. You review each one and decide what to do with it: add it to tracking, flag it for follow-up, dismiss it, or mark it as high priority.",
-    content: `Approve: valid sighting, add to vehicle tracking.
-Flag: needs follow-up or context.
-Dismiss: not actionable.
-Escalate: high priority, fast-track.
+    plain: "When a reporter sees something, it lands in your Triage queue. You open each sighting, read the details, and pick an action. Approve adds it to tracking. Flag marks it for follow-up. Dismiss removes it. Escalate marks it urgent. You can do all of this with your keyboard.",
+    content: `A = Approve, F = Flag, D = Dismiss, E = Escalate.
+N = Next sighting, P = Previous.
 
-Keyboard driven. A, F, D, E for actions. N/P to navigate. Press ? for the full shortcut list.`,
+New sightings appear in real time when the server is running locally. On the hosted version, refresh to check for new entries.`,
   },
   {
-    title: "Suspicion Levels",
-    icon: "alert-triangle",
-    plain: "Each vehicle gets a suspicion level that goes up as more evidence comes in. Think of it like a threat meter: starts at Noted (seen once), then Watching, Suspicious, Confirmed, and finally Priority. You can set rules for when vehicles automatically move up.",
-    content: `Noted, Watching, Suspicious, Confirmed, Priority.
+    title: "Tracking Vehicles",
+    icon: "car",
+    plain: "Every vehicle starts at the lowest suspicion level. As more sightings come in, you can promote it up the ladder. The levels are configurable, but the defaults are: Noted, Watching, Suspicious, Confirmed, Priority. You can also set rules in Admin so vehicles promote automatically when they hit certain thresholds.",
+    content: `Each vehicle has a dossier: plate, description, sighting history, map of locations, linked actors.
 
-Each level has configurable predicates. Example: promote to Watching when sighting count reaches 3 across 2 or more distinct days.
-
-Levels, colors, and promotion rules are editable in Admin. Actors have a parallel ladder.`,
+Suspicion levels and their promotion rules are fully editable in Admin. Actors (known individuals) have their own parallel ladder.`,
   },
   {
-    title: "Managing Reporters",
+    title: "Adding Reporters",
     icon: "user",
-    plain: "To add a reporter, you generate an invite code and give it to them in person or through a secure channel like Signal. No email is needed. In the system, reporters are identified only by their callsign (a code name), never by their real name.",
-    content: `Each code is single-use, XXXX-XXXX format, valid 7 days.
-
-Reporters appear in operational data by callsign only. Real identities, if collected, are encrypted separately. Day-to-day operations use callsigns exclusively.`,
+    plain: "To bring someone onto your team, go to Admin and generate an invite code. Hand it to them in person or through a secure channel. They enter the code in the reporter app and they are in. No email or account creation needed. You will know them only by their callsign.",
+    content: `Invite codes: XXXX-XXXX format, single-use, valid 7 days.
+Reporters identified by callsign only. Real names are never visible in operational data.`,
   },
   {
-    title: "Controlling Devices",
-    icon: "skull",
-    plain: "You can remotely erase TRACE data from any reporter's phone. There are three levels: Suspend (block their access, reversible), Kill (erase one phone), and Nuke All (erase every phone in the chapter at once). If a phone has been offline too long, it erases itself automatically after 72 hours.",
-    content: `Suspend: revokes sessions. Reversible.
-
-Kill: suspends and pushes a kill signal. The device clears all TRACE data on next server contact.
-
-Nuke All: every reporter in the chapter. Double-confirmed.
-
-Offline devices: check-in timer handles it. Default 72 hours.`,
+    title: "Device Controls",
+    icon: "shield",
+    plain: "If a reporter's phone is lost or a situation changes, you have remote controls in the Security section. Suspend blocks their access (reversible). Kill erases TRACE data from their device on its next check-in. There is also an option to do this for every device at once. Phones that go offline for 72 hours erase themselves automatically.",
+    content: `Suspend: blocks access, reversible.
+Kill: erases device data on next server contact.
+Nuke All: every device in the chapter. Double-confirmed.
+Auto-wipe: 72-hour offline timer, handled by the device.`,
   },
   {
-    title: "Demo Data",
-    icon: "info",
-    plain: "This system has been loaded with fake example data so you can see how everything works. Vehicles are labeled FAKE-001, actors are named GHOST (DEMO), and so on. Explore the dashboard to understand the layout. Delete the demo data from Admin when you are ready to use the system for real.",
-    content: `Vehicles: FAKE-001 through TEST-005.
-Actors: GHOST (DEMO), SPARKS (DEMO), NINE (DEMO).
-Sightings, identifiers, suspicion levels: all prefixed DEMO.`,
+    title: "Try It Out",
+    icon: "compass",
+    plain: "The system is loaded with demo data so you can explore without consequences. Vehicles are labeled FAKE-001 through TEST-005, actors are named GHOST, SPARKS, and NINE. Click around, try the triage keyboard shortcuts, open a vehicle dossier, check the Intel Map. When you are ready for real data, clear the demo entries from Admin.",
+    content: `Demo vehicles: FAKE-001, FAKE-002, FAKE-003, TEST-004, TEST-005.
+Demo actors: GHOST (DEMO), SPARKS (DEMO), NINE (DEMO).
+Demo sightings, identifiers, and suspicion levels all prefixed DEMO or TEST.`,
   },
 ];
 

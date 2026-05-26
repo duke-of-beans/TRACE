@@ -1,14 +1,13 @@
 /**
  * TRACE PWA — Feedback Button
  *
- * Small "Report a Problem" form in Settings.
+ * Bug report / suggestion form in Settings.
  * Captures page context and device metadata.
- * Submitted to /api/v1/feedback.
  */
 import { useState } from "preact/hooks";
 import { Icon } from "./icon.js";
 
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3100/api/v1";
+const API_BASE = import.meta.env.VITE_API_URL || "/api/v1";
 
 export function FeedbackButton() {
   const [open, setOpen] = useState(false);
@@ -41,9 +40,7 @@ export function FeedbackButton() {
       });
       setSubmitted(true);
       setTimeout(() => { setOpen(false); setSubmitted(false); setTitle(""); setDescription(""); }, 2000);
-    } catch {
-      // silently fail — don't interrupt the user
-    }
+    } catch {}
     setSubmitting(false);
   };
 
@@ -59,8 +56,8 @@ export function FeedbackButton() {
   if (submitted) {
     return (
       <div class="card" style={{ textAlign: "center", padding: "var(--sp-6)" }}>
-        <Icon name="check" size={24} class="text-accent" />
-        <p style={{ marginTop: "var(--sp-2)", fontSize: "var(--text-sm)", color: "var(--text-sec)" }}>
+        <div style={{ color: "var(--accent)", marginBottom: "var(--sp-2)" }}><Icon name="check" size={24} /></div>
+        <p style={{ fontSize: "var(--text-sm)", color: "var(--text-sec)" }}>
           Received. The chapter operator will review this.
         </p>
       </div>
@@ -68,45 +65,60 @@ export function FeedbackButton() {
   }
 
   return (
-    <div class="card" style={{ padding: "var(--sp-4)" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "var(--sp-3)" }}>
-        <h3 style={{ fontSize: "var(--text-sm)", fontWeight: 600 }}>Report a Problem</h3>
-        <button class="btn btn-ghost" onClick={() => setOpen(false)} style={{ padding: 4 }}>
+    <div class="card" style={{ padding: "var(--sp-4)", marginBottom: "var(--sp-3)" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "var(--sp-4)" }}>
+        <span class="section-label" style={{ marginBottom: 0 }}>Report a Problem</span>
+        <button onClick={() => setOpen(false)} style={{
+          background: "none", border: "none", color: "var(--text-muted)",
+          cursor: "pointer", padding: "var(--sp-1)",
+        }}>
           <Icon name="x" size={16} />
         </button>
       </div>
 
-      <div style={{ display: "flex", gap: "var(--sp-2)", marginBottom: "var(--sp-3)" }}>
-        <button
-          class={`btn ${type === "bug" ? "btn-primary" : "btn-secondary"}`}
-          style={{ flex: 1, fontSize: "var(--text-xs)" }}
-          onClick={() => setType("bug")}
-        >Bug</button>
-        <button
-          class={`btn ${type === "feature" ? "btn-primary" : "btn-secondary"}`}
-          style={{ flex: 1, fontSize: "var(--text-xs)" }}
-          onClick={() => setType("feature")}
-        >Suggestion</button>
+      {/* Type toggle */}
+      <div style={{ display: "flex", gap: "var(--sp-2)", marginBottom: "var(--sp-4)" }}>
+        {(["bug", "feature"] as const).map((t) => (
+          <button
+            key={t}
+            onClick={() => setType(t)}
+            style={{
+              flex: 1, padding: "var(--sp-2) var(--sp-3)",
+              borderRadius: "var(--radius)", fontSize: "var(--text-sm)", fontWeight: 500,
+              cursor: "pointer", transition: "all 150ms",
+              background: type === t ? "var(--accent)" : "var(--surface-alt, var(--bg))",
+              color: type === t ? "var(--accent-text)" : "var(--text-sec)",
+              border: type === t ? "1px solid var(--accent)" : "1px solid var(--border)",
+            }}
+          >
+            {t === "bug" ? "Bug" : "Suggestion"}
+          </button>
+        ))}
       </div>
 
+      {/* Summary */}
       <input
         type="text" placeholder="Short summary" value={title}
         onInput={(e) => setTitle((e.target as HTMLInputElement).value)}
-        class="form-input" style={{ marginBottom: "var(--sp-2)", fontSize: "var(--text-sm)" }}
+        class="input"
+        style={{ marginBottom: "var(--sp-3)" }}
       />
+
+      {/* Description */}
       <textarea
         placeholder="What happened? What did you expect?"
         value={description}
         onInput={(e) => setDescription((e.target as HTMLTextAreaElement).value)}
         rows={3}
-        class="form-input" style={{ fontSize: "var(--text-sm)", resize: "vertical" }}
+        class="input"
+        style={{ resize: "vertical" }}
       />
 
       <button
         onClick={handleSubmit}
         disabled={submitting || !title.trim() || !description.trim()}
         class="btn btn-primary btn-full"
-        style={{ marginTop: "var(--sp-3)" }}
+        style={{ marginTop: "var(--sp-4)" }}
       >
         {submitting ? "Sending..." : "Submit"}
       </button>

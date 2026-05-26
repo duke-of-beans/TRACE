@@ -13,39 +13,25 @@ const STEPS = [
   { title: "Welcome", icon: "shield",
     content: `TRACE records and organizes vehicle sightings reported by community members. Tracking, Reporting, Analysis, and Community Evidence.
 
-Before you begin, read through how the system works and what happens with your information.
-
-This takes about 2 minutes.` },
-  { title: "Your Data is Scrambled", icon: "lock",
-    plain: "If someone got access to your phone, they could not read anything stored by this app. It is all scrambled using your PIN.",
-    content: `Everything stored on this device is encrypted with AES-256-GCM. Photos, locations, notes, queued reports.
-
-The encryption key is derived from the PIN you set. Without the PIN, the data on this device is unreadable ciphertext.` },
-  { title: "Photos Stay in the App", icon: "camera",
-    plain: "Photos you take through TRACE do not appear in your phone's camera roll or photo gallery. All identifying information (camera model, device serial number) is automatically stripped from photos before they are stored or sent. Nobody can trace a photo back to your specific device.",
-    content: `Photos taken through the TRACE camera go directly from the camera stream into encrypted storage. They are not saved to the device gallery.
-
-Uploaded files are re-encoded through a scrubber that removes all EXIF metadata except GPS coordinates and timestamp. Camera make, model, serial number, software version, lens data, and device identifiers are destroyed before the photo leaves your device.` },
-  { title: "Works Without Internet", icon: "radio",
-    plain: "You can submit reports even when you have no signal. They are saved on your phone and sent automatically when your connection comes back.",
-    content: `Reports are encrypted and queued locally when the server is unreachable. They upload automatically when connectivity returns.
-
-Queue count is visible in Settings.` },
+Here is a quick overview of how the app works and what it does with your information. Takes about a minute.` },
+  { title: "Everything is Encrypted", icon: "lock",
+    plain: "All data on your phone is scrambled using your PIN. If someone picked up your phone, they could not read anything stored by this app without the PIN.",
+    content: `AES-256-GCM encryption. The key is derived from your PIN. Without the PIN, stored data is unreadable.` },
+  { title: "Photos Stay Private", icon: "camera",
+    plain: "Photos taken through TRACE do not appear in your camera roll. Identifying information like camera model and device serial number is automatically stripped before anything is stored or sent.",
+    content: `Photos go from the camera stream directly into encrypted storage. EXIF metadata (camera make, model, serial, lens data) is destroyed. GPS and timestamp are preserved for the sighting record.` },
+  { title: "Works Offline", icon: "radio",
+    plain: "No signal? No problem. Reports are saved on your phone and sent automatically when your connection comes back. You can see queued reports in Settings.",
+    content: `Reports are encrypted and queued locally. They upload automatically when connectivity returns. Queue count is visible in Settings.` },
   { title: "Emergency Wipe", icon: "alert-triangle",
-    plain: "If you ever need to, you can instantly erase everything TRACE has stored on your phone. One button, two taps, gone forever. Nobody can recover it.",
-    content: `The Wipe button destroys the encryption key first, making all stored data unreadable, then clears all app storage.
-
-This is on the Report screen (top right) and in Settings. It cannot be undone.` },
+    plain: "If you ever need to, you can erase everything TRACE has stored on your phone. One button, two taps, gone. The button is on the Report screen and in Settings.",
+    content: `Wipe destroys the encryption key first (making stored data unreadable), then clears all storage. This cannot be undone.` },
   { title: "Automatic Check-In", icon: "clock",
-    plain: "The app quietly checks in with the server in the background. If your phone cannot reach the server for 3 days, the app erases itself as a safety precaution.",
-    content: `The device contacts the server periodically via background sync. If contact fails for 72 hours, the app clears its data automatically.
-
-If you will be without signal for an extended time, tell your operator beforehand.` },
-  { title: "Your Operator", icon: "user",
-    plain: "Your chapter operator manages the system. They know you only by a callsign (a code name like FALCON-7). Your real identity is encrypted separately. When you received your invite code, your operator also assigned your callsign. That callsign is how they identify your reports.",
-    content: `The operator can revoke access or signal a device to clear its data remotely. This fires on the device's next server contact.
-
-The operator works with callsigns only. Real identities are encrypted in a separate vault the operator cannot access. Your PIN protects your device. Never share your PIN with anyone, including your operator.` },
+    plain: "The app checks in with the server in the background. If your phone cannot reach the server for 3 days, the app clears its data as a precaution. If you will be without signal, let your operator know beforehand.",
+    content: `Background sync contacts the server periodically. If contact fails for 72 hours, auto-wipe triggers. Grace period warnings appear before the deadline.` },
+  { title: "Your Callsign", icon: "user",
+    plain: "Your operator knows you by a callsign, not your real name. Your callsign was assigned when you received your invite code. Your real identity is encrypted separately and is not accessible during normal operations. Your PIN is yours alone. Do not share it with anyone.",
+    content: `Operators see callsigns only. Real identities are encrypted in a separate vault. The operator can revoke access or signal a device to clear its data remotely, but cannot access your PIN or decrypt your device.` },
 ];
 
 export function Onboarding({ onComplete }: OnboardingProps) {
