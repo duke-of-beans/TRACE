@@ -26,7 +26,7 @@
   }
 
   @media (prefers-color-scheme: light) {
-    :root {
+    :root:not([data-theme="dark"]) {
       --bg: #F8FAFC;
       --surface: #FFFFFF;
       --surface-alt: #F1F5F9;
@@ -39,6 +39,34 @@
       --text-sec: #64748B;
       --text-muted: #94A3B8;
     }
+  }
+
+  :root[data-theme="light"] {
+    --bg: #F8FAFC;
+    --surface: #FFFFFF;
+    --surface-alt: #F1F5F9;
+    --border: #E2E8F0;
+    --accent: #4F46E5;
+    --accent-hover: #4338CA;
+    --accent-soft: rgba(79,70,229,0.06);
+    --accent-text: #FFFFFF;
+    --text: #1E293B;
+    --text-sec: #64748B;
+    --text-muted: #94A3B8;
+  }
+
+  :root[data-theme="dark"] {
+    --bg: #0F172A;
+    --surface: #1E293B;
+    --surface-alt: #334155;
+    --border: #334155;
+    --accent: #818CF8;
+    --accent-hover: #6366F1;
+    --accent-soft: rgba(129,140,248,0.1);
+    --accent-text: #FFFFFF;
+    --text: #F1F5F9;
+    --text-sec: #94A3B8;
+    --text-muted: #7C8BA4;
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -250,6 +278,25 @@
   }
   .footer p { font-size: 12px; color: var(--text-muted); }
 
+  .theme-toggle {
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text-muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    z-index: 100;
+    transition: background 0.2s, color 0.2s;
+  }
+  .theme-toggle:hover { color: var(--text); background: var(--surface-alt); }
+
   @media (max-width: 600px) {
     .hero { padding: 48px 16px 36px; }
     .hero-brand { font-size: 32px; }
@@ -261,6 +308,26 @@
 </style>
 </head>
 <body>
+
+<button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle light/dark mode" id="themeBtn">&#9790;</button>
+
+<script>
+function getTheme() {
+  var stored = localStorage.getItem('trace_guide_theme');
+  if (stored === 'light' || stored === 'dark') return stored;
+  return window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+}
+function applyTheme(t) {
+  document.documentElement.setAttribute('data-theme', t);
+  document.getElementById('themeBtn').innerHTML = t === 'dark' ? '&#9790;' : '&#9728;';
+}
+function toggleTheme() {
+  var next = getTheme() === 'dark' ? 'light' : 'dark';
+  localStorage.setItem('trace_guide_theme', next);
+  applyTheme(next);
+}
+applyTheme(getTheme());
+</script>
 
 <div class="hero">
   <div class="hero-brand">TRACE</div>
