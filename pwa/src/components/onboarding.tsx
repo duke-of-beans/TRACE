@@ -12,31 +12,37 @@ const STEPS = [
   { title: "Welcome", icon: "shield",
     content: `TRACE records and organizes vehicle sightings reported by community members. Tracking, Reporting, Analysis, and Community Evidence.
 
-Before you begin, read through how the system works and what it does with your data.
+Before you begin, read through how the system works and what happens with your information.
 
 This takes about 2 minutes.` },
-  { title: "Device Encryption", icon: "lock",
-    content: `Everything stored on this device is encrypted with AES-256-GCM. Photos, locations, notes, queued reports. All of it.
+  { title: "Your Data is Scrambled", icon: "lock",
+    plain: "If someone got access to your phone, they could not read anything stored by this app. It is all scrambled using your PIN.",
+    content: `Everything stored on this device is encrypted with AES-256-GCM. Photos, locations, notes, queued reports.
 
 The encryption key is derived from the PIN you set next. Without the PIN, the data on this device is unreadable ciphertext.` },
-  { title: "Camera Behavior", icon: "camera",
-    content: `Photos taken through the TRACE camera go directly from the camera stream into encrypted storage. They are not saved to the device gallery. No copies exist outside the app.
+  { title: "Photos Stay in the App", icon: "camera",
+    plain: "Photos you take through TRACE do not appear in your phone's camera roll or photo gallery. Nobody browsing your phone will find them.",
+    content: `Photos taken through the TRACE camera go directly from the camera stream into encrypted storage. They are not saved to the device gallery.
 
 The file picker may create gallery copies. Use the camera when possible.` },
-  { title: "Offline Queue", icon: "radio",
+  { title: "Works Without Internet", icon: "radio",
+    plain: "You can submit reports even when you have no signal. They are saved on your phone and sent automatically when your connection comes back.",
     content: `Reports are encrypted and queued locally when the server is unreachable. They upload automatically when connectivity returns.
 
 Queue count is visible in Settings.` },
   { title: "Emergency Wipe", icon: "alert-triangle",
-    content: `The Wipe button destroys the encryption key first, making all stored data unreadable, then clears all app storage. The app stops functioning.
+    plain: "If you ever need to, you can instantly erase everything TRACE has stored on your phone. One button, two taps, gone forever. Nobody can recover it.",
+    content: `The Wipe button destroys the encryption key first, making all stored data unreadable, then clears all app storage.
 
 This is on the Report screen (top right) and in Settings. It cannot be undone.` },
-  { title: "Check-In Requirement", icon: "clock",
-    content: `The device contacts the server periodically in the background. If contact fails for 72 hours, the app clears its data automatically.
+  { title: "Automatic Check-In", icon: "clock",
+    plain: "The app quietly checks in with the server in the background. If your phone cannot reach the server for 3 days, the app erases itself as a safety precaution.",
+    content: `The device contacts the server periodically via background sync. If contact fails for 72 hours, the app clears its data automatically.
 
 If you will be without signal for an extended time, tell your operator beforehand.` },
-  { title: "Operator Controls", icon: "user",
-    content: `The chapter operator can revoke access or signal a device to clear its data remotely. This fires on the device's next server contact.
+  { title: "Your Operator", icon: "user",
+    plain: "Your chapter operator manages the system but cannot see your real identity. They know you only by your callsign. They can also remotely erase data from your phone if needed.",
+    content: `The operator can revoke access or signal a device to clear its data remotely. This fires on the device's next server contact.
 
 The operator works with callsigns only. They do not have access to the identity vault.` },
 ];
@@ -78,7 +84,7 @@ export function Onboarding({ onComplete }: OnboardingProps) {
           </div>
           <h2 style={{ fontSize: "var(--text-lg)", fontWeight: 600, marginTop: "var(--sp-3)", marginBottom: "var(--sp-1)" }}>Set Your PIN</h2>
           <p class="auth-subtitle">
-            The PIN protects the encryption key on this device. Required every time the app opens.
+            Pick a 4 to 6 digit PIN. You will enter this every time you open the app. It protects all the data on your device.
           </p>
           <input type="password" inputMode="numeric" maxLength={6} placeholder="4 to 6 digit PIN" value={pin}
             onInput={(e) => { setPin((e.target as HTMLInputElement).value); setError(""); }}
@@ -122,6 +128,12 @@ export function Onboarding({ onComplete }: OnboardingProps) {
             </>
           )}
         </div>
+
+        {current.plain && (
+          <p style={{ fontSize: "var(--text-base)", color: "var(--text)", lineHeight: "var(--leading-relaxed)", marginBottom: "var(--sp-4)", fontWeight: 500 }}>
+            {current.plain}
+          </p>
+        )}
 
         <div class="onboarding-content">{current.content}</div>
 

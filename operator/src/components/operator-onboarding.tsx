@@ -18,26 +18,22 @@ You are logging in as an operator. You manage reporters, triage sightings, track
 This covers the key systems. Takes about 3 minutes.`,
   },
   {
-    title: "Three-Vault Architecture",
+    title: "How Data is Separated",
     icon: "lock",
-    content: `Data is separated into three cryptographically isolated vaults.
+    plain: "Your chapter's data is split into three separate locked boxes. Operational data (vehicles, sightings) is in one box. Reporter identities are in a second box with a different lock. Evidence is in a third box that can only be added to, never changed or deleted. If one box is compromised, the others stay locked.",
+    content: `Vault A (Operational): Vehicles, sightings, actors, suspicion levels. Pseudonymous. A complete dump contains zero reporter identities.
 
-Vault A (Operational): Vehicles, sightings, actors, suspicion levels. Pseudonymous. A complete dump contains zero reporter identities.
+Vault B (Identity): Reporter names, authentication tokens, sessions. Encrypted at rest with a separate key.
 
-Vault B (Identity): Reporter names, authentication tokens, sessions. Encrypted at rest with a separate key. Accessed only during auth flows.
+Vault C (Evidence): Write-once evidence locker. SHA-256 hash chain. Cannot be modified or deleted.
 
-Vault C (Evidence): Write-once evidence locker. SHA-256 hash chain. Cannot be modified or deleted. Append-only by architecture, not policy.
-
-Each vault uses a separate database role with minimal privileges. A breach of one vault does not expose the others.`,
+Each vault uses a separate database role with minimal privileges.`,
   },
   {
-    title: "Triage",
+    title: "Reviewing Reports",
     icon: "zap",
-    content: `Field reports arrive in the Triage queue.
-
-For each sighting: review plate, vehicle description, activity, location. Then act.
-
-Approve: valid sighting, add to vehicle tracking.
+    plain: "When reporters submit sightings from the field, they land in your Triage queue. You review each one and decide what to do with it: add it to tracking, flag it for follow-up, dismiss it, or mark it as high priority.",
+    content: `Approve: valid sighting, add to vehicle tracking.
 Flag: needs follow-up or context.
 Dismiss: not actionable.
 Escalate: high priority, fast-track.
@@ -45,48 +41,42 @@ Escalate: high priority, fast-track.
 Keyboard driven. A, F, D, E for actions. N/P to navigate. Press ? for the full shortcut list.`,
   },
   {
-    title: "Suspicion Ladder",
+    title: "Suspicion Levels",
     icon: "alert-triangle",
-    content: `Vehicles are assigned suspicion levels that escalate with evidence.
-
-Noted, Watching, Suspicious, Confirmed, Priority.
+    plain: "Each vehicle gets a suspicion level that goes up as more evidence comes in. Think of it like a threat meter: starts at Noted (seen once), then Watching, Suspicious, Confirmed, and finally Priority. You can set rules for when vehicles automatically move up.",
+    content: `Noted, Watching, Suspicious, Confirmed, Priority.
 
 Each level has configurable predicates. Example: promote to Watching when sighting count reaches 3 across 2 or more distinct days.
 
-Levels, colors, and promotion rules are editable in Admin. Actors have a parallel ladder with their own criteria.`,
+Levels, colors, and promotion rules are editable in Admin. Actors have a parallel ladder.`,
   },
   {
-    title: "Reporter Management",
+    title: "Managing Reporters",
     icon: "user",
-    content: `Reporters join via invite codes generated in Admin.
+    plain: "To add a reporter, you generate an invite code and give it to them in person or through a secure channel like Signal. No email is needed. In the system, reporters are identified only by their callsign (a code name), never by their real name.",
+    content: `Each code is single-use, XXXX-XXXX format, valid 7 days.
 
-Each code is single-use, XXXX-XXXX format, valid 7 days. Hand it to the reporter directly or through a secure channel. No email is involved.
-
-Reporters appear in operational data by callsign only. Real identities, if collected, are encrypted in Vault B. Day-to-day operations use callsigns exclusively.`,
+Reporters appear in operational data by callsign only. Real identities, if collected, are encrypted separately. Day-to-day operations use callsigns exclusively.`,
   },
   {
-    title: "Device Security",
+    title: "Controlling Devices",
     icon: "skull",
-    content: `Three levels of remote device control.
+    plain: "You can remotely erase TRACE data from any reporter's phone. There are three levels: Suspend (block their access, reversible), Kill (erase one phone), and Nuke All (erase every phone in the chapter at once). If a phone has been offline too long, it erases itself automatically after 72 hours.",
+    content: `Suspend: revokes sessions. Reversible.
 
-Suspend: revokes sessions. Reporter loses access on next API call. Reversible.
+Kill: suspends and pushes a kill signal. The device clears all TRACE data on next server contact.
 
-Kill: suspends the reporter and pushes a kill signal. The device clears all TRACE data on next server contact.
+Nuke All: every reporter in the chapter. Double-confirmed.
 
-Nuke All: suspends every reporter in the chapter, revokes all sessions, pushes kill to every device. Double-confirmed.
-
-Offline devices are handled by the check-in timer. Default: 72 hours without server contact triggers automatic data clearing.`,
+Offline devices: check-in timer handles it. Default 72 hours.`,
   },
   {
     title: "Demo Data",
     icon: "info",
-    content: `This instance contains demo records. All are marked.
-
-Vehicles: FAKE-001, FAKE-002, FAKE-003, TEST-004, TEST-005.
+    plain: "This system has been loaded with fake example data so you can see how everything works. Vehicles are labeled FAKE-001, actors are named GHOST (DEMO), and so on. Explore the dashboard to understand the layout. Delete the demo data from Admin when you are ready to use the system for real.",
+    content: `Vehicles: FAKE-001 through TEST-005.
 Actors: GHOST (DEMO), SPARKS (DEMO), NINE (DEMO).
-Sightings, identifiers, suspicion levels: all prefixed DEMO.
-
-Use these to understand how the system works. Delete them from Admin when you are ready to go live.`,
+Sightings, identifiers, suspicion levels: all prefixed DEMO.`,
   },
 ];
 
@@ -131,7 +121,13 @@ export function OperatorOnboarding({ onComplete }: OperatorOnboardingProps) {
             )}
           </div>
 
-          <p className="text-sm leading-relaxed whitespace-pre-line" style={{ color: "var(--text-sec)" }}>
+          {current.plain && (
+            <p className="text-sm leading-relaxed mb-4" style={{ color: "var(--text)", fontWeight: 500 }}>
+              {current.plain}
+            </p>
+          )}
+
+          <p className="text-sm leading-relaxed whitespace-pre-line" style={{ color: "var(--text-muted)", fontSize: "var(--text-xs)" }}>
             {current.content}
           </p>
         </div>
