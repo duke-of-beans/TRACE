@@ -361,7 +361,7 @@ export function Intelligence() {
         onMarkerClick={(marker) => { setSelectedMarker(marker); setSelectedPin(null); setPlacingPin(null); }}
         height="calc(100vh - 220px)"
       >
-        {/* Floating Drop Pin button */}
+        {/* Floating Drop Pin button — below layer control */}
         <button
           onClick={() => {
             const mapEl = document.querySelector(".leaflet-container") as any;
@@ -371,7 +371,7 @@ export function Intelligence() {
             setSelectedMarker(null);
           }}
           style={{
-            position: "absolute", top: 12, right: 12, zIndex: 1000,
+            position: "absolute", top: 12, left: 50, zIndex: 1000,
             background: "var(--accent)", color: "var(--accent-text)",
             border: "none", borderRadius: 8, padding: "10px 18px",
             fontSize: 13, fontWeight: 700, cursor: "pointer",
