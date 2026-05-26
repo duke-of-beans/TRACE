@@ -1,0 +1,1 @@
+ALTER TABLE "ident"."reporter_identities" ADD COLUMN "access_code_hash" varchar(64);

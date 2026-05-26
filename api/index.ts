@@ -15,6 +15,7 @@ import { authRouter } from "../src/api/auth/index.js";
 import { adminRouter } from "../src/api/admin/index.js";
 import { geoRouter } from "../src/api/geo/index.js";
 import { dispatchRouter } from "../src/api/dispatch/index.js";
+import { setupRouter } from "../src/api/setup/index.js";
 import { authMiddleware, operatorOnly } from "../src/middleware/auth.js";
 import { auditMiddleware } from "../src/middleware/audit.js";
 
@@ -27,8 +28,9 @@ app.use("*", cors({ origin: "*", credentials: true }));
 // Health
 app.get("/health", (c) => c.json({ status: "ok", service: "trace-vercel" }));
 
-// Auth (public)
+// Auth and setup (public)
 app.route("/auth", authRouter);
+app.route("/setup", setupRouter);
 
 // Protected routes
 app.use("/*", authMiddleware);

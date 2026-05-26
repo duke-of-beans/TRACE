@@ -15,6 +15,69 @@ import { createHash, randomBytes } from "node:crypto";
 
 export const authRouter = new Hono();
 
+// --- POST /auth/operator-login — proper operator auth with access code ---
+authRouter.post("/operator-login", async (c) => {
+  const { callsign, accessCode } = await c.req.json();
+  if (!callsign) return c.json({ error: "Callsign required" }, 400);
+
+  const normalizedCallsign = callsign.toUpperCase().replace(/[^A-Z0-9-]/g, "");
+
+  // Find reporter by callsign
+  const [reporter] = await opsDb
+    .select()
+    .from(reporters)
+    .where(eq(reporters.callsign, normalizedCallsign))
+    .limit(1);
+
+  if (!reporter) return c.json({ error: "Authentication failed" }, 401);
+
+  // Find identity
+  const [identity] = await identDb
+    .select()
+    .from(reporterIdentities)
+    .where(eq(reporterIdentities.reporterId, reporter.id))
+    .limit(1);
+
+  if (!identity) return c.json({ error: "Authentication failed" }, 401);
+
+  // Must be operator or admin
+  if (identity.role !== "operator" && identity.role !== "admin") {
+    return c.json({ error: "Access denied. Operator or admin role required." }, 403);
+  }
+
+  // Check access code (skip in dev mode)
+  const devMode = process.env.TRACE_DISABLE_DEV_LOGIN !== "true";
+
+  if (!devMode) {
+    // Production: access code required
+    if (!accessCode) return c.json({ error: "Access code required" }, 401);
+    const codeHash = createHash("sha256").update(accessCode).digest("hex");
+    if (identity.accessCodeHash && identity.accessCodeHash !== codeHash) {
+      return c.json({ error: "Authentication failed" }, 401);
+    }
+    // If no access code hash stored, check via invite code flow
+    if (!identity.accessCodeHash) {
+      return c.json({ error: "No access code configured. Contact chapter admin." }, 401);
+    }
+  }
+
+  // Create session
+  const sessionToken = randomBytes(32).toString("hex");
+  const sessionHash = createHash("sha256").update(sessionToken).digest("hex");
+  await identDb.insert(sessions).values({
+    identityId: identity.id,
+    tokenHash: sessionHash,
+    expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+  });
+
+  return c.json({
+    status: "authenticated",
+    sessionToken,
+    reporterId: identity.reporterId,
+    role: identity.role,
+  });
+});
+
 // --- POST /auth/invite-code — verify an invite code (no email needed) ---
 authRouter.post("/invite-code", async (c) => {
   const { code } = await c.req.json();

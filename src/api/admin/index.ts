@@ -585,3 +585,87 @@ adminRouter.post("/case-packages", async (c) => {
 
   return c.json(result, 201);
 });
+
+// ============================================================
+// OPERATOR MANAGEMENT
+// ============================================================
+
+// --- GET /admin/operators — list all operators ---
+adminRouter.get("/operators", async (c) => {
+  const allIdentities = await identDb
+    .select()
+    .from(reporterIdentities)
+    .where(eq(reporterIdentities.role, "operator"));
+
+  const operatorData = [];
+  for (const identity of allIdentities) {
+    const [reporter] = await opsDb
+      .select()
+      .from(reporters)
+      .where(eq(reporters.id, identity.reporterId))
+      .limit(1);
+    operatorData.push({
+      id: identity.reporterId,
+      callsign: reporter?.callsign || "UNKNOWN",
+      status: reporter?.status || "unknown",
+      hasAccessCode: !!identity.accessCodeHash,
+      createdAt: identity.createdAt,
+    });
+  }
+  return c.json(operatorData);
+});
+
+// --- POST /admin/operators/create — create a new operator ---
+adminRouter.post("/operators/create", async (c) => {
+  const { callsign, accessCode } = await c.req.json();
+  if (!callsign) return c.json({ error: "Callsign required" }, 400);
+  if (!accessCode || accessCode.length < 6) {
+    return c.json({ error: "Access code must be at least 6 characters" }, 400);
+  }
+
+  const chapterId = c.req.header("x-chapter-id") || "";
+  const normalizedCallsign = callsign.toUpperCase().replace(/[^A-Z0-9-]/g, "");
+
+  // Check if callsign already exists
+  const [existing] = await opsDb
+    .select()
+    .from(reporters)
+    .where(eq(reporters.callsign, normalizedCallsign))
+    .limit(1);
+  if (existing) return c.json({ error: "Callsign already in use" }, 409);
+
+  const [operator] = await opsDb
+    .insert(reporters)
+    .values({ chapterId, callsign: normalizedCallsign })
+    .returning();
+
+  const codeHash = createHash("sha256").update(accessCode).digest("hex");
+  await identDb
+    .insert(reporterIdentities)
+    .values({
+      reporterId: operator.id,
+      role: "operator",
+      accessCodeHash: codeHash,
+    });
+
+  return c.json({ callsign: normalizedCallsign, reporterId: operator.id }, 201);
+});
+
+// --- PUT /admin/operators/:id/access-code — update operator access code ---
+adminRouter.put("/operators/:id/access-code", async (c) => {
+  const reporterId = c.req.param("id");
+  const { accessCode } = await c.req.json();
+  if (!accessCode || accessCode.length < 6) {
+    return c.json({ error: "Access code must be at least 6 characters" }, 400);
+  }
+
+  const codeHash = createHash("sha256").update(accessCode).digest("hex");
+  const [updated] = await identDb
+    .update(reporterIdentities)
+    .set({ accessCodeHash: codeHash })
+    .where(eq(reporterIdentities.reporterId, reporterId))
+    .returning();
+
+  if (!updated) return c.json({ error: "Operator not found" }, 404);
+  return c.json({ updated: true });
+});

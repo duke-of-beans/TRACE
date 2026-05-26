@@ -48,6 +48,7 @@ export function Admin() {
     { key: "actorlevels", label: "Actor Suspicion" },
     { key: "identifiers", label: "Actor Identifiers" },
     { key: "dispatch",  label: "Dispatch Types" },
+    { key: "operators", label: "Operators" },
     { key: "reporters", label: "Reporters" },
     { key: "channels",  label: "Notifications" },
     { key: "feedback",  label: "Feedback" },
@@ -70,6 +71,7 @@ export function Admin() {
       {tab === "actorlevels" && <ActorSuspicionLevelsAdmin />}
       {tab === "identifiers" && <ActorIdentifierTypesAdmin />}
       {tab === "dispatch"    && <DispatchTypesAdmin />}
+      {tab === "operators"   && <OperatorsAdmin />}
       {tab === "reporters"   && <ReportersAdmin />}
       {tab === "channels"    && <ChannelsAdmin />}
       {tab === "feedback"    && <FeedbackAdmin />}
@@ -823,6 +825,100 @@ function IdentifierTypeForm({ form, setForm, onSave, onCancel }: { form: any; se
         <button onClick={onSave} className="bg-trace-accent text-trace-bg px-3 py-1.5 rounded-lg text-sm font-semibold">Save</button>
         <button onClick={onCancel} className="text-gray-400 text-sm">Cancel</button>
       </div>
+    </div>
+  );
+}
+
+// ============ Operators ============
+function OperatorsAdmin() {
+  const [operators, setOperators] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [adding, setAdding] = useState(false);
+  const [newCallsign, setNewCallsign] = useState("");
+  const [newCode, setNewCode] = useState("");
+  const [saving, setSaving] = useState(false);
+  const toast = useToast();
+
+  useEffect(() => {
+    apiFetch("/operators").then((r) => r.json())
+      .then((d) => setOperators(Array.isArray(d) ? d : []))
+      .catch(() => toast("Failed to load operators", "error"))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const handleCreate = async () => {
+    if (!newCallsign.trim()) { toast("Callsign required", "warning"); return; }
+    if (!newCode || newCode.length < 6) { toast("Access code must be 6+ characters", "warning"); return; }
+    setSaving(true);
+    const res = await apiFetch("/operators/create", {
+      method: "POST", body: JSON.stringify({ callsign: newCallsign, accessCode: newCode }),
+    });
+    if (res.ok) {
+      const data = await res.json();
+      setOperators((prev) => [...prev, { id: data.reporterId, callsign: data.callsign, status: "active", hasAccessCode: true, createdAt: new Date().toISOString() }]);
+      setNewCallsign(""); setNewCode(""); setAdding(false);
+      toast(`Operator "${data.callsign}" created`, "success");
+    } else {
+      const err = await res.json().catch(() => ({}));
+      toast(err.error || "Failed to create operator", "error");
+    }
+    setSaving(false);
+  };
+
+  if (loading) return <SkeletonList count={3} />;
+
+  return (
+    <div className="max-w-lg">
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <h2 className="font-semibold">Operators</h2>
+          <HelpTip text="Manage operator accounts. Each operator needs a callsign and access code to log in." />
+        </div>
+        <button onClick={() => setAdding(true)} className="text-xs bg-trace-accent text-trace-bg px-3 py-1.5 rounded-lg font-semibold">+ Add Operator</button>
+      </div>
+
+      <div className="space-y-2">
+        {operators.map((op) => (
+          <div key={op.id} className="p-3 bg-trace-surface rounded-lg border border-trace-border flex items-center gap-3">
+            <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold" style={{ background: "var(--accent-soft)", color: "var(--accent)" }}>
+              {op.callsign?.slice(0, 2) || "OP"}
+            </div>
+            <div className="flex-1">
+              <div className="font-mono font-medium text-sm tracking-wider">{op.callsign}</div>
+              <div className="text-[10px]" style={{ color: "var(--text-muted)" }}>
+                {op.hasAccessCode ? "Access code set" : "No access code"} · {op.status}
+              </div>
+            </div>
+          </div>
+        ))}
+        {operators.length === 0 && (
+          <EmptyState icon="👤" title="No operators" description="Create the first operator account." />
+        )}
+      </div>
+
+      {adding && (
+        <div className="mt-4 p-5 bg-trace-surface rounded-lg border border-trace-accent/30 space-y-3">
+          <h3 className="text-sm font-semibold">New Operator</h3>
+          <div>
+            <label className="text-xs text-gray-500 uppercase tracking-wider mb-1 block">Callsign</label>
+            <input value={newCallsign} onChange={(e) => setNewCallsign(e.target.value)}
+              className={inputCls} placeholder="OPERATOR-2" style={{ textTransform: "uppercase", letterSpacing: "1px" }} />
+          </div>
+          <div>
+            <label className="text-xs text-gray-500 uppercase tracking-wider mb-1 block">Access Code</label>
+            <input type="password" value={newCode} onChange={(e) => setNewCode(e.target.value)}
+              className={inputCls} placeholder="6+ characters" />
+            <p className="text-[10px] mt-1" style={{ color: "var(--text-muted)" }}>Give this to the operator in person or via encrypted channel.</p>
+          </div>
+          <div className="flex gap-2">
+            <button onClick={handleCreate} disabled={saving}
+              className="bg-trace-accent text-trace-bg px-4 py-2 rounded-lg text-sm font-semibold disabled:opacity-50">
+              {saving ? "Creating..." : "Create Operator"}
+            </button>
+            <button onClick={() => setAdding(false)} className="text-gray-400 text-sm">Cancel</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

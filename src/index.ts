@@ -17,6 +17,7 @@ import { authRouter } from "./api/auth/index.js";
 import { adminRouter } from "./api/admin/index.js";
 import { geoRouter } from "./api/geo/index.js";
 import { dispatchRouter } from "./api/dispatch/index.js";
+import { setupRouter } from "./api/setup/index.js";
 import { closeAll } from "./db/connection.js";
 import { authMiddleware, operatorOnly, adminOnly } from "./middleware/auth.js";
 import { auditMiddleware } from "./middleware/audit.js";
@@ -73,8 +74,9 @@ app.get("/ws", upgradeWebSocket((c) => {
 // ---------- API Routes ----------
 const api = new Hono();
 
-// Auth routes are public (magic link request/verify)
+// Auth and setup routes are public
 api.route("/auth", authRouter);
+api.route("/setup", setupRouter);
 
 // All other routes require authentication
 api.use("/*", authMiddleware);

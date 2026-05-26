@@ -114,4 +114,11 @@ export const api = {
   // Plate check
   checkPlate: (plate: string) =>
     request<any>(`/sightings/plate-check?plate=${encodeURIComponent(plate)}`),
+
+  // Operator management
+  getOperators: () => request<any[]>("/admin/operators"),
+  createOperator: (callsign: string, accessCode: string) =>
+    request("/admin/operators/create", { method: "POST", body: JSON.stringify({ callsign, accessCode }) }),
+  updateOperatorCode: (id: string, accessCode: string) =>
+    request(`/admin/operators/${id}/access-code`, { method: "PUT", body: JSON.stringify({ accessCode }) }),
 };

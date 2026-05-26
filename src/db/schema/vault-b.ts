@@ -26,6 +26,8 @@ export const reporterIdentities = ident.table("reporter_identities", {
   phone: varchar("phone", { length: 32 }),
   email: varchar("email", { length: 255 }),
   role: roleEnum("role").default("reporter").notNull(),
+  // SHA-256 hash of operator access code (operators/admins only)
+  accessCodeHash: varchar("access_code_hash", { length: 64 }),
   // field-level encryption for real_name, phone, email at rest
   encryptedFields: boolean("encrypted_fields").default(true),
   createdAt: createdAt(),
