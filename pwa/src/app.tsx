@@ -1,7 +1,8 @@
 /**
  * TRACE PWA — App Root
  *
- * Gate flow: Wiped → Onboarding → PIN lock → Invite code → Main app
+ * Gate flow: Wiped → Onboarding → PIN lock → Main app
+ * Invite code is deferrable — reporters can skip and enter later in Settings.
  * Design system: Slate + Indigo, light mode default.
  */
 import { useState, useEffect } from "preact/hooks";
@@ -20,7 +21,7 @@ import { startDeadManSwitch, startHeartbeat } from "./lib/deadman.js";
 import { toggleTheme, getTheme } from "../../shared/design/theme.js";
 
 const DEFAULT_TTL_HOURS = 24;
-type Page = "submit" | "history" | "settings" | "security";
+type Page = "submit" | "history" | "settings" | "security" | "join";
 
 export function App() {
   const [page, setPage] = useState<Page>("submit");
@@ -28,7 +29,6 @@ export function App() {
   const [locked, setLocked] = useState(true);
   const [needsOnboarding, setNeedsOnboarding] = useState(false);
   const [authed, setAuthed] = useState(() => !!getToken());
-  const token = authed ? getToken() : null;
   const [ttlHours] = useState(() => parseInt(localStorage.getItem("trace_ttl_hours") || String(DEFAULT_TTL_HOURS)));
   const [theme, setThemeState] = useState(() => getTheme("light"));
 
@@ -53,23 +53,26 @@ export function App() {
 
   const handleSignOut = () => { clearToken(); lock(); setAuthed(false); setLocked(true); };
   const handleToggleTheme = () => { const t = toggleTheme("light"); setThemeState(t); };
+  const handleAuth = () => { setAuthed(true); setPage("submit"); };
 
-  if (isWiped() && !token) return <WipedState />;
+  if (isWiped()) return <WipedState />;
   if (needsOnboarding) return <Onboarding onComplete={() => { setNeedsOnboarding(false); setLocked(false); }} />;
   if (locked && hasPIN()) return <PinLock onUnlock={() => setLocked(false)} />;
-  if (!token) return <LoginPrompt onAuth={() => setAuthed(true)} />;
 
   return (
     <div class="app-shell">
       <main class="app-main">
-        {page === "submit" && <Submit />}
+        {page === "submit" && <SubmitGate authed={authed} onJoin={() => setPage("join")} />}
         {page === "history" && <History />}
+        {page === "join" && <JoinPrompt onAuth={handleAuth} onSkip={() => setPage("settings")} />}
         {page === "security" && <SecurityInfo ttlHours={ttlHours} onBack={() => setPage("settings")} />}
         {page === "settings" && (
           <SettingsPage
+            authed={authed}
             ttlHours={ttlHours}
             theme={theme}
             onShowSecurity={() => setPage("security")}
+            onShowJoin={() => setPage("join")}
             onSignOut={handleSignOut}
             onToggleTheme={handleToggleTheme}
           />
@@ -86,7 +89,7 @@ export function App() {
           <Icon name="clock" size={20} />
           <span>History</span>
         </button>
-        <button class={`nav-btn ${page === "settings" || page === "security" ? "active" : ""}`} onClick={() => setPage("settings")} aria-label="Settings">
+        <button class={`nav-btn ${page === "settings" || page === "security" || page === "join" ? "active" : ""}`} onClick={() => setPage("settings")} aria-label="Settings">
           <Icon name="sliders" size={20} />
           <span>Settings</span>
         </button>
@@ -95,8 +98,38 @@ export function App() {
   );
 }
 
-function SettingsPage({ ttlHours, theme, onShowSecurity, onSignOut, onToggleTheme }: {
-  ttlHours: number; theme: string; onShowSecurity: () => void; onSignOut: () => void; onToggleTheme: () => void;
+/** Shows submit form if authed, or a prompt to join if not */
+function SubmitGate({ authed, onJoin }: { authed: boolean; onJoin: () => void }) {
+  if (!authed) {
+    return (
+      <div>
+        <h1 class="page-title">Report Sighting</h1>
+        <div class="card" style={{ textAlign: "center", padding: "var(--sp-8) var(--sp-4)" }}>
+          <div style={{ color: "var(--text-muted)", marginBottom: "var(--sp-4)" }}>
+            <Icon name="lock" size={32} />
+          </div>
+          <h3 style={{ fontSize: "var(--text-lg)", fontWeight: 600, marginBottom: "var(--sp-2)" }}>Join your chapter to start reporting</h3>
+          <p style={{ fontSize: "var(--text-sm)", color: "var(--text-sec)", marginBottom: "var(--sp-5)", lineHeight: "var(--leading-relaxed)" }}>
+            You need an invite code from your chapter operator before you can submit sightings.
+            Your operator will give you a code — it looks like XXXX-XXXX.
+          </p>
+          <button class="btn btn-primary btn-lg" onClick={onJoin}>
+            <Icon name="plus" size={16} /> Enter Invite Code
+          </button>
+          <p class="hint-text" style={{ marginTop: "var(--sp-4)" }}>
+            You can also enter it later in Settings.
+          </p>
+        </div>
+      </div>
+    );
+  }
+  return <Submit />;
+}
+
+function SettingsPage({ authed, ttlHours, theme, onShowSecurity, onShowJoin, onSignOut, onToggleTheme }: {
+  authed: boolean; ttlHours: number; theme: string;
+  onShowSecurity: () => void; onShowJoin: () => void;
+  onSignOut: () => void; onToggleTheme: () => void;
 }) {
   const [queueCount, setQueueCount] = useState(0);
   useEffect(() => { getQueueCount().then(setQueueCount); }, []);
@@ -104,6 +137,21 @@ function SettingsPage({ ttlHours, theme, onShowSecurity, onSignOut, onToggleThem
   return (
     <div>
       <h1 class="page-title">Settings</h1>
+
+      {/* Join prompt if not authed */}
+      {!authed && (
+        <button class="btn btn-primary btn-full" onClick={onShowJoin}
+          style={{ marginBottom: "var(--sp-4)", justifyContent: "flex-start" }}>
+          <Icon name="plus" size={16} /> Enter Invite Code
+        </button>
+      )}
+
+      <div class="info-card">
+        <div class="info-card-label">Chapter Status</div>
+        <div class="info-card-value" style={{ color: authed ? "var(--success)" : "var(--warning)" }}>
+          {authed ? "Connected" : "Not joined — enter invite code to connect"}
+        </div>
+      </div>
 
       <div class="info-card">
         <div class="info-card-label">Connection</div>
@@ -139,9 +187,11 @@ function SettingsPage({ ttlHours, theme, onShowSecurity, onSignOut, onToggleThem
         <Icon name="eye" size={16} /> {theme === "light" ? "Switch to Dark Mode" : "Switch to Light Mode"}
       </button>
 
-      <button class="btn btn-ghost btn-full" onClick={onSignOut} style={{ marginBottom: "var(--sp-3)", justifyContent: "flex-start" }}>
-        <Icon name="log-out" size={16} /> Sign Out & Lock
-      </button>
+      {authed && (
+        <button class="btn btn-ghost btn-full" onClick={onSignOut} style={{ marginBottom: "var(--sp-3)", justifyContent: "flex-start" }}>
+          <Icon name="log-out" size={16} /> Sign Out & Lock
+        </button>
+      )}
 
       <PanicButton />
     </div>
@@ -157,7 +207,8 @@ function WipedState() {
   );
 }
 
-function LoginPrompt({ onAuth }: { onAuth: () => void }) {
+/** Invite code entry — shown inline, not as a blocking gate */
+function JoinPrompt({ onAuth, onSkip }: { onAuth: () => void; onSkip: () => void }) {
   const [code, setCode] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
@@ -192,10 +243,14 @@ function LoginPrompt({ onAuth }: { onAuth: () => void }) {
   };
 
   return (
-    <div class="auth-screen">
-      <div class="auth-card">
-        <h1 class="auth-title">TRACE</h1>
-        <p class="auth-subtitle">Enter your invite code</p>
+    <div>
+      <h1 class="page-title">Join Chapter</h1>
+
+      <div class="card" style={{ padding: "var(--sp-6)", textAlign: "center" }}>
+        <p style={{ fontSize: "var(--text-sm)", color: "var(--text-sec)", marginBottom: "var(--sp-5)", lineHeight: "var(--leading-relaxed)" }}>
+          Your chapter operator will give you an invite code. It's a short code that looks like XXXX-XXXX.
+          Enter it below to connect to your chapter and start reporting.
+        </p>
 
         <input
           type="text"
@@ -205,6 +260,7 @@ function LoginPrompt({ onAuth }: { onAuth: () => void }) {
           onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
           autoFocus
           class={`invite-input ${errorMsg ? "error" : ""}`}
+          aria-label="Invite code"
         />
 
         {errorMsg && <p class="error-text">{errorMsg}</p>}
@@ -212,9 +268,14 @@ function LoginPrompt({ onAuth }: { onAuth: () => void }) {
         <button onClick={handleSubmit} disabled={status === "loading"} class="btn btn-primary btn-full btn-lg" style={{ marginTop: "var(--sp-4)" }}>
           {status === "loading" ? "Verifying..." : "Join Chapter"}
         </button>
+      </div>
 
-        <p class="hint-text" style={{ marginTop: "var(--sp-6)" }}>
-          Get your invite code from your chapter operator. No email or account needed.
+      <div style={{ textAlign: "center", marginTop: "var(--sp-5)" }}>
+        <button class="btn btn-ghost" onClick={onSkip}>
+          I don't have a code yet — skip for now
+        </button>
+        <p class="hint-text" style={{ marginTop: "var(--sp-3)" }}>
+          You can enter your code later in Settings. You'll need it before you can submit sightings.
         </p>
       </div>
     </div>
