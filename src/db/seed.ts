@@ -218,11 +218,11 @@ async function seed() {
   }
 
   // OPERATOR IDENTITY
-  const [opReporter] = await opsDb.insert(reporters).values({ chapterId, callsign: "OPERATOR (DEMO)" }).onConflictDoNothing().returning();
+  const [opReporter] = await opsDb.insert(reporters).values({ chapterId, callsign: "OPERATOR" }).onConflictDoNothing().returning();
   if (opReporter) {
     await identDb.insert(reporterIdentities).values({ reporterId: opReporter.id, email: "operator@trace.local", role: "operator" }).onConflictDoNothing();
   }
-  console.log(`+ Operator: operator@trace.local`);
+  console.log(`+ Operator: callsign OPERATOR`);
 
   console.log("\nSeed complete. All demo data prefixed with DEMO/FAKE/TEST.");
   process.exit(0);

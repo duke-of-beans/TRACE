@@ -39,6 +39,12 @@ export function LoginScreen({ onAuth }: AuthGateProps) {
       if (res.ok) {
         const data = await res.json();
         if (data.sessionToken) {
+          // Verify operator/admin role
+          if (data.role !== "operator" && data.role !== "admin") {
+            setError("Access denied. Operator or admin role required.");
+            setLoading(false);
+            return;
+          }
           setToken(data.sessionToken);
           onAuth();
           return;
@@ -56,6 +62,11 @@ export function LoginScreen({ onAuth }: AuthGateProps) {
         if (codeRes.ok) {
           const codeData = await codeRes.json();
           if (codeData.sessionToken) {
+            if (codeData.role !== "operator" && codeData.role !== "admin") {
+              setError("Access denied. Operator or admin role required.");
+              setLoading(false);
+              return;
+            }
             setToken(codeData.sessionToken);
             onAuth();
             return;

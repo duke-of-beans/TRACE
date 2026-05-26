@@ -189,8 +189,6 @@ authRouter.post("/dev-login", async (c) => {
   const identifier = callsign || email;
   if (!identifier) return c.json({ error: "Callsign required" }, 400);
 
-  // Determine role from callsign/email
-  const isOperator = identifier.toLowerCase().includes("operator") || identifier.toLowerCase().includes("admin");
   const normalizedCallsign = callsign
     ? callsign.toUpperCase().replace(/[^A-Z0-9]/g, "-")
     : identifier.split("@")[0].toUpperCase().replace(/[^A-Z0-9]/g, "-");
@@ -208,31 +206,23 @@ authRouter.post("/dev-login", async (c) => {
     }
   }
 
-  // DEV: fix role if callsign suggests operator but identity says reporter
-  if (identity && isOperator && identity.role === "reporter") {
-    await identDb.update(reporterIdentities).set({ role: "operator" }).where(eq(reporterIdentities.id, identity.id));
-    identity = { ...identity, role: "operator" };
-    console.log(`[DEV] Upgraded ${normalizedCallsign} to operator role`);
-  }
-
-  // DEV MODE: auto-create if doesn't exist
+  // DEV MODE: auto-create if doesn't exist (reporters only, never operators)
   if (!identity) {
     const [chapter] = await opsDb.select().from(chapters).limit(1);
     if (!chapter) return c.json({ error: "No chapter exists. Run seed first." }, 500);
 
+    // Never auto-create operator accounts. Operators come from seed or admin panel.
     const [reporter] = await opsDb
       .insert(reporters)
       .values({ chapterId: chapter.id, callsign: normalizedCallsign })
       .returning();
 
-    const role = isOperator ? "operator" : "reporter";
-
     [identity] = await identDb
       .insert(reporterIdentities)
-      .values({ reporterId: reporter.id, email: email || undefined, role })
+      .values({ reporterId: reporter.id, role: "reporter" })
       .returning();
 
-    console.log(`[DEV] Auto-created ${role} "${normalizedCallsign}"`);
+    console.log(`[DEV] Auto-created reporter "${normalizedCallsign}"`);
   }
 
   const sessionToken = randomBytes(32).toString("hex");
