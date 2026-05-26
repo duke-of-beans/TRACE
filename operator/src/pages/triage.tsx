@@ -213,7 +213,17 @@ export function Triage() {
               <div className="mb-4 p-3 rounded-lg" style={{ background: "rgba(220,38,38,0.06)", border: "1px solid rgba(220,38,38,0.15)" }}>
                 <div className="text-xs uppercase tracking-wider font-semibold mb-1" style={{ color: "#DC2626" }}>Known Vehicle</div>
                 <p className="text-sm" style={{ color: "var(--text)" }}>
-                  {current.vehicleDescription || "In the database. Check dossier for details."}
+                  This plate is in your database. Review the details and dispatch patrollers if needed.
+                </p>
+              </div>
+            )}
+
+            {/* New plate info */}
+            {isNewPlate && (
+              <div className="mb-4 p-3 rounded-lg" style={{ background: "rgba(148,163,184,0.06)", border: "1px solid rgba(148,163,184,0.15)" }}>
+                <div className="text-xs uppercase tracking-wider font-semibold mb-1" style={{ color: "#94A3B8" }}>New Plate</div>
+                <p className="text-sm" style={{ color: "var(--text-sec)" }}>
+                  This plate is not in your database. You can add it to tracking or dismiss and notify the reporter.
                 </p>
               </div>
             )}
@@ -255,21 +265,24 @@ export function Triage() {
                 {isMatch && (
                   <button onClick={handleConfirmAndDispatch}
                     className="flex-1 py-2.5 rounded-lg text-sm font-semibold flex items-center justify-center gap-2 transition hover:opacity-90"
-                    style={{ background: "#DC2626", color: "#fff", minHeight: 44 }}>
+                    style={{ background: "#DC2626", color: "#fff", minHeight: 44 }}
+                    title="Confirm this sighting and send patrollers to the location">
                     <Icon name="zap" size={14} /> Confirm & Dispatch <span className="text-xs opacity-60">[C]</span>
                   </button>
                 )}
                 {isNewPlate && (
                   <button onClick={handleAddToTracking}
                     className="flex-1 py-2.5 rounded-lg text-sm font-semibold flex items-center justify-center gap-2 transition hover:opacity-90"
-                    style={{ background: "var(--accent)", color: "var(--accent-text)", minHeight: 44 }}>
+                    style={{ background: "var(--accent)", color: "var(--accent-text)", minHeight: 44 }}
+                    title="Add this plate to your vehicle database and optionally dispatch">
                     <Icon name="plus" size={14} /> Add to Tracking
                   </button>
                 )}
                 {!isMatch && !isNewPlate && (
                   <button onClick={handleConfirmAndDispatch}
                     className="flex-1 py-2.5 rounded-lg text-sm font-semibold flex items-center justify-center gap-2 transition hover:opacity-90"
-                    style={{ background: "var(--accent)", color: "var(--accent-text)", minHeight: 44 }}>
+                    style={{ background: "var(--accent)", color: "var(--accent-text)", minHeight: 44 }}
+                    title="Create a dispatch for this sighting">
                     <Icon name="zap" size={14} /> Dispatch <span className="text-xs opacity-60">[C]</span>
                   </button>
                 )}
@@ -278,15 +291,20 @@ export function Triage() {
               <div className="flex gap-3">
                 <button onClick={handleDismissAndNotify}
                   className="flex-1 py-2 rounded-lg text-xs font-medium flex items-center justify-center gap-2 transition"
-                  style={{ background: "var(--bg)", border: "1px solid var(--border)", color: "var(--text-sec)", minHeight: 40 }}>
+                  style={{ background: "var(--bg)", border: "1px solid var(--border)", color: "var(--text-sec)", minHeight: 40 }}
+                  title="Mark as reviewed and tell the reporter this vehicle is not a concern">
                   <Icon name="x" size={12} /> Dismiss & Notify <span className="opacity-50">[D]</span>
                 </button>
                 <button onClick={handleFlag}
                   className="flex-1 py-2 rounded-lg text-xs font-medium flex items-center justify-center gap-2 transition"
-                  style={{ background: "var(--bg)", border: "1px solid var(--border)", color: "var(--warning)", minHeight: 40 }}>
+                  style={{ background: "var(--bg)", border: "1px solid var(--border)", color: "var(--warning)", minHeight: 40 }}
+                  title="Keep in the queue for follow-up later">
                   <Icon name="alert-triangle" size={12} /> Flag <span className="opacity-50">[F]</span>
                 </button>
               </div>
+              <p className="text-[10px] mt-2" style={{ color: "var(--text-muted)", opacity: 0.6 }}>
+                Keyboard: C = confirm & dispatch · D = dismiss · F = flag · N/P = next/previous
+              </p>
             </div>
           </div>
         </div>
@@ -347,6 +365,9 @@ function DispatchPanel({ sighting, reporters, eventTypes, onSend, onCancel }: {
           <Icon name="x" size={18} />
         </button>
       </div>
+      <p className="text-xs mb-4" style={{ color: "var(--text-muted)" }}>
+        Select patrollers to send to this location. They will receive a notification with the details below.
+      </p>
 
       {/* Sighting summary */}
       <div className="mb-4 p-3 rounded-lg" style={{ background: "var(--bg)" }}>
@@ -359,7 +380,7 @@ function DispatchPanel({ sighting, reporters, eventTypes, onSend, onCancel }: {
       {/* Event type */}
       {eventTypes.length > 0 && (
         <div className="mb-4">
-          <label className="text-xs uppercase tracking-wider mb-1.5 block" style={{ color: "var(--text-muted)" }}>Event Type</label>
+          <label className="text-xs mb-1.5 block" style={{ color: "var(--text-muted)" }}>What type of event is this?</label>
           <select value={eventTypeId} onChange={(e) => setEventTypeId(e.target.value)}
             className="w-full bg-trace-bg border border-trace-border rounded-lg px-3 py-2 text-sm"
             style={{ colorScheme: "dark" }}>
@@ -372,7 +393,7 @@ function DispatchPanel({ sighting, reporters, eventTypes, onSend, onCancel }: {
 
       {/* Priority */}
       <div className="mb-4">
-        <label className="text-xs uppercase tracking-wider mb-1.5 block" style={{ color: "var(--text-muted)" }}>Priority</label>
+        <label className="text-xs mb-1.5 block" style={{ color: "var(--text-muted)" }}>How urgent is this?</label>
         <div className="flex gap-2">
           {[
             { key: "urgent", label: "Urgent", color: "#DC2626" },
@@ -394,7 +415,7 @@ function DispatchPanel({ sighting, reporters, eventTypes, onSend, onCancel }: {
 
       {/* Notes */}
       <div className="mb-4">
-        <label className="text-xs uppercase tracking-wider mb-1.5 block" style={{ color: "var(--text-muted)" }}>Notes for patrollers</label>
+        <label className="text-xs mb-1.5 block" style={{ color: "var(--text-muted)" }}>What should patrollers look for?</label>
         <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2}
           className="w-full bg-trace-bg border border-trace-border rounded-lg px-3 py-2 text-sm"
           placeholder="Vehicle description, location details, what to look for..." />
@@ -403,7 +424,7 @@ function DispatchPanel({ sighting, reporters, eventTypes, onSend, onCancel }: {
       {/* Reporter selection */}
       <div className="mb-4">
         <div className="flex justify-between items-center mb-1.5">
-          <label className="text-xs uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>Dispatch to</label>
+          <label className="text-xs" style={{ color: "var(--text-muted)" }}>Who should respond?</label>
           <button onClick={selectAll} className="text-xs" style={{ color: "var(--accent)" }}>Select all</button>
         </div>
         {reporters.length === 0 ? (

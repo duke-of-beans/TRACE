@@ -204,22 +204,25 @@ export function ReporterMap() {
           {/* Actions */}
           <div style={{ display: "flex", gap: "var(--sp-2)", marginTop: "var(--sp-3)" }}>
             {selectedDispatch.assigned && selectedDispatch.myAssignment?.status === "assigned" && (
-              <button onClick={() => handleRespond(selectedDispatch.id)} class="btn btn-primary" style={{ flex: 1 }}>
+              <button onClick={() => handleRespond(selectedDispatch.id)} class="btn btn-primary" style={{ flex: 1 }}
+                title="Let dispatch know you are heading to this location">
                 Responding
               </button>
             )}
             {selectedDispatch.assigned && selectedDispatch.myAssignment?.status === "responding" && (
-              <button onClick={() => handleArrive(selectedDispatch.id)} class="btn btn-primary" style={{ flex: 1 }}>
+              <button onClick={() => handleArrive(selectedDispatch.id)} class="btn btn-primary" style={{ flex: 1 }}
+                title="Let dispatch know you have arrived at this location">
                 On Scene
               </button>
             )}
             {selectedDispatch.assigned && selectedDispatch.myAssignment?.status === "on_scene" && (
-              <span style={{ fontSize: "var(--text-sm)", color: "var(--success)", fontWeight: 600 }}>
-                ✓ On Scene
+              <span style={{ fontSize: "var(--text-sm)", color: "var(--success)", fontWeight: 600, display: "flex", alignItems: "center", gap: "var(--sp-1)" }}>
+                ✓ On Scene — submit a report from the Report tab
               </span>
             )}
             <button onClick={() => openInMaps(selectedDispatch.lat, selectedDispatch.lng)}
-              class="btn btn-secondary" style={{ flex: selectedDispatch.assigned ? 0 : 1 }}>
+              class="btn btn-secondary" style={{ flex: selectedDispatch.assigned ? 0 : 1 }}
+              title="Open turn-by-turn directions in your maps app">
               <Icon name="compass" size={14} /> Navigate
             </button>
           </div>
@@ -231,12 +234,14 @@ export function ReporterMap() {
         <div style={{
           position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)",
           textAlign: "center", color: "var(--text-muted)", fontSize: "var(--text-sm)",
-          background: "var(--surface)", padding: "var(--sp-4)", borderRadius: "var(--radius)",
-          border: "1px solid var(--border)",
+          background: "var(--surface)", padding: "var(--sp-4) var(--sp-5)", borderRadius: "var(--radius)",
+          border: "1px solid var(--border)", maxWidth: 280,
         }}>
           <Icon name="map-pin" size={24} />
-          <p style={{ marginTop: "var(--sp-2)" }}>No active dispatches</p>
-          <p style={{ fontSize: "var(--text-xs)", marginTop: "var(--sp-1)" }}>Dispatch pins will appear here when the operator sends them.</p>
+          <p style={{ marginTop: "var(--sp-2)", fontWeight: 500 }}>No active dispatches</p>
+          <p style={{ fontSize: "var(--text-xs)", marginTop: "var(--sp-1)", lineHeight: 1.5 }}>
+            When your operator sends you to a location, a pin will appear here with details and directions. The map updates automatically.
+          </p>
         </div>
       )}
     </div>

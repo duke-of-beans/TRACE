@@ -420,9 +420,24 @@ export function Intelligence() {
       )}
 
       {/* Hint */}
-      <p className="text-xs mt-2" style={{ color: "var(--text-muted)", opacity: 0.6 }}>
-        Right-click the map to place a dispatch pin.
-      </p>
+      <div className="flex items-center gap-3 mt-3 mb-2">
+        <button
+          onClick={() => {
+            const map = document.querySelector(".leaflet-container") as any;
+            if (map) {
+              // Simulate dropping at center
+              const center = map._leaflet_map?.getCenter?.() || { lat: 34.27, lng: -118.78 };
+              setPlacingPin({ lat: center.lat, lng: center.lng });
+            }
+          }}
+          className="px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2"
+          style={{ background: "var(--accent)", color: "var(--accent-text)" }}>
+          + Drop Pin
+        </button>
+        <span className="text-xs" style={{ color: "var(--text-muted)" }}>
+          or right-click anywhere on the map
+        </span>
+      </div>
     </div>
   );
 }
@@ -446,6 +461,9 @@ function PinCreationForm({ lat, lng, eventTypes, reporters, onSave, onCancel }: 
         <h3 className="text-sm font-semibold">Pin dropped — add details</h3>
         <button onClick={onCancel} style={{ color: "var(--text-muted)", background: "none", border: "none", cursor: "pointer" }}>✕</button>
       </div>
+      <p className="text-xs mb-3" style={{ color: "var(--text-muted)" }}>
+        All fields are optional. Save with no details for a bare pin, or add context and dispatch patrollers.
+      </p>
 
       <div className="grid grid-cols-2 gap-3 mb-3">
         {/* Event type */}

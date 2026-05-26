@@ -145,17 +145,20 @@ export function Submit() {
           <div style={{ color: "var(--success)", marginBottom: "var(--sp-3)" }}>
             <Icon name="check" size={32} />
           </div>
-          <h3 style={{ fontSize: "var(--text-lg)", fontWeight: 600, marginBottom: "var(--sp-4)" }}>Sighting Submitted</h3>
+          <h3 style={{ fontSize: "var(--text-lg)", fontWeight: 600, marginBottom: "var(--sp-2)" }}>Sighting Submitted</h3>
+          <p style={{ fontSize: "var(--text-xs)", color: "var(--text-muted)", marginBottom: "var(--sp-4)" }}>
+            Your report is being reviewed by dispatch. Status updates appear below.
+          </p>
 
           {/* Live status */}
           <div style={{ textAlign: "left", fontSize: "var(--text-sm)" }}>
-            <StatusRow done label="Submitted" />
-            <StatusRow done={feedback !== null} pending={feedback === null} label="Plate check" />
+            <StatusRow done label="Submitted — dispatch received your report" />
+            <StatusRow done={feedback !== null} pending={feedback === null} label={feedback ? "Plate checked" : "Waiting for dispatch to review..."} />
             {feedback?.feedbackType === "confirmed" && (
-              <StatusRow done label="Confirmed — patrollers dispatched" color="var(--success)" />
+              <StatusRow done label="Confirmed — patrollers dispatched to the location" color="var(--success)" />
             )}
             {feedback?.feedbackType === "dismissed" && (
-              <StatusRow done label={feedback.message || "Not in database. No action needed."} color="var(--text-muted)" />
+              <StatusRow done label={feedback.message || "Not in the database. No action needed."} color="var(--text-muted)" />
             )}
           </div>
 
@@ -215,27 +218,35 @@ export function Submit() {
       </div>
 
       {/* Mode toggle */}
-      <div style={{ display: "flex", gap: "var(--sp-2)", marginBottom: "var(--sp-4)" }}>
-        <button onClick={() => { setMode("report"); setCheckResult(null); }}
-          style={{
-            flex: 1, padding: "var(--sp-2)", borderRadius: "var(--radius)",
-            fontSize: "var(--text-sm)", fontWeight: 500, cursor: "pointer", transition: "all 150ms",
-            background: mode === "report" ? "var(--accent)" : "var(--surface)",
-            color: mode === "report" ? "var(--accent-text)" : "var(--text-sec)",
-            border: mode === "report" ? "1px solid var(--accent)" : "1px solid var(--border)",
-          }}>
-          Report
-        </button>
-        <button onClick={() => setMode("check")}
-          style={{
-            flex: 1, padding: "var(--sp-2)", borderRadius: "var(--radius)",
-            fontSize: "var(--text-sm)", fontWeight: 500, cursor: "pointer", transition: "all 150ms",
-            background: mode === "check" ? "var(--accent)" : "var(--surface)",
-            color: mode === "check" ? "var(--accent-text)" : "var(--text-sec)",
-            border: mode === "check" ? "1px solid var(--accent)" : "1px solid var(--border)",
-          }}>
-          Check Plate
-        </button>
+      <div style={{ marginBottom: "var(--sp-4)" }}>
+        <div style={{ display: "flex", gap: "var(--sp-2)", marginBottom: "var(--sp-2)" }}>
+          <button onClick={() => { setMode("report"); setCheckResult(null); }}
+            style={{
+              flex: 1, padding: "var(--sp-2)", borderRadius: "var(--radius)",
+              fontSize: "var(--text-sm)", fontWeight: 500, cursor: "pointer", transition: "all 150ms",
+              background: mode === "report" ? "var(--accent)" : "var(--surface)",
+              color: mode === "report" ? "var(--accent-text)" : "var(--text-sec)",
+              border: mode === "report" ? "1px solid var(--accent)" : "1px solid var(--border)",
+            }}>
+            Report
+          </button>
+          <button onClick={() => setMode("check")}
+            style={{
+              flex: 1, padding: "var(--sp-2)", borderRadius: "var(--radius)",
+              fontSize: "var(--text-sm)", fontWeight: 500, cursor: "pointer", transition: "all 150ms",
+              background: mode === "check" ? "var(--accent)" : "var(--surface)",
+              color: mode === "check" ? "var(--accent-text)" : "var(--text-sec)",
+              border: mode === "check" ? "1px solid var(--accent)" : "1px solid var(--border)",
+            }}>
+            Check Plate
+          </button>
+        </div>
+        <p style={{ fontSize: "var(--text-xs)", color: "var(--text-muted)" }}>
+          {mode === "report"
+            ? "Submit a sighting with location, plate, and details. Your GPS is captured automatically."
+            : "Quick lookup — check if a plate is in the database without submitting a full report."
+          }
+        </p>
       </div>
 
       {/* PLATE CHECK MODE */}
@@ -373,7 +384,7 @@ export function Submit() {
 
       {/* Direction of Travel */}
       <div style={{ marginBottom: "var(--sp-4)" }}>
-        <label class="section-label">Direction of Travel</label>
+        <label class="section-label">Which way was the vehicle heading?</label>
         <div class="direction-grid">
           {DIRECTIONS.map((dir) => (
             <button key={dir.key}
