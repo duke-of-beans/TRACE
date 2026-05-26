@@ -71,4 +71,13 @@ export const api = {
 
   // Actors CRUD
   updateActor: (id: string, data: any) => request(`/actors/${id}`, { method: "PUT", body: JSON.stringify(data) }),
+
+  // Actor Identifiers
+  getActorIdentifiers: (actorId: string) => request<any[]>(`/admin/actors/${actorId}/identifiers`),
+  createActorIdentifier: (actorId: string, data: any) =>
+    request(`/admin/actors/${actorId}/identifiers`, { method: "POST", body: JSON.stringify(data) }),
+  updateActorIdentifier: (id: string, data: any) =>
+    request(`/admin/actor-identifiers/${id}`, { method: "PUT", body: JSON.stringify(data) }),
+  deleteActorIdentifier: (id: string) =>
+    request(`/admin/actor-identifiers/${id}`, { method: "DELETE" }),
 };

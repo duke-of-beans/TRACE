@@ -23,6 +23,15 @@ export function getToken(): string | null {
 export function clearToken(): void {
   sessionToken = null;
   localStorage.removeItem("trace_token");
+  localStorage.removeItem("trace_reporter_id");
+}
+
+export function setReporterId(id: string): void {
+  localStorage.setItem("trace_reporter_id", id);
+}
+
+export function getReporterId(): string | null {
+  return localStorage.getItem("trace_reporter_id");
 }
 
 async function request<T>(
@@ -30,11 +39,13 @@ async function request<T>(
   opts: RequestInit = {}
 ): Promise<T> {
   const token = getToken();
+  const rid = getReporterId();
   const res = await fetch(`${API_BASE}${path}`, {
     ...opts,
     headers: {
       "Content-Type": "application/json",
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(rid ? { "x-reporter-id": rid } : {}),
       ...(opts.headers || {}),
     },
   });
@@ -102,6 +113,9 @@ export const api = {
   // Sightings
   submitSighting: (data: Record<string, unknown>) =>
     request("/sightings", { method: "POST", body: JSON.stringify(data) }),
+
+  getMySightings: () =>
+    request<Array<Record<string, unknown>>>("/sightings"),
 
   // Vehicles
   searchVehicles: (q: string) =>

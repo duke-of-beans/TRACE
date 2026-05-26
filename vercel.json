@@ -1,0 +1,21 @@
+{
+  "installCommand": "npm install && cd pwa && npm install && cd ../operator && npm install && cd ..",
+  "buildCommand": "cd pwa && npm run build && cd ../operator && npm run build && cd .. && node scripts/copy-to-public.mjs",
+  "outputDirectory": "public",
+  "framework": null,
+  "rewrites": [
+    { "source": "/api/v1/:path*", "destination": "/api/index.ts" },
+    { "source": "/operator/:path*", "destination": "/operator/index.html" },
+    { "source": "/((?!api|operator|_next|favicon).*)", "destination": "/index.html" }
+  ],
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        { "key": "Access-Control-Allow-Origin", "value": "*" },
+        { "key": "Access-Control-Allow-Methods", "value": "GET,POST,PUT,PATCH,DELETE,OPTIONS" },
+        { "key": "Access-Control-Allow-Headers", "value": "Content-Type,Authorization,x-chapter-id,x-reporter-id,x-role" }
+      ]
+    }
+  ]
+}

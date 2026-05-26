@@ -45,6 +45,7 @@ export function PinLock({ onUnlock }: PinLockProps) {
         <div class="wordmark-wrap" style={{ marginBottom: "var(--sp-2)" }}>
           <span class="wordmark wordmark-md" style={{ color: "var(--text)" }}>TRACE</span>
           <span class="wordmark-rule"></span>
+          <span class="wordmark-subtitle">Field Reporter</span>
         </div>
         <p class="auth-subtitle">Enter your PIN to unlock</p>
 

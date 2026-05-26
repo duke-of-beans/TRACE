@@ -1,12 +1,16 @@
 node_modules/
 dist/
+public/
 .env
 .env.local
+.env.production
 *.db
 *.db-shm
 *.db-wal
 coverage/
 .turbo/
+.vercel/
 *.tsbuildinfo
 .DS_Store
 Thumbs.db
+.vercel

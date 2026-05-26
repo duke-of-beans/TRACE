@@ -33,10 +33,11 @@ const NAV: { key: Page; label: string; shortcut: string; icon: string; desc: str
 ];
 
 export function App() {
-  const [page, setPage] = useState<Page>("triage");
+  const [page, setPage] = useState<Page>("dashboard");
   const [authed, setAuthed] = useState(() => !!localStorage.getItem("trace_op_token"));
   const [onboarded, setOnboarded] = useState(() => !needsOperatorOnboarding());
   const [theme, setThemeState] = useState(() => getTheme("dark"));
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -65,9 +66,27 @@ export function App() {
         ) : (
 
         <div className="flex h-screen" style={{ background: "var(--bg)", color: "var(--text)" }}>
+          {/* Mobile top bar */}
+          <div className="lg:hidden fixed top-0 left-0 right-0 z-40 flex items-center justify-between px-4 py-2" style={{ background: "var(--surface)", borderBottom: "1px solid var(--border)" }}>
+            <button onClick={() => setSidebarOpen(!sidebarOpen)} className="p-2 rounded" aria-label="Toggle navigation">
+              <Icon name="grid" size={20} />
+            </button>
+            <span style={{ fontFamily: "'Exo 2', system-ui, sans-serif", fontWeight: 100, fontSize: 16, letterSpacing: "0.22em", color: "var(--accent)" }}>TRACE</span>
+            <span className="text-xs" style={{ color: "var(--text-muted)" }}>{NAV.find(n => n.key === page)?.label}</span>
+          </div>
+
+          {/* Sidebar overlay (mobile) */}
+          {sidebarOpen && (
+            <div className="lg:hidden fixed inset-0 z-30" style={{ background: "rgba(0,0,0,0.5)" }} onClick={() => setSidebarOpen(false)} />
+          )}
+
           {/* Sidebar */}
-          <aside className="w-56 flex flex-col" style={{ background: "var(--surface)", borderRight: "1px solid var(--border)" }}>
-            <div className="px-5 py-4" style={{ borderBottom: "1px solid var(--border)" }}>
+          <aside className={`
+            fixed lg:static z-40 h-full flex flex-col transition-transform duration-200
+            w-56 lg:translate-x-0
+            ${sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
+          `} style={{ background: "var(--surface)", borderRight: "1px solid var(--border)" }}>
+            <div className="px-5 py-4 hidden lg:block" style={{ borderBottom: "1px solid var(--border)" }}>
               <div style={{ display: "inline-block" }}>
                 <span style={{ fontFamily: "'Exo 2', system-ui, sans-serif", fontWeight: 100, fontSize: 18, letterSpacing: "0.22em", color: "var(--accent)" }}>TRACE</span>
                 <span style={{ display: "block", height: 1, background: "var(--accent)", opacity: 0.4, marginTop: 3 }}></span>
@@ -75,11 +94,18 @@ export function App() {
               <div className="text-[9px] mt-1 tracking-widest uppercase" style={{ color: "var(--text-muted)" }}>Operator Console</div>
             </div>
 
-            <nav className="flex-1 py-2" role="navigation" aria-label="Main navigation">
+            {/* Close button on mobile */}
+            <div className="lg:hidden px-4 pt-3 pb-2 flex justify-end" style={{ borderBottom: "1px solid var(--border)" }}>
+              <button onClick={() => setSidebarOpen(false)} className="p-1 rounded" style={{ color: "var(--text-muted)" }}>
+                <Icon name="x" size={18} />
+              </button>
+            </div>
+
+            <nav className="flex-1 py-2 overflow-auto" role="navigation" aria-label="Main navigation">
               {NAV.map((n) => (
                 <Tooltip key={n.key} content={n.desc} position="right" delay={500}>
                   <button
-                    onClick={() => setPage(n.key)}
+                    onClick={() => { setPage(n.key); setSidebarOpen(false); }}
                     className="w-full text-left px-4 py-2.5 text-sm flex items-center gap-3 transition-colors"
                     style={{
                       color: page === n.key ? "var(--accent)" : "var(--text-sec)",
@@ -91,7 +117,7 @@ export function App() {
                   >
                     <Icon name={n.icon} size={18} />
                     <span className="flex-1">{n.label}</span>
-                    <span className="text-[10px] font-mono" style={{ color: "var(--text-muted)" }}>{n.shortcut}</span>
+                    <span className="text-[10px] font-mono hidden sm:inline" style={{ color: "var(--text-muted)" }}>{n.shortcut}</span>
                   </button>
                 </Tooltip>
               ))}
@@ -110,14 +136,14 @@ export function App() {
                 <Icon name="log-out" size={14} />
                 Sign Out
               </button>
-              <div className="text-[10px]" style={{ color: "var(--text-muted)" }}>
+              <div className="text-[10px] hidden lg:block" style={{ color: "var(--text-muted)" }}>
                 Press <kbd className="px-1 py-0.5 rounded text-[9px]" style={{ background: "var(--bg)", border: "1px solid var(--border)", color: "var(--text-muted)" }}>?</kbd> for shortcuts
               </div>
             </div>
           </aside>
 
           {/* Main */}
-          <main className="flex-1 overflow-auto p-6">
+          <main className="flex-1 overflow-auto p-4 lg:p-6 pt-14 lg:pt-6">
             <ErrorBoundary>
               {page === "dashboard" && <Dashboard />}
               {page === "triage"    && <Triage />}

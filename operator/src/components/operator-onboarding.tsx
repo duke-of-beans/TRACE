@@ -94,8 +94,13 @@ export function OperatorOnboarding({ onComplete }: OperatorOnboardingProps) {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-8" style={{ background: "var(--bg)" }}>
-      <div style={{ maxWidth: 520, width: "100%" }}>
-        <div className="flex gap-1.5 justify-center mb-8">
+      <div style={{
+        maxWidth: 520, width: "100%",
+        height: "min(600px, 85vh)",
+        display: "flex", flexDirection: "column",
+      }}>
+        {/* Dots — fixed at top */}
+        <div className="flex gap-1.5 justify-center mb-6" style={{ flexShrink: 0 }}>
           {STEPS.map((_, i) => (
             <div key={i} className="rounded-full" style={{
               width: 8, height: 8,
@@ -106,7 +111,11 @@ export function OperatorOnboarding({ onComplete }: OperatorOnboardingProps) {
           ))}
         </div>
 
-        <div className="rounded-xl p-8" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+        {/* Card — scrollable content */}
+        <div className="rounded-xl p-8" style={{
+          background: "var(--surface)", border: "1px solid var(--border)",
+          flex: 1, minHeight: 0, overflowY: "auto",
+        }}>
           <div className="flex items-center gap-3 mb-5">
             {current.useWordmark ? (
               <div style={{ display: "inline-block" }}>
@@ -127,30 +136,32 @@ export function OperatorOnboarding({ onComplete }: OperatorOnboardingProps) {
             </p>
           )}
 
-          <p className="text-sm leading-relaxed whitespace-pre-line" style={{ color: "var(--text-muted)", fontSize: "var(--text-xs)" }}>
+          <p className="text-sm leading-relaxed whitespace-pre-line" style={{ color: "var(--text-sec)" }}>
             {current.content}
           </p>
         </div>
 
-        <div className="flex gap-3 mt-6">
-          {step > 0 && (
-            <button onClick={() => setStep(s => s - 1)}
-              className="px-5 py-2.5 rounded-lg text-sm font-medium transition"
-              style={{ background: "transparent", border: "1px solid var(--border)", color: "var(--text-sec)" }}>
-              Back
+        {/* Navigation — pinned at bottom */}
+        <div style={{ flexShrink: 0, paddingTop: "var(--sp-6, 24px)" }}>
+          <div className="flex gap-3">
+            {step > 0 && (
+              <button onClick={() => setStep(s => s - 1)}
+                className="px-5 py-2.5 rounded-lg text-sm font-medium transition"
+                style={{ background: "transparent", border: "1px solid var(--border)", color: "var(--text-sec)" }}>
+                Back
+              </button>
+            )}
+            <button
+              onClick={isLast ? handleComplete : () => setStep(s => s + 1)}
+              className="flex-1 py-2.5 rounded-lg text-sm font-semibold transition"
+              style={{ background: "var(--accent)", color: "var(--accent-text)" }}>
+              {isLast ? "Enter Dashboard" : "Continue"}
             </button>
-          )}
-          <button
-            onClick={isLast ? handleComplete : () => setStep(s => s + 1)}
-            className="flex-1 py-2.5 rounded-lg text-sm font-semibold transition"
-            style={{ background: "var(--accent)", color: "var(--accent-text)" }}>
-            {isLast ? "Enter Dashboard" : "Continue"}
-          </button>
+          </div>
+          <p className="text-center mt-3 text-xs" style={{ color: "var(--text-muted)" }}>
+            {step + 1} of {STEPS.length}
+          </p>
         </div>
-
-        <p className="text-center mt-4 text-xs" style={{ color: "var(--text-muted)" }}>
-          {step + 1} of {STEPS.length}
-        </p>
       </div>
     </div>
   );

@@ -39,6 +39,7 @@ export function PinSetup({ onComplete }: PinSetupProps) {
         <div class="wordmark-wrap" style={{ marginBottom: "var(--sp-2)" }}>
           <span class="wordmark wordmark-md" style={{ color: "var(--text)" }}>TRACE</span>
           <span class="wordmark-rule"></span>
+          <span class="wordmark-subtitle">Field Reporter</span>
         </div>
         <h2 style={{ fontSize: "var(--text-lg)", fontWeight: 600, marginTop: "var(--sp-3)", marginBottom: "var(--sp-1)" }}>Set Your PIN</h2>
         <p class="auth-subtitle">

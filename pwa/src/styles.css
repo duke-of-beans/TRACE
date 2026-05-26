@@ -400,11 +400,15 @@ textarea.input {
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   color: var(--text);
-  font-size: 20px;
+  font-size: var(--text-base);
   font-family: var(--font-mono);
   text-align: center;
-  letter-spacing: 8px;
+  letter-spacing: 6px;
   min-height: 48px;
+}
+.pin-input::placeholder {
+  letter-spacing: 2px;
+  font-size: var(--text-sm);
 }
 .pin-input:focus {
   outline: none;
@@ -457,7 +461,7 @@ textarea.input {
   color: var(--text-sec);
   line-height: var(--leading-relaxed);
   white-space: pre-line;
-  margin-bottom: var(--sp-8);
+  margin-bottom: var(--sp-4);
 }
 
 /* ================================================================

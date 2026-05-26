@@ -58,8 +58,8 @@ export function Vehicles() {
   };
 
   return (
-    <div className="flex gap-6">
-      <div className="w-80 flex-shrink-0">
+    <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
+      <div className="w-full lg:w-80 lg:flex-shrink-0">
         <div className="flex gap-2 mb-3">
           <input placeholder="Search plate or description..." value={search}
             onChange={(e) => setSearch(e.target.value.toUpperCase())}
@@ -75,7 +75,7 @@ export function Vehicles() {
         </button>
 
         {loading ? <SkeletonList count={5} /> : vehicles.length === 0 ? <EmptyState {...EMPTY_STATES.vehicles} /> : (
-          <div className="space-y-2 max-h-[calc(100vh-12rem)] overflow-auto">
+          <div className="space-y-2 max-h-[50vh] lg:max-h-[calc(100vh-12rem)] overflow-auto">
             {vehicles.map((v) => (
               <button key={v.id} onClick={() => { setSelected(v); setAdding(false); }}
                 className={`w-full text-left p-3 rounded-lg border transition-colors ${
@@ -289,10 +289,10 @@ function VehicleDossier({ vehicle, onUpdated, onRetired }: { vehicle: any; onUpd
         <div className="mt-6">
           <div className="flex items-center gap-2 mb-2">
             <label className="text-xs uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>Sighting Locations</label>
-            <HelpTip text="Map shows all recorded sighting locations for this vehicle" />
+            <HelpTip text="Map shows all recorded sighting locations for this vehicle. Highlighted markers indicate this vehicle's sightings." />
           </div>
           <IntelMap
-            markers={sightingMarkers}
+            highlightedMarkers={sightingMarkers}
             corridors={corridorData.length > 0 ? [{ vehicleId: vehicle.id, color: "#4F46E5", segments: corridorData }] : []}
             height="280px"
           />

@@ -110,8 +110,8 @@ export function Triage() {
 
   if (loading) {
     return (
-      <div className="flex gap-6">
-        <div className="w-80"><SkeletonList count={4} /></div>
+      <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
+        <div className="w-full lg:w-80"><SkeletonList count={4} /></div>
         <div className="flex-1"><SkeletonList count={1} /></div>
       </div>
     );
@@ -127,9 +127,9 @@ export function Triage() {
   }
 
   return (
-    <div className="flex gap-6">
+    <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
       {/* Queue list */}
-      <div className="w-80 space-y-2 max-h-[calc(100vh-3rem)] overflow-auto">
+      <div className="w-full lg:w-80 space-y-2 max-h-[50vh] lg:max-h-[calc(100vh-3rem)] overflow-auto">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-lg font-semibold" style={{ color: "var(--text)" }}>
             {sightings.length} pending

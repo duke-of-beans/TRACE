@@ -68,24 +68,24 @@ sightingsRouter.post("/", async (c) => {
   return c.json(sighting, 201);
 });
 
-// --- GET /sightings — list sightings (operator triage queue) ---
+// --- GET /sightings — list sightings (operator triage queue or reporter history) ---
 sightingsRouter.get("/", async (c) => {
   const chapterId = c.req.header("x-chapter-id") || "";
+  const reporterId = c.req.query("reporterId") || c.req.header("x-reporter-id") || "";
   const untriaged = c.req.query("untriaged") === "true";
+  const vehicleId = c.req.query("vehicleId");
 
-  let query = opsDb.select().from(sightings);
+  const conditions = [eq(sightings.chapterId, chapterId)];
+  if (untriaged) conditions.push(eq(sightings.triaged, false));
+  if (reporterId) conditions.push(eq(sightings.reporterId, reporterId));
+  if (vehicleId) conditions.push(eq(sightings.vehicleId, vehicleId));
 
-  // TODO: proper filtering with chapter scope + pagination
   const results = await opsDb
     .select()
     .from(sightings)
-    .where(
-      untriaged
-        ? and(eq(sightings.chapterId, chapterId), eq(sightings.triaged, false))
-        : eq(sightings.chapterId, chapterId)
-    )
+    .where(and(...conditions))
     .orderBy(desc(sightings.submittedAt))
-    .limit(50);
+    .limit(100);
 
   return c.json(results);
 });

@@ -178,52 +178,61 @@ authRouter.post("/verify", async (c) => {
   });
 });
 
-// --- POST /auth/dev-login — DEV ONLY: login by email without magic link ---
+// --- POST /auth/dev-login — DEV ONLY: login by callsign without invite code ---
 // Remove this endpoint before production deployment.
 authRouter.post("/dev-login", async (c) => {
   if (process.env.NODE_ENV === "production") {
     return c.json({ error: "Dev login disabled in production" }, 403);
   }
 
-  const { email } = await c.req.json();
-  if (!email) return c.json({ error: "Email required" }, 400);
+  const { callsign, email } = await c.req.json();
+  const identifier = callsign || email;
+  if (!identifier) return c.json({ error: "Callsign required" }, 400);
 
-  let [identity] = await identDb
-    .select()
-    .from(reporterIdentities)
-    .where(eq(reporterIdentities.email, email))
-    .limit(1);
+  // Determine role from callsign/email
+  const isOperator = identifier.toLowerCase().includes("operator") || identifier.toLowerCase().includes("admin");
+  const normalizedCallsign = callsign
+    ? callsign.toUpperCase().replace(/[^A-Z0-9]/g, "-")
+    : identifier.split("@")[0].toUpperCase().replace(/[^A-Z0-9]/g, "-");
 
-  // DEV: fix role if email suggests operator but identity says reporter
-  if (identity && (email.includes("operator") || email.includes("admin")) && identity.role === "reporter") {
-    await identDb.update(reporterIdentities).set({ role: "operator" }).where(eq(reporterIdentities.id, identity.id));
-    identity = { ...identity, role: "operator" };
-    console.log(`[DEV] Upgraded ${email} to operator role`);
+  // Try to find existing identity by email (backward compat) or by callsign
+  let [identity] = email
+    ? await identDb.select().from(reporterIdentities).where(eq(reporterIdentities.email, email)).limit(1)
+    : [];
+
+  if (!identity && callsign) {
+    // Find reporter by callsign, then look up identity
+    const [reporter] = await opsDb.select().from(reporters).where(eq(reporters.callsign, normalizedCallsign)).limit(1);
+    if (reporter) {
+      [identity] = await identDb.select().from(reporterIdentities).where(eq(reporterIdentities.reporterId, reporter.id)).limit(1);
+    }
   }
 
-  // DEV MODE: auto-create reporter if email doesn't exist
+  // DEV: fix role if callsign suggests operator but identity says reporter
+  if (identity && isOperator && identity.role === "reporter") {
+    await identDb.update(reporterIdentities).set({ role: "operator" }).where(eq(reporterIdentities.id, identity.id));
+    identity = { ...identity, role: "operator" };
+    console.log(`[DEV] Upgraded ${normalizedCallsign} to operator role`);
+  }
+
+  // DEV MODE: auto-create if doesn't exist
   if (!identity) {
-    // find first chapter
     const [chapter] = await opsDb.select().from(chapters).limit(1);
     if (!chapter) return c.json({ error: "No chapter exists. Run seed first." }, 500);
 
-    // create reporter in Vault A
-    const callsign = email.split("@")[0].toUpperCase().replace(/[^A-Z0-9]/g, "-");
     const [reporter] = await opsDb
       .insert(reporters)
-      .values({ chapterId: chapter.id, callsign: `RPT-${callsign}` })
+      .values({ chapterId: chapter.id, callsign: normalizedCallsign })
       .returning();
 
-    // DEV: assign operator role if email suggests it
-    const role = email.includes("operator") || email.includes("admin") ? "operator" : "reporter";
+    const role = isOperator ? "operator" : "reporter";
 
-    // create identity in Vault B
     [identity] = await identDb
       .insert(reporterIdentities)
-      .values({ reporterId: reporter.id, email, role })
+      .values({ reporterId: reporter.id, email: email || undefined, role })
       .returning();
 
-    console.log(`[DEV] Auto-created ${role} "${callsign}" for ${email}`);
+    console.log(`[DEV] Auto-created ${role} "${normalizedCallsign}"`);
   }
 
   const sessionToken = randomBytes(32).toString("hex");
@@ -240,7 +249,7 @@ authRouter.post("/dev-login", async (c) => {
     sessionToken,
     reporterId: identity.reporterId,
     role: identity.role,
-    chapterId: "lookup-from-reporter", // client resolves from first API call
+    chapterId: "lookup-from-reporter",
   });
 });
 

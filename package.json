@@ -10,6 +10,9 @@
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "build": "tsc",
+    "build:pwa": "cd pwa && npm run build",
+    "build:operator": "cd operator && npm run build",
+    "build:all": "npm run build:pwa && npm run build:operator && node scripts/copy-to-public.mjs",
     "start": "node dist/index.js",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",

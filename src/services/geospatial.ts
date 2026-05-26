@@ -28,21 +28,23 @@ export async function getHeatmapData(opts: {
   startDate?: Date;
   endDate?: Date;
   gridSize?: number; // degrees, default 0.001 (~100m)
+  vehicleId?: string;
 }): Promise<HeatmapPoint[]> {
   const { chapterId, gridSize = 0.001 } = opts;
   const startDate = opts.startDate || new Date(0);
   const endDate = opts.endDate || new Date();
 
+  const conditions = [
+    eq(sightings.chapterId, chapterId),
+    gte(sightings.observedAt, startDate),
+    lte(sightings.observedAt, endDate),
+  ];
+  if (opts.vehicleId) conditions.push(eq(sightings.vehicleId, opts.vehicleId));
+
   const raw = await opsDb
     .select({ lat: sightings.lat, lng: sightings.lng })
     .from(sightings)
-    .where(
-      and(
-        eq(sightings.chapterId, chapterId),
-        gte(sightings.observedAt, startDate),
-        lte(sightings.observedAt, endDate)
-      )
-    );
+    .where(and(...conditions));
 
   // aggregate into grid cells
   const grid = new Map<string, { lat: number; lng: number; count: number }>();
@@ -130,12 +132,18 @@ export async function getCoOccurrences(opts: {
   chapterId: string;
   distanceMeters?: number;  // default 200m
   timeWindowMinutes?: number; // default 60 min
+  startDate?: Date;
+  endDate?: Date;
 }): Promise<CoOccurrence[]> {
   const { chapterId, distanceMeters = 200, timeWindowMinutes = 60 } = opts;
 
   // approximate degree distance (rough: 1 degree ~ 111km at equator)
   const degreeThreshold = distanceMeters / 111000;
   const timeThresholdMs = timeWindowMinutes * 60 * 1000;
+
+  const conditions = [eq(sightings.chapterId, chapterId)];
+  if (opts.startDate) conditions.push(gte(sightings.observedAt, opts.startDate));
+  if (opts.endDate) conditions.push(lte(sightings.observedAt, opts.endDate));
 
   const allSightings = await opsDb
     .select({
@@ -145,7 +153,7 @@ export async function getCoOccurrences(opts: {
       observedAt: sightings.observedAt,
     })
     .from(sightings)
-    .where(eq(sightings.chapterId, chapterId))
+    .where(and(...conditions))
     .orderBy(sightings.observedAt);
 
   const coOccurrences: CoOccurrence[] = [];
@@ -204,8 +212,16 @@ export async function getTemporalData(opts: {
   startDate: Date;
   endDate: Date;
   bucketMinutes?: number;
+  vehicleId?: string;
 }): Promise<TemporalBucket[]> {
   const { chapterId, startDate, endDate, bucketMinutes = 60 } = opts;
+
+  const conditions = [
+    eq(sightings.chapterId, chapterId),
+    gte(sightings.observedAt, startDate),
+    lte(sightings.observedAt, endDate),
+  ];
+  if (opts.vehicleId) conditions.push(eq(sightings.vehicleId, opts.vehicleId));
 
   const allSightings = await opsDb
     .select({
@@ -215,13 +231,7 @@ export async function getTemporalData(opts: {
       observedAt: sightings.observedAt,
     })
     .from(sightings)
-    .where(
-      and(
-        eq(sightings.chapterId, chapterId),
-        gte(sightings.observedAt, startDate),
-        lte(sightings.observedAt, endDate)
-      )
-    )
+    .where(and(...conditions))
     .orderBy(sightings.observedAt);
 
   const bucketMs = bucketMinutes * 60 * 1000;

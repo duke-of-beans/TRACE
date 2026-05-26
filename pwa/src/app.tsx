@@ -14,7 +14,7 @@ import { PanicButton } from "./components/panic-button.js";
 import { FeedbackButton } from "./components/feedback-button.js";
 import { SecurityInfo } from "./components/security-info.js";
 import { Icon } from "./components/icon.js";
-import { getToken, setToken, clearToken } from "./lib/api.js";
+import { getToken, setToken, clearToken, setReporterId } from "./lib/api.js";
 import { getQueueCount } from "./lib/queue.js";
 import { isWiped } from "./lib/panic.js";
 import { hasPIN, isLocked, lock, setupAutoLock } from "./lib/app-lock.js";
@@ -132,7 +132,7 @@ function SubmitGate({ authed, onJoin }: { authed: boolean; onJoin: () => void })
       });
       if (res.ok) {
         const data = await res.json();
-        if (data.sessionToken) { setToken(data.sessionToken); onJoin(); return; }
+        if (data.sessionToken) { setToken(data.sessionToken); if (data.reporterId) setReporterId(data.reporterId); onJoin(); return; }
       }
       const err = await res.json().catch(() => ({}));
       setStatus("error");

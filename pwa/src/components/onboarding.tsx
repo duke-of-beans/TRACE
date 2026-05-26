@@ -55,47 +55,57 @@ export function Onboarding({ onComplete }: OnboardingProps) {
 
   return (
     <div class="auth-screen">
-      <div class="auth-card" style={{ textAlign: "left", maxWidth: 420 }}>
-        <div class="onboarding-dots">
+      <div class="auth-card" style={{
+        textAlign: "left", maxWidth: 420,
+        height: "min(520px, 80vh)",
+        display: "flex", flexDirection: "column",
+      }}>
+        {/* Dots — fixed at top */}
+        <div class="onboarding-dots" style={{ flexShrink: 0 }}>
           {STEPS.map((_, i) => (
             <div key={i} class={`onboarding-dot ${i === step ? "active" : i < step ? "done" : ""}`} />
           ))}
         </div>
 
-        <div style={{ display: "flex", alignItems: "center", gap: "var(--sp-3)", marginBottom: "var(--sp-4)" }}>
-          {step === 0 ? (
-            <div class="wordmark-wrap">
-              <span class="wordmark wordmark-md" style={{ color: "var(--text)" }}>TRACE</span>
-              <span class="wordmark-rule"></span>
-            </div>
-          ) : (
-            <>
-              <Icon name={current.icon} size={24} class="text-accent" />
-              <h2 style={{ fontSize: "var(--text-xl)", fontWeight: 700 }}>{current.title}</h2>
-            </>
+        {/* Content — scrolls */}
+        <div style={{ flex: 1, overflowY: "auto", minHeight: 0, paddingRight: "var(--sp-1)" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "var(--sp-3)", marginBottom: "var(--sp-4)" }}>
+            {step === 0 ? (
+              <div class="wordmark-wrap">
+                <span class="wordmark wordmark-md" style={{ color: "var(--text)" }}>TRACE</span>
+                <span class="wordmark-rule"></span>
+              </div>
+            ) : (
+              <>
+                <Icon name={current.icon} size={24} class="text-accent" />
+                <h2 style={{ fontSize: "var(--text-xl)", fontWeight: 700 }}>{current.title}</h2>
+              </>
+            )}
+          </div>
+
+          {current.plain && (
+            <p style={{ fontSize: "var(--text-base)", color: "var(--text)", lineHeight: "var(--leading-relaxed)", marginBottom: "var(--sp-4)", fontWeight: 500 }}>
+              {current.plain}
+            </p>
           )}
+
+          <div class="onboarding-content">{current.content}</div>
         </div>
 
-        {current.plain && (
-          <p style={{ fontSize: "var(--text-base)", color: "var(--text)", lineHeight: "var(--leading-relaxed)", marginBottom: "var(--sp-4)", fontWeight: 500 }}>
-            {current.plain}
+        {/* Navigation — pinned at bottom */}
+        <div style={{ flexShrink: 0, paddingTop: "var(--sp-4)" }}>
+          <div style={{ display: "flex", gap: "var(--sp-3)" }}>
+            {step > 0 && (
+              <button class="btn btn-secondary" style={{ flex: 1 }} onClick={() => setStep((s) => s - 1)}>Back</button>
+            )}
+            <button class="btn btn-primary" style={{ flex: 2 }} onClick={isLast ? onComplete : () => setStep((s) => s + 1)}>
+              {isLast ? "Start Reporting" : "Continue"}
+            </button>
+          </div>
+          <p class="hint-text" style={{ textAlign: "center", marginTop: "var(--sp-3)" }}>
+            Step {step + 1} of {STEPS.length}
           </p>
-        )}
-
-        <div class="onboarding-content">{current.content}</div>
-
-        <div style={{ display: "flex", gap: "var(--sp-3)" }}>
-          {step > 0 && (
-            <button class="btn btn-secondary" style={{ flex: 1 }} onClick={() => setStep((s) => s - 1)}>Back</button>
-          )}
-          <button class="btn btn-primary" style={{ flex: 2 }} onClick={isLast ? onComplete : () => setStep((s) => s + 1)}>
-            {isLast ? "Start Reporting" : "Continue"}
-          </button>
         </div>
-
-        <p class="hint-text" style={{ textAlign: "center", marginTop: "var(--sp-4)" }}>
-          Step {step + 1} of {STEPS.length}
-        </p>
       </div>
     </div>
   );

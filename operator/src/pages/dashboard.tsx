@@ -29,13 +29,13 @@ export function Dashboard() {
     <div>
       <h1 className="text-2xl font-bold mb-6" style={{ color: "var(--text)" }}>Dashboard</h1>
 
-      <div className="grid grid-cols-3 gap-4 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
         <StatCard icon="zap" label="Pending Triage" value={stats.pending} color="var(--warning)" help="Sightings awaiting operator review" />
         <StatCard icon="car" label="Active Vehicles" value={stats.vehicles} color="var(--accent)" help="Vehicles currently being tracked" />
         <StatCard icon="user" label="Known Actors" value={stats.actors} color="var(--danger)" help="Identified individuals linked to vehicles" />
       </div>
 
-      <div className="grid grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <ErrorBoundary fallbackMessage="Failed to load suspicion levels">
           <div className="rounded-lg p-6" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
             <div className="flex items-center gap-2 mb-4">

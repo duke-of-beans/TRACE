@@ -20,10 +20,12 @@ geoRouter.get("/heatmap", async (c) => {
   const chapterId = c.req.header("x-chapter-id") || "";
   const start = c.req.query("start");
   const end = c.req.query("end");
+  const vehicleId = c.req.query("vehicleId");
   const data = await getHeatmapData({
     chapterId,
     startDate: start ? new Date(start) : undefined,
     endDate: end ? new Date(end) : undefined,
+    vehicleId: vehicleId || undefined,
   });
   return c.json(data);
 });
@@ -37,10 +39,14 @@ geoRouter.get("/corridor/:vehicleId", async (c) => {
 // --- GET /geo/co-occurrence ---
 geoRouter.get("/co-occurrence", async (c) => {
   const chapterId = c.req.header("x-chapter-id") || "";
+  const start = c.req.query("start");
+  const end = c.req.query("end");
   const data = await getCoOccurrences({
     chapterId,
     distanceMeters: parseInt(c.req.query("distance") || "200"),
     timeWindowMinutes: parseInt(c.req.query("timeWindow") || "60"),
+    startDate: start ? new Date(start) : undefined,
+    endDate: end ? new Date(end) : undefined,
   });
   return c.json(data);
 });
@@ -50,11 +56,13 @@ geoRouter.get("/temporal", async (c) => {
   const chapterId = c.req.header("x-chapter-id") || "";
   const start = c.req.query("start") || new Date(Date.now() - 7 * 86400000).toISOString();
   const end = c.req.query("end") || new Date().toISOString();
+  const vehicleId = c.req.query("vehicleId");
   const data = await getTemporalData({
     chapterId,
     startDate: new Date(start),
     endDate: new Date(end),
     bucketMinutes: parseInt(c.req.query("bucket") || "60"),
+    vehicleId: vehicleId || undefined,
   });
   return c.json(data);
 });

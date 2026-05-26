@@ -31,6 +31,7 @@ type MapMarker = {
 
 type IntelMapProps = {
   markers?: MapMarker[];
+  highlightedMarkers?: MapMarker[];
   heatmapData?: HeatmapPoint[];
   corridors?: { vehicleId: string; color: string; segments: CorridorSegment[] }[];
   coOccurrences?: CoOccurrence[];
@@ -42,6 +43,7 @@ type IntelMapProps = {
 // layer group refs for clean updates
 type LayerRefs = {
   markers: L.LayerGroup;
+  highlighted: L.LayerGroup;
   heatmap: L.LayerGroup;
   corridors: L.LayerGroup;
   coOccurrences: L.LayerGroup;
@@ -66,6 +68,7 @@ type TileMode = keyof typeof TILES;
 
 export function IntelMap({
   markers = [],
+  highlightedMarkers = [],
   heatmapData = [],
   corridors = [],
   coOccurrences = [],
@@ -101,6 +104,7 @@ export function IntelMap({
 
     const layers: LayerRefs = {
       markers: L.layerGroup().addTo(map),
+      highlighted: L.layerGroup().addTo(map),
       heatmap: L.layerGroup().addTo(map),
       corridors: L.layerGroup().addTo(map),
       coOccurrences: L.layerGroup().addTo(map),
@@ -109,6 +113,7 @@ export function IntelMap({
     // layer control
     L.control.layers({}, {
       "Sightings": layers.markers,
+      "Highlighted": layers.highlighted,
       "Heatmap": layers.heatmap,
       "Corridors": layers.corridors,
       "Co-occurrence": layers.coOccurrences,
@@ -139,6 +144,44 @@ export function IntelMap({
 
     fitBounds(markers.map((m) => [m.lat, m.lng]));
   }, [markers]);
+
+  // --- Highlighted Markers (selected vehicle sightings) ---
+  useEffect(() => {
+    const layer = layersRef.current?.highlighted;
+    if (!layer) return;
+    layer.clearLayers();
+
+    highlightedMarkers.forEach((m) => {
+      // outer pulse ring
+      L.circleMarker([m.lat, m.lng], {
+        radius: 14,
+        fillColor: m.color || "#818CF8",
+        color: m.color || "#818CF8",
+        weight: 2,
+        opacity: 0.3,
+        fillOpacity: 0.1,
+        className: "trace-pulse-ring",
+      }).addTo(layer);
+
+      // inner solid marker
+      L.circleMarker([m.lat, m.lng], {
+        radius: 9,
+        fillColor: m.color || "#818CF8",
+        color: "#fff",
+        weight: 2,
+        opacity: 1,
+        fillOpacity: 0.95,
+      })
+        .bindPopup(m.popup || `${m.lat.toFixed(4)}, ${m.lng.toFixed(4)}`)
+        .bindTooltip(m.label || "", { permanent: false })
+        .addTo(layer);
+    });
+
+    // fit to highlighted if present, otherwise markers
+    if (highlightedMarkers.length > 0) {
+      fitBounds(highlightedMarkers.map((m) => [m.lat, m.lng]));
+    }
+  }, [highlightedMarkers]);
 
   // --- Heatmap (canvas circles with opacity by weight) ---
   useEffect(() => {
