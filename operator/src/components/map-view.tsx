@@ -27,6 +27,7 @@ type CoOccurrence = {
 type MapMarker = {
   lat: number; lng: number;
   label?: string; color?: string; popup?: string;
+  data?: Record<string, any>;
 };
 
 type DispatchPin = {
@@ -52,6 +53,7 @@ type IntelMapProps = {
   dispatchPins?: DispatchPin[];
   onPlacePin?: (lat: number, lng: number) => void;
   onPinClick?: (pin: DispatchPin) => void;
+  onMarkerClick?: (marker: MapMarker) => void;
   center?: [number, number];
   zoom?: number;
   height?: string;
@@ -99,6 +101,7 @@ export function IntelMap({
   dispatchPins = [],
   onPlacePin,
   onPinClick,
+  onMarkerClick,
   center = [34.0, -118.5],
   zoom = 12,
   height = "500px",
@@ -108,6 +111,11 @@ export function IntelMap({
   const layersRef = useRef<LayerRefs | null>(null);
   const tileRef = useRef<L.TileLayer | null>(null);
   const [tileMode, setTileMode] = useState<TileMode>("satellite");
+  // Stable refs for callbacks to avoid effect re-triggers
+  const onPinClickRef = useRef(onPinClick);
+  onPinClickRef.current = onPinClick;
+  const onMarkerClickRef = useRef(onMarkerClick);
+  onMarkerClickRef.current = onMarkerClick;
 
   // switch tile layer
   const switchTiles = useCallback((mode: TileMode) => {
@@ -124,6 +132,20 @@ export function IntelMap({
     if (!mapRef.current || leafletRef.current) return;
 
     const map = L.map(mapRef.current, { zoomControl: true }).setView(center, zoom);
+
+    // Inject pulse animation CSS
+    if (!document.getElementById("trace-pulse-css")) {
+      const style = document.createElement("style");
+      style.id = "trace-pulse-css";
+      style.textContent = `
+        @keyframes pulse {
+          0% { opacity: 1; box-shadow: 0 0 8px rgba(217,119,6,0.5); }
+          50% { opacity: 0.6; box-shadow: 0 0 20px rgba(217,119,6,0.8); }
+          100% { opacity: 1; box-shadow: 0 0 8px rgba(217,119,6,0.5); }
+        }
+      `;
+      document.head.appendChild(style);
+    }
 
     // default tiles
     const t = TILES.satellite;
@@ -187,14 +209,19 @@ export function IntelMap({
     layer.clearLayers();
 
     markers.forEach((m) => {
-      L.circleMarker([m.lat, m.lng], {
+      const cm = L.circleMarker([m.lat, m.lng], {
         radius: 7,
         fillColor: m.color || "#4fc3f7",
         color: "#fff", weight: 1.5, opacity: 1, fillOpacity: 0.85,
       })
-        .bindPopup(m.popup || `${m.lat.toFixed(4)}, ${m.lng.toFixed(4)}`)
         .bindTooltip(m.label || "", { permanent: false })
         .addTo(layer);
+
+      cm.on("click", () => {
+        if (onMarkerClickRef.current) {
+          onMarkerClickRef.current(m);
+        }
+      });
     });
 
     fitBounds(markers.map((m) => [m.lat, m.lng]));
@@ -333,13 +360,6 @@ export function IntelMap({
     if (!layer) return;
     layer.clearLayers();
 
-    // Clear temp pin when real pins render
-    const map = leafletRef.current;
-    if (map && (map as any)._tempPin) {
-      (map as any)._tempPin.remove();
-      (map as any)._tempPin = null;
-    }
-
     dispatchPins.forEach((pin) => {
       const color = pin.eventTypeColor || PRIORITY_COLORS[pin.priority] || PRIORITY_COLORS.routine;
       const isDraft = pin.status === "draft";
@@ -372,10 +392,10 @@ export function IntelMap({
         <div style="color:#999;margin-top:4px;">${timeAgo} · ${pin.status}</div>
       </div>`);
 
-      marker.on("click", () => { if (onPinClick) onPinClick(pin); });
+      marker.on("click", () => { if (onPinClickRef.current) onPinClickRef.current(pin); });
       marker.addTo(layer);
     });
-  }, [dispatchPins, onPinClick]);
+  }, [dispatchPins]);
 
   return (
     <div style={{ position: "relative" }}>
@@ -416,3 +436,4 @@ function weightToColor(w: number): string {
 
 // re-export the simple MapView for backward compat
 export { IntelMap as MapView };
+export type { MapMarker, DispatchPin };

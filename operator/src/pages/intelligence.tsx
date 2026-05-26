@@ -8,6 +8,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { api } from "../lib/api.js";
 import { IntelMap } from "../components/map-view.js";
+import type { MapMarker } from "../components/map-view.js";
 import { TimeSlider } from "../components/time-slider.js";
 
 type HeatmapPoint = { lat: number; lng: number; weight: number };
@@ -47,10 +48,12 @@ export function Intelligence() {
 
   // --- Dispatch state ---
   const [dispatchPins, setDispatchPins] = useState<any[]>([]);
+  const [rawDispatches, setRawDispatches] = useState<any[]>([]);
   const [placingPin, setPlacingPin] = useState<{ lat: number; lng: number } | null>(null);
   const [reporters, setReporters] = useState<any[]>([]);
   const [eventTypes, setEventTypes] = useState<any[]>([]);
   const [selectedPin, setSelectedPin] = useState<any>(null);
+  const [selectedMarker, setSelectedMarker] = useState<MapMarker | null>(null);
   const [temporalBuckets, setTemporalBuckets] = useState<TemporalBucket[]>([]);
   const [sliderIndex, setSliderIndex] = useState(0);
   const [playing, setPlaying] = useState(false);
@@ -69,19 +72,23 @@ export function Intelligence() {
   const loadDispatchPins = async () => {
     try {
       const all = await api.getDispatches();
-      // Enrich with event type info
-      const enriched = (all as any[]).map((d: any) => {
-        const et = eventTypes.find((t: any) => t.id === d.eventTypeId);
-        return {
-          ...d,
-          eventTypeLabel: et?.label,
-          eventTypeIcon: et?.icon,
-          eventTypeColor: et?.color,
-        };
-      });
-      setDispatchPins(enriched);
+      setRawDispatches(Array.isArray(all) ? all : []);
     } catch {}
   };
+
+  // Enrich dispatches when either raw data or event types change
+  useEffect(() => {
+    const enriched = rawDispatches.map((d: any) => {
+      const et = eventTypes.find((t: any) => t.id === d.eventTypeId);
+      return {
+        ...d,
+        eventTypeLabel: et?.label,
+        eventTypeIcon: et?.icon,
+        eventTypeColor: et?.color,
+      };
+    });
+    setDispatchPins(enriched);
+  }, [rawDispatches, eventTypes]);
 
   // compute active date range
   const getActiveRange = useCallback(() => {
@@ -169,13 +176,15 @@ export function Intelligence() {
       return {
         lat: p.lat, lng: p.lng,
         color: "#f1c40f",
-        popup: `<div style="font-family:system-ui;font-size:12px;min-width:140px;">
-          ${p.plate ? `<div style="font-family:monospace;font-weight:700;letter-spacing:0.1em;margin-bottom:4px;">${p.plate}</div>` : ""}
-          ${p.activityDescription ? `<div style="color:#555;margin-bottom:4px;">${p.activityDescription.slice(0, 100)}</div>` : ""}
-          ${timeStr ? `<div style="color:#999;font-size:11px;">${timeStr}</div>` : ""}
-          <div style="color:#999;font-size:11px;">${p.lat.toFixed(4)}, ${p.lng.toFixed(4)}</div>
-        </div>`,
         label: p.plate || "",
+        data: {
+          plate: p.plate,
+          activityDescription: p.activityDescription,
+          observedAt: p.observedAt,
+          direction: p.direction,
+          vehicleId: p.vehicleId,
+          sightingId: p.id,
+        },
       };
     });
   }, [temporalBuckets, sliderIndex]);
@@ -353,8 +362,9 @@ export function Intelligence() {
         corridors={corridors}
         coOccurrences={coOccurrences}
         dispatchPins={dispatchPins}
-        onPlacePin={(lat, lng) => { setPlacingPin({ lat, lng }); setSelectedPin(null); }}
-        onPinClick={(pin) => { setSelectedPin(pin); setPlacingPin(null); setDispatchPins(p => [...p]); }}
+        onPlacePin={(lat, lng) => { setPlacingPin({ lat, lng }); setSelectedPin(null); setSelectedMarker(null); }}
+        onPinClick={(pin) => { setSelectedPin(pin); setPlacingPin(null); setSelectedMarker(null); setDispatchPins(p => [...p]); }}
+        onMarkerClick={(marker) => { setSelectedMarker(marker); setSelectedPin(null); setPlacingPin(null); }}
         height="calc(100vh - 380px)"
       />
 
@@ -423,6 +433,18 @@ export function Intelligence() {
             await api.closeDispatch(selectedPin.id, "operator_closed").catch(() => {});
             setSelectedPin(null);
             loadDispatchPins();
+          }}
+        />
+      )}
+
+      {/* Sighting detail panel */}
+      {selectedMarker && (
+        <SightingDetailPanel
+          marker={selectedMarker}
+          onClose={() => setSelectedMarker(null)}
+          onCreateDispatch={(lat, lng) => {
+            setPlacingPin({ lat, lng });
+            setSelectedMarker(null);
           }}
         />
       )}
@@ -638,6 +660,68 @@ function PinDetailPanel({ pin, reporters, onClose, onDispatch, onCloseDispatch }
           </div>
         </>
       )}
+    </div>
+  );
+}
+
+// --- Sighting Detail Panel ---
+function SightingDetailPanel({ marker, onClose, onCreateDispatch }: {
+  marker: MapMarker; onClose: () => void;
+  onCreateDispatch: (lat: number, lng: number) => void;
+}) {
+  const d = marker.data || {};
+  const timeStr = d.observedAt ? new Date(d.observedAt).toLocaleString() : "";
+  const timeAgo = (() => {
+    if (!d.observedAt) return "";
+    const mins = Math.round((Date.now() - new Date(d.observedAt).getTime()) / 60000);
+    if (mins < 1) return "just now";
+    if (mins < 60) return `${mins}m ago`;
+    if (mins < 1440) return `${Math.round(mins / 60)}h ago`;
+    return `${Math.round(mins / 1440)}d ago`;
+  })();
+
+  return (
+    <div className="mt-4 bg-trace-surface rounded-lg p-5 border border-trace-border">
+      <div className="flex justify-between items-center mb-3">
+        <div className="flex items-center gap-2">
+          <span className="text-xs px-2 py-0.5 rounded font-semibold"
+            style={{ background: "#f1c40f", color: "#000" }}>
+            Sighting
+          </span>
+          {d.plate && (
+            <span className="font-mono font-bold tracking-wider text-sm">{d.plate}</span>
+          )}
+        </div>
+        <button onClick={onClose} style={{ color: "var(--text-muted)", background: "none", border: "none", cursor: "pointer" }}>✕</button>
+      </div>
+
+      {d.activityDescription && (
+        <p className="text-sm mb-2" style={{ color: "var(--text-sec)" }}>{d.activityDescription}</p>
+      )}
+
+      <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs mb-3" style={{ color: "var(--text-muted)" }}>
+        {timeStr && (
+          <div><span style={{ color: "var(--text-sec)" }}>Observed:</span> {timeStr} ({timeAgo})</div>
+        )}
+        {d.direction && (
+          <div><span style={{ color: "var(--text-sec)" }}>Heading:</span> {d.direction}</div>
+        )}
+        <div><span style={{ color: "var(--text-sec)" }}>Location:</span> {marker.lat.toFixed(5)}, {marker.lng.toFixed(5)}</div>
+      </div>
+
+      <div className="flex gap-2">
+        <button
+          onClick={() => onCreateDispatch(marker.lat, marker.lng)}
+          className="px-4 py-2 rounded-lg text-xs font-semibold"
+          style={{ background: "var(--accent)", color: "var(--accent-text)" }}>
+          Create dispatch here
+        </button>
+        <button onClick={onClose}
+          className="px-4 py-2 rounded-lg text-xs"
+          style={{ background: "var(--bg)", border: "1px solid var(--border)", color: "var(--text-sec)" }}>
+          Close
+        </button>
+      </div>
     </div>
   );
 }

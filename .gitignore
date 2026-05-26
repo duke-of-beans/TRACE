@@ -14,3 +14,7 @@ coverage/
 .DS_Store
 Thumbs.db
 .vercel
+_migrate.bat  
+_seed.bat  
+_migrate.bat 
+_seed.bat 
