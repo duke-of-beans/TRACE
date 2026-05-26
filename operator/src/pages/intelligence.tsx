@@ -44,6 +44,13 @@ export function Intelligence() {
   const [heatmap, setHeatmap] = useState<HeatmapPoint[]>([]);
   const [corridors, setCorridors] = useState<Corridor[]>([]);
   const [coOccurrences, setCoOccurrences] = useState<CoOccurrence[]>([]);
+
+  // --- Dispatch state ---
+  const [dispatchPins, setDispatchPins] = useState<any[]>([]);
+  const [placingPin, setPlacingPin] = useState<{ lat: number; lng: number } | null>(null);
+  const [reporters, setReporters] = useState<any[]>([]);
+  const [eventTypes, setEventTypes] = useState<any[]>([]);
+  const [selectedPin, setSelectedPin] = useState<any>(null);
   const [temporalBuckets, setTemporalBuckets] = useState<TemporalBucket[]>([]);
   const [sliderIndex, setSliderIndex] = useState(0);
   const [playing, setPlaying] = useState(false);
@@ -54,7 +61,27 @@ export function Intelligence() {
   // load vehicle list for filter dropdown
   useEffect(() => {
     api.getVehicles().then((v) => setVehicles(Array.isArray(v) ? v : [])).catch(() => {});
+    api.getDispatchEventTypes().then(setEventTypes).catch(() => {});
+    api.getReporters().then(setReporters).catch(() => {});
+    loadDispatchPins();
   }, []);
+
+  const loadDispatchPins = async () => {
+    try {
+      const all = await api.getDispatches();
+      // Enrich with event type info
+      const enriched = (all as any[]).map((d: any) => {
+        const et = eventTypes.find((t: any) => t.id === d.eventTypeId);
+        return {
+          ...d,
+          eventTypeLabel: et?.label,
+          eventTypeIcon: et?.icon,
+          eventTypeColor: et?.color,
+        };
+      });
+      setDispatchPins(enriched);
+    } catch {}
+  };
 
   // compute active date range
   const getActiveRange = useCallback(() => {
@@ -317,6 +344,9 @@ export function Intelligence() {
         heatmapData={heatmap}
         corridors={corridors}
         coOccurrences={coOccurrences}
+        dispatchPins={dispatchPins}
+        onPlacePin={(lat, lng) => { setPlacingPin({ lat, lng }); setSelectedPin(null); }}
+        onPinClick={(pin) => { setSelectedPin(pin); setPlacingPin(null); }}
         height="calc(100vh - 380px)"
       />
 
@@ -349,6 +379,247 @@ export function Intelligence() {
         <div className="mt-4 text-center py-6 text-sm" style={{ color: "var(--text-muted)" }}>
           No sighting data in this range.{vehicleFilter ? " Try removing the vehicle filter." : " Try expanding the date range."}
         </div>
+      )}
+
+      {/* Right-click pin placement form */}
+      {placingPin && (
+        <PinCreationForm
+          lat={placingPin.lat}
+          lng={placingPin.lng}
+          eventTypes={eventTypes}
+          reporters={reporters}
+          onSave={async (data) => {
+            try {
+              await api.createDispatch({ ...data, lat: placingPin.lat, lng: placingPin.lng });
+              setPlacingPin(null);
+              loadDispatchPins();
+            } catch {}
+          }}
+          onCancel={() => setPlacingPin(null)}
+        />
+      )}
+
+      {/* Selected pin detail */}
+      {selectedPin && (
+        <PinDetailPanel
+          pin={selectedPin}
+          reporters={reporters}
+          onClose={() => setSelectedPin(null)}
+          onDispatch={async (reporterIds) => {
+            for (const rid of reporterIds) {
+              await api.assignReporter(selectedPin.id, rid).catch(() => {});
+            }
+            loadDispatchPins();
+          }}
+          onCloseDispatch={async () => {
+            await api.closeDispatch(selectedPin.id, "operator_closed").catch(() => {});
+            setSelectedPin(null);
+            loadDispatchPins();
+          }}
+        />
+      )}
+
+      {/* Hint */}
+      <p className="text-xs mt-2" style={{ color: "var(--text-muted)", opacity: 0.6 }}>
+        Right-click the map to place a dispatch pin.
+      </p>
+    </div>
+  );
+}
+
+// --- Pin Creation Form ---
+function PinCreationForm({ lat, lng, eventTypes, reporters, onSave, onCancel }: {
+  lat: number; lng: number; eventTypes: any[]; reporters: any[];
+  onSave: (data: any) => void; onCancel: () => void;
+}) {
+  const [eventTypeId, setEventTypeId] = useState(eventTypes[0]?.id || "");
+  const [priority, setPriority] = useState("routine");
+  const [plate, setPlate] = useState("");
+  const [notes, setNotes] = useState("");
+  const [locationDesc, setLocationDesc] = useState("");
+  const [source, setSource] = useState("community_call");
+  const [selectedReporters, setSelectedReporters] = useState<string[]>([]);
+  const [sending, setSending] = useState(false);
+
+  return (
+    <div className="mt-4 bg-trace-surface rounded-lg p-5 border border-trace-border">
+      <div className="flex justify-between items-center mb-4">
+        <h3 className="text-sm font-semibold">Place Dispatch Pin</h3>
+        <button onClick={onCancel} style={{ color: "var(--text-muted)", background: "none", border: "none", cursor: "pointer" }}>✕</button>
+      </div>
+
+      <div className="text-xs font-mono mb-3" style={{ color: "var(--text-muted)" }}>
+        {lat.toFixed(5)}, {lng.toFixed(5)}
+      </div>
+
+      <div className="grid grid-cols-2 gap-3 mb-3">
+        {/* Location description */}
+        <div className="col-span-2">
+          <input placeholder="Location (e.g. Elm St near Shell station)" value={locationDesc}
+            onChange={(e) => setLocationDesc(e.target.value)}
+            className="w-full bg-trace-bg border border-trace-border rounded-lg px-3 py-2 text-sm" />
+        </div>
+
+        {/* Event type */}
+        {eventTypes.length > 0 && (
+          <select value={eventTypeId} onChange={(e) => setEventTypeId(e.target.value)}
+            className="bg-trace-bg border border-trace-border rounded-lg px-3 py-2 text-sm" style={{ colorScheme: "dark" }}>
+            {eventTypes.map((t: any) => <option key={t.id} value={t.id}>{t.label}</option>)}
+          </select>
+        )}
+
+        {/* Source */}
+        <select value={source} onChange={(e) => setSource(e.target.value)}
+          className="bg-trace-bg border border-trace-border rounded-lg px-3 py-2 text-sm" style={{ colorScheme: "dark" }}>
+          <option value="community_call">Community call</option>
+          <option value="operator">Operator decision</option>
+          <option value="intelligence">Intelligence</option>
+        </select>
+      </div>
+
+      {/* Priority */}
+      <div className="flex gap-2 mb-3">
+        {[
+          { key: "urgent", label: "Urgent", color: "#DC2626" },
+          { key: "routine", label: "Routine", color: "#D97706" },
+          { key: "info", label: "Info", color: "#64748B" },
+        ].map((p) => (
+          <button key={p.key} onClick={() => setPriority(p.key)}
+            className="flex-1 py-1.5 rounded text-xs font-medium transition"
+            style={{
+              background: priority === p.key ? p.color : "var(--bg)",
+              color: priority === p.key ? "#fff" : "var(--text-sec)",
+              border: `1px solid ${priority === p.key ? p.color : "var(--border)"}`,
+            }}>{p.label}</button>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-2 gap-3 mb-3">
+        {/* Plate (optional) */}
+        <input placeholder="Plate (optional)" value={plate}
+          onChange={(e) => setPlate(e.target.value.toUpperCase())}
+          className="bg-trace-bg border border-trace-border rounded-lg px-3 py-2 text-sm font-mono" />
+
+        {/* Notes */}
+        <input placeholder="Notes (optional)" value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+          className="bg-trace-bg border border-trace-border rounded-lg px-3 py-2 text-sm" />
+      </div>
+
+      {/* Reporter selection */}
+      {reporters.length > 0 && (
+        <div className="mb-3">
+          <div className="flex justify-between items-center mb-1">
+            <span className="text-xs" style={{ color: "var(--text-muted)" }}>Dispatch to (optional)</span>
+            <button onClick={() => setSelectedReporters(reporters.map((r: any) => r.id))}
+              className="text-xs" style={{ color: "var(--accent)", background: "none", border: "none", cursor: "pointer" }}>All</button>
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            {reporters.map((r: any) => (
+              <button key={r.id}
+                onClick={() => setSelectedReporters((prev) => prev.includes(r.id) ? prev.filter((x) => x !== r.id) : [...prev, r.id])}
+                className="px-2.5 py-1 rounded text-xs transition"
+                style={{
+                  background: selectedReporters.includes(r.id) ? "var(--accent)" : "var(--bg)",
+                  color: selectedReporters.includes(r.id) ? "#fff" : "var(--text-sec)",
+                  border: `1px solid ${selectedReporters.includes(r.id) ? "var(--accent)" : "var(--border)"}`,
+                }}>{r.callsign || r.id.slice(0, 8)}</button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Actions */}
+      <div className="flex gap-2">
+        <button onClick={async () => {
+          setSending(true);
+          await onSave({
+            eventTypeId: eventTypeId || undefined,
+            priority, plate: plate || undefined,
+            notes: notes || undefined,
+            locationDescription: locationDesc || undefined,
+            source,
+            reporterIds: selectedReporters.length > 0 ? selectedReporters : undefined,
+          });
+          setSending(false);
+        }} disabled={sending}
+          className="flex-1 py-2 rounded-lg text-sm font-semibold transition disabled:opacity-50"
+          style={{ background: selectedReporters.length > 0 ? (priority === "urgent" ? "#DC2626" : "var(--accent)") : "var(--surface-alt, var(--bg))", color: selectedReporters.length > 0 ? "#fff" : "var(--text)", border: "1px solid var(--border)" }}>
+          {sending ? "Saving..." : selectedReporters.length > 0 ? `Dispatch ${selectedReporters.length} patroller${selectedReporters.length !== 1 ? "s" : ""}` : "Save Pin"}
+        </button>
+        <button onClick={onCancel} className="px-4 py-2 rounded-lg text-sm"
+          style={{ background: "var(--bg)", border: "1px solid var(--border)", color: "var(--text-sec)" }}>
+          Cancel
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// --- Pin Detail Panel ---
+function PinDetailPanel({ pin, reporters, onClose, onDispatch, onCloseDispatch }: {
+  pin: any; reporters: any[]; onClose: () => void;
+  onDispatch: (reporterIds: string[]) => void; onCloseDispatch: () => void;
+}) {
+  const [selectedReporters, setSelectedReporters] = useState<string[]>([]);
+  const timeAgo = (() => {
+    const mins = Math.round((Date.now() - new Date(pin.createdAt).getTime()) / 60000);
+    if (mins < 1) return "just now";
+    if (mins < 60) return `${mins}m ago`;
+    return `${Math.round(mins / 60)}h ago`;
+  })();
+
+  return (
+    <div className="mt-4 bg-trace-surface rounded-lg p-5 border border-trace-border">
+      <div className="flex justify-between items-center mb-3">
+        <div className="flex items-center gap-2">
+          <span className="text-xs px-2 py-0.5 rounded font-semibold"
+            style={{ background: pin.priority === "urgent" ? "#DC2626" : pin.priority === "routine" ? "#D97706" : "#64748B", color: "#fff" }}>
+            {pin.priority}
+          </span>
+          <span className="text-sm font-semibold">{pin.eventTypeLabel || "Dispatch"}</span>
+        </div>
+        <button onClick={onClose} style={{ color: "var(--text-muted)", background: "none", border: "none", cursor: "pointer" }}>✕</button>
+      </div>
+
+      {pin.plate && <div className="font-mono font-bold tracking-wider mb-1">{pin.plate}</div>}
+      {pin.notes && <p className="text-sm mb-2" style={{ color: "var(--text-sec)" }}>{pin.notes}</p>}
+      <div className="text-xs mb-3" style={{ color: "var(--text-muted)" }}>{timeAgo} · {pin.status}</div>
+
+      {pin.status !== "closed" && pin.status !== "expired" && (
+        <>
+          {reporters.length > 0 && (
+            <div className="mb-3">
+              <span className="text-xs" style={{ color: "var(--text-muted)" }}>Add patrollers:</span>
+              <div className="flex flex-wrap gap-1.5 mt-1">
+                {reporters.map((r: any) => (
+                  <button key={r.id}
+                    onClick={() => setSelectedReporters((prev) => prev.includes(r.id) ? prev.filter((x) => x !== r.id) : [...prev, r.id])}
+                    className="px-2.5 py-1 rounded text-xs transition"
+                    style={{
+                      background: selectedReporters.includes(r.id) ? "var(--accent)" : "var(--bg)",
+                      color: selectedReporters.includes(r.id) ? "#fff" : "var(--text-sec)",
+                      border: `1px solid ${selectedReporters.includes(r.id) ? "var(--accent)" : "var(--border)"}`,
+                    }}>{r.callsign || r.id.slice(0, 8)}</button>
+                ))}
+              </div>
+            </div>
+          )}
+          <div className="flex gap-2">
+            {selectedReporters.length > 0 && (
+              <button onClick={() => { onDispatch(selectedReporters); setSelectedReporters([]); }}
+                className="flex-1 py-2 rounded-lg text-sm font-semibold"
+                style={{ background: "var(--accent)", color: "var(--accent-text)" }}>
+                Dispatch {selectedReporters.length}
+              </button>
+            )}
+            <button onClick={onCloseDispatch}
+              className="px-4 py-2 rounded-lg text-sm"
+              style={{ background: "var(--bg)", border: "1px solid var(--border)", color: "var(--text-muted)" }}>
+              Close Pin
+            </button>
+          </div>
+        </>
       )}
     </div>
   );

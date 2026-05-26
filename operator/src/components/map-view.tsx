@@ -29,12 +29,29 @@ type MapMarker = {
   label?: string; color?: string; popup?: string;
 };
 
+type DispatchPin = {
+  id: string;
+  lat: number;
+  lng: number;
+  priority: string;
+  status: string;
+  plate?: string;
+  notes?: string;
+  eventTypeLabel?: string;
+  eventTypeIcon?: string;
+  eventTypeColor?: string;
+  createdAt: string;
+};
+
 type IntelMapProps = {
   markers?: MapMarker[];
   highlightedMarkers?: MapMarker[];
   heatmapData?: HeatmapPoint[];
   corridors?: { vehicleId: string; color: string; segments: CorridorSegment[] }[];
   coOccurrences?: CoOccurrence[];
+  dispatchPins?: DispatchPin[];
+  onPlacePin?: (lat: number, lng: number) => void;
+  onPinClick?: (pin: DispatchPin) => void;
   center?: [number, number];
   zoom?: number;
   height?: string;
@@ -47,6 +64,13 @@ type LayerRefs = {
   heatmap: L.LayerGroup;
   corridors: L.LayerGroup;
   coOccurrences: L.LayerGroup;
+  dispatchPins: L.LayerGroup;
+};
+
+const PRIORITY_COLORS: Record<string, string> = {
+  urgent: "#DC2626",
+  routine: "#D97706",
+  info: "#64748B",
 };
 
 const TILES = {
@@ -72,6 +96,9 @@ export function IntelMap({
   heatmapData = [],
   corridors = [],
   coOccurrences = [],
+  dispatchPins = [],
+  onPlacePin,
+  onPinClick,
   center = [34.0, -118.5],
   zoom = 12,
   height = "500px",
@@ -108,6 +135,7 @@ export function IntelMap({
       heatmap: L.layerGroup().addTo(map),
       corridors: L.layerGroup().addTo(map),
       coOccurrences: L.layerGroup().addTo(map),
+      dispatchPins: L.layerGroup().addTo(map),
     };
 
     // layer control
@@ -117,10 +145,19 @@ export function IntelMap({
       "Heatmap": layers.heatmap,
       "Corridors": layers.corridors,
       "Co-occurrence": layers.coOccurrences,
+      "Dispatch Pins": layers.dispatchPins,
     }, { collapsed: false, position: "topright" }).addTo(map);
 
     leafletRef.current = map;
     layersRef.current = layers;
+
+    // Right-click / long-press to place dispatch pin
+    map.on("contextmenu", (e: any) => {
+      if (onPlacePin) {
+        e.originalEvent.preventDefault();
+        onPlacePin(e.latlng.lat, e.latlng.lng);
+      }
+    });
 
     return () => { map.remove(); leafletRef.current = null; };
   }, []);
@@ -271,6 +308,49 @@ export function IntelMap({
     const bounds = L.latLngBounds(points as L.LatLngExpression[]);
     map.fitBounds(bounds, { padding: [40, 40], maxZoom: 15 });
   }, []);
+
+  // --- Dispatch Pins ---
+  useEffect(() => {
+    const layer = layersRef.current?.dispatchPins;
+    if (!layer) return;
+    layer.clearLayers();
+
+    dispatchPins.forEach((pin) => {
+      const color = pin.eventTypeColor || PRIORITY_COLORS[pin.priority] || PRIORITY_COLORS.routine;
+      const isDraft = pin.status === "draft";
+
+      const iconHtml = `<div style="
+        width:28px;height:28px;transform:rotate(45deg);
+        background:${isDraft ? "transparent" : color};
+        border:3px solid ${color};
+        border-radius:4px;display:flex;align-items:center;justify-content:center;
+        box-shadow:0 2px 8px rgba(0,0,0,0.3);
+      "><span style="transform:rotate(-45deg);font-size:10px;color:#fff;font-weight:700;">
+        ${pin.priority === "urgent" ? "!" : ""}
+      </span></div>`;
+
+      const marker = L.marker([pin.lat, pin.lng], {
+        icon: L.divIcon({ className: "", html: iconHtml, iconSize: [28, 28], iconAnchor: [14, 14] }),
+      });
+
+      const timeAgo = (() => {
+        const mins = Math.round((Date.now() - new Date(pin.createdAt).getTime()) / 60000);
+        if (mins < 1) return "just now";
+        if (mins < 60) return `${mins}m ago`;
+        return `${Math.round(mins / 60)}h ago`;
+      })();
+
+      marker.bindPopup(`<div style="min-width:150px;font-family:system-ui;font-size:12px;">
+        <div style="font-weight:700;margin-bottom:4px;">${pin.eventTypeLabel || "Dispatch"}</div>
+        ${pin.plate ? `<div style="font-family:monospace;letter-spacing:0.1em;font-weight:600;">${pin.plate}</div>` : ""}
+        ${pin.notes ? `<div style="color:#666;margin-top:4px;">${pin.notes.slice(0, 80)}</div>` : ""}
+        <div style="color:#999;margin-top:4px;">${timeAgo} · ${pin.status}</div>
+      </div>`);
+
+      marker.on("click", () => { if (onPinClick) onPinClick(pin); });
+      marker.addTo(layer);
+    });
+  }, [dispatchPins, onPinClick]);
 
   return (
     <div style={{ position: "relative" }}>
