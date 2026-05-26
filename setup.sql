@@ -1,5 +1,6 @@
 -- ============================================================
--- TRACE — Complete Database Setup
+-- TRACE — Tracking, Reporting, Analysis & Community Evidence
+-- Complete Database Setup
 -- 
 -- Paste this entire file into the Neon SQL Editor and click Run.
 -- It creates everything TRACE needs in one step.

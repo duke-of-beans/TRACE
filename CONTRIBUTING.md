@@ -1,5 +1,7 @@
 # Contributing to TRACE
 
+**T**racking, **R**eporting, **A**nalysis & **C**ommunity **E**vidence
+
 ## Development Setup
 
 ### Prerequisites

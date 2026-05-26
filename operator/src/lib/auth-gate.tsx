@@ -230,6 +230,7 @@ function Logo() {
     <div style={{ display: "inline-block" }}>
       <span style={{ fontFamily: "'Exo 2', system-ui, sans-serif", fontWeight: 100, fontSize: 32, letterSpacing: "0.22em", color: "var(--accent)" }}>TRACE</span>
       <span style={{ display: "block", height: 1, background: "var(--accent)", opacity: 0.5, marginTop: 4 }}></span>
+      <span style={{ display: "block", fontSize: 8, letterSpacing: "0.08em", color: "var(--text-muted)", marginTop: 6, textAlign: "center" }}>Tracking · Reporting · Analysis · Community Evidence</span>
     </div>
   );
 }

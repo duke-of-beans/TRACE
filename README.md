@@ -1,6 +1,6 @@
 # TRACE
 
-**Tracking, Reporting, Analysis & Community Evidence**
+**T**racking, **R**eporting, **A**nalysis & **C**ommunity **E**vidence
 
 Community vehicle tracking platform for neighborhood safety chapters. Reporters submit sightings from their phones. Operators triage, dispatch, and build intelligence from a desktop console. Three-vault database architecture ensures reporter identities stay separate from operational data.
 
