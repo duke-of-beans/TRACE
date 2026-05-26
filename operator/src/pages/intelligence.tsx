@@ -164,12 +164,20 @@ export function Intelligence() {
 
   // temporal markers for current slider position
   const temporalMarkers = useMemo(() => {
-    return (temporalBuckets[sliderIndex]?.points || []).map((p: any) => ({
-      lat: p.lat, lng: p.lng,
-      color: "#f1c40f",
-      popup: `Vehicle: ${p.vehicleId?.slice(0, 8) || "unknown"}`,
-      label: p.vehicleId?.slice(0, 8) || "",
-    }));
+    return (temporalBuckets[sliderIndex]?.points || []).map((p: any) => {
+      const timeStr = p.observedAt ? new Date(p.observedAt).toLocaleTimeString() : "";
+      return {
+        lat: p.lat, lng: p.lng,
+        color: "#f1c40f",
+        popup: `<div style="font-family:system-ui;font-size:12px;min-width:140px;">
+          ${p.plate ? `<div style="font-family:monospace;font-weight:700;letter-spacing:0.1em;margin-bottom:4px;">${p.plate}</div>` : ""}
+          ${p.activityDescription ? `<div style="color:#555;margin-bottom:4px;">${p.activityDescription.slice(0, 100)}</div>` : ""}
+          ${timeStr ? `<div style="color:#999;font-size:11px;">${timeStr}</div>` : ""}
+          <div style="color:#999;font-size:11px;">${p.lat.toFixed(4)}, ${p.lng.toFixed(4)}</div>
+        </div>`,
+        label: p.plate || "",
+      };
+    });
   }, [temporalBuckets, sliderIndex]);
 
   // total sightings across all buckets

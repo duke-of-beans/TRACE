@@ -78,12 +78,13 @@ export type CorridorSegment = {
 
 /**
  * Generate corridor data for a specific vehicle.
- * Returns ordered sighting locations to draw movement paths.
+ * Tries vehicleId first, falls back to plate matching.
  */
 export async function getVehicleCorridor(
   vehicleId: string
 ): Promise<CorridorSegment[]> {
-  const points = await opsDb
+  // First try by vehicleId
+  let points = await opsDb
     .select({
       lat: sightings.lat,
       lng: sightings.lng,
@@ -92,6 +93,22 @@ export async function getVehicleCorridor(
     .from(sightings)
     .where(eq(sightings.vehicleId, vehicleId))
     .orderBy(sightings.observedAt);
+
+  // If no results, try by plate matching (look up the vehicle's plate first)
+  if (points.length === 0) {
+    const [vehicle] = await opsDb.select({ plate: vehicles.plate }).from(vehicles).where(eq(vehicles.id, vehicleId)).limit(1);
+    if (vehicle?.plate) {
+      points = await opsDb
+        .select({
+          lat: sightings.lat,
+          lng: sightings.lng,
+          observedAt: sightings.observedAt,
+        })
+        .from(sightings)
+        .where(eq(sightings.plate, vehicle.plate))
+        .orderBy(sightings.observedAt);
+    }
+  }
 
   const segments: CorridorSegment[] = [];
   for (let i = 1; i < points.length; i++) {
@@ -200,7 +217,7 @@ export async function getCoOccurrences(opts: {
 export type TemporalBucket = {
   startTime: string;
   endTime: string;
-  points: Array<{ lat: number; lng: number; vehicleId: string | null }>;
+  points: Array<{ lat: number; lng: number; vehicleId: string | null; plate: string | null; activityDescription: string | null; observedAt: string }>;
 };
 
 /**
@@ -228,6 +245,8 @@ export async function getTemporalData(opts: {
       lat: sightings.lat,
       lng: sightings.lng,
       vehicleId: sightings.vehicleId,
+      plate: sightings.plate,
+      activityDescription: sightings.activityDescription,
       observedAt: sightings.observedAt,
     })
     .from(sightings)
@@ -246,6 +265,9 @@ export async function getTemporalData(opts: {
         lat: s.lat!,
         lng: s.lng!,
         vehicleId: s.vehicleId,
+        plate: s.plate,
+        activityDescription: s.activityDescription,
+        observedAt: s.observedAt.toISOString(),
       }));
 
     if (points.length > 0) {
