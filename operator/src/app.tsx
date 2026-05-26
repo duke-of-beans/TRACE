@@ -169,7 +169,7 @@ export function App() {
 
         {/* Operator Guide Overlay */}
         {showGuide && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: "rgba(0,0,0,0.7)" }} onClick={() => setShowGuide(false)}>
+          <div className="fixed inset-0 flex items-center justify-center" style={{ background: "rgba(0,0,0,0.7)", zIndex: 9999 }} onClick={() => setShowGuide(false)}>
             <div className="w-full max-w-lg max-h-[80vh] overflow-auto rounded-xl p-6" style={{ background: "var(--surface)", border: "1px solid var(--border)" }} onClick={(e) => e.stopPropagation()}>
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-lg font-bold">Operator Guide</h2>
@@ -196,6 +196,10 @@ export function App() {
                 <div>
                   <h3 className="font-semibold mb-1" style={{ color: "var(--text)" }}>Security</h3>
                   <p>View connected reporters, suspend or kill devices remotely. The kill signal triggers on the reporter's next check-in.</p>
+                </div>
+                <div>
+                  <h3 className="font-semibold mb-1" style={{ color: "var(--text)" }}>Reporting Issues</h3>
+                  <p>If something breaks or behaves unexpectedly, report it on the <a href="https://github.com/duke-of-beans/TRACE/issues" target="_blank" rel="noopener" style={{ color: "var(--accent)" }}>TRACE GitHub Issues page</a>. Include what you were doing, what happened, and what you expected. Screenshots help. Your reporters can tell you about issues they encounter and you can relay them, or they can file directly.</p>
                 </div>
                 <div className="pt-2" style={{ borderTop: "1px solid var(--border)" }}>
                   <p className="text-xs" style={{ color: "var(--text-muted)" }}>

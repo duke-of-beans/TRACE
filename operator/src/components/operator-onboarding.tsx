@@ -63,6 +63,17 @@ Nuke All: every device in the chapter. Double-confirmed.
 Auto-wipe: 72-hour offline timer, handled by the device.`,
   },
   {
+    title: "Reporting Issues",
+    icon: "info",
+    plain: "TRACE is open-source and actively maintained. If you encounter a bug, something breaks, or a feature is confusing, report it. Your reporters can tell you about issues they hit, and you can relay them or have them file directly. Reports help every chapter, not just yours.",
+    content: `Report bugs and feature requests at:
+github.com/duke-of-beans/TRACE/issues
+
+Include: what you were doing, what happened, what you expected. Screenshots help.
+
+Your feedback shapes the roadmap. Every report is read.`,
+  },
+  {
     title: "Try It Out",
     icon: "compass",
     plain: "The system is loaded with demo data so you can explore without consequences. Vehicles are labeled FAKE-001 through TEST-005, actors are named GHOST, SPARKS, and NINE. Click around, try the triage keyboard shortcuts, open a vehicle dossier, check the Intel Map. When you are ready for real data, clear the demo entries from Admin.",

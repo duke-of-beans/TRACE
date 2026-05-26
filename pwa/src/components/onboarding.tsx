@@ -32,6 +32,11 @@ Here is a quick overview of how the app works and what it does with your informa
   { title: "Your Callsign", icon: "user",
     plain: "Your operator knows you by a callsign, not your real name. Your callsign was assigned when you received your invite code. Your real identity is encrypted separately and is not accessible during normal operations. Your PIN is yours alone. Do not share it with anyone.",
     content: `Operators see callsigns only. Real identities are encrypted in a separate vault. The operator can revoke access or signal a device to clear its data remotely, but cannot access your PIN or decrypt your device.` },
+  { title: "Something Not Working?", icon: "info",
+    plain: "If anything in the app breaks or behaves unexpectedly, tell your operator. They can relay it to the development team. You can also report issues directly if you prefer.",
+    content: `Report issues: github.com/duke-of-beans/TRACE/issues
+
+What helps: what you were doing, what happened, what you expected. Screenshots if possible. Your report improves TRACE for every chapter.` },
 ];
 
 export function Onboarding({ onComplete }: OnboardingProps) {
