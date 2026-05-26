@@ -57,6 +57,7 @@ type IntelMapProps = {
   center?: [number, number];
   zoom?: number;
   height?: string;
+  children?: React.ReactNode;
 };
 
 // layer group refs for clean updates
@@ -105,6 +106,7 @@ export function IntelMap({
   center = [38.9310, -77.1770],
   zoom = 12,
   height = "500px",
+  children,
 }: IntelMapProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const leafletRef = useRef<L.Map | null>(null);
@@ -416,6 +418,8 @@ export function IntelMap({
           border: "1px solid #2a2a3e",
         }}
       />
+      {/* Overlay content (panels, floating buttons) */}
+      {children}
       {/* Tile mode toggle */}
       <div style={{
         position: "absolute", bottom: 8, left: 8, zIndex: 1000,
@@ -427,7 +431,7 @@ export function IntelMap({
             style={{
               padding: "4px 10px", fontSize: 11, border: "none", borderRadius: 4,
               cursor: "pointer", fontWeight: tileMode === m ? 700 : 400,
-              background: tileMode === m ? "#4fc3f7" : "transparent",
+              background: tileMode === m ? "#818CF8" : "transparent",
               color: tileMode === m ? "#0f0f1a" : "#888",
             }}
           >{m}</button>

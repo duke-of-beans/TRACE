@@ -212,27 +212,13 @@ export function Intelligence() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-4">
         <h1 className="text-2xl font-bold">Intelligence Map</h1>
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => {
-              const mapEl = document.querySelector(".leaflet-container") as any;
-              const center = mapEl?._leaflet_map?.getCenter?.() || { lat: 38.9310, lng: -77.1770 };
-              setPlacingPin({ lat: center.lat, lng: center.lng });
-              setSelectedPin(null);
-              setSelectedMarker(null);
-            }}
-            className="px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2"
-            style={{ background: "var(--accent)", color: "var(--accent-text)" }}>
-            + Drop Pin
-          </button>
-          <div className="flex flex-wrap gap-2 text-xs">
-            <span className="px-2 py-1 rounded bg-trace-surface" style={{ color: "var(--text-muted)" }}>
-              {totalSightings} sightings
-            </span>
-            <span className="px-2 py-1 rounded bg-trace-surface" style={{ color: "var(--text-muted)" }}>
-              {corridors.length} corridors
-            </span>
-          </div>
+        <div className="flex flex-wrap gap-2 text-xs">
+          <span className="px-2 py-1 rounded bg-trace-surface" style={{ color: "var(--text-muted)" }}>
+            {totalSightings} sightings
+          </span>
+          <span className="px-2 py-1 rounded bg-trace-surface" style={{ color: "var(--text-muted)" }}>
+            {corridors.length} corridors
+          </span>
         </div>
       </div>
 
@@ -373,8 +359,86 @@ export function Intelligence() {
         onPlacePin={(lat, lng) => { setPlacingPin({ lat, lng }); setSelectedPin(null); setSelectedMarker(null); }}
         onPinClick={(pin) => { setSelectedPin(pin); setPlacingPin(null); setSelectedMarker(null); setDispatchPins(p => [...p]); }}
         onMarkerClick={(marker) => { setSelectedMarker(marker); setSelectedPin(null); setPlacingPin(null); }}
-        height="calc(100vh - 380px)"
-      />
+        height="calc(100vh - 220px)"
+      >
+        {/* Floating Drop Pin button */}
+        <button
+          onClick={() => {
+            const mapEl = document.querySelector(".leaflet-container") as any;
+            const center = mapEl?._leaflet_map?.getCenter?.() || { lat: 38.9310, lng: -77.1770 };
+            setPlacingPin({ lat: center.lat, lng: center.lng });
+            setSelectedPin(null);
+            setSelectedMarker(null);
+          }}
+          style={{
+            position: "absolute", top: 12, right: 12, zIndex: 1000,
+            background: "var(--accent)", color: "var(--accent-text)",
+            border: "none", borderRadius: 8, padding: "10px 18px",
+            fontSize: 13, fontWeight: 700, cursor: "pointer",
+            boxShadow: "0 2px 12px rgba(0,0,0,0.4)",
+            display: "flex", alignItems: "center", gap: 6,
+          }}
+        >
+          + Drop Pin
+        </button>
+
+        {/* Sighting detail overlay */}
+        {selectedMarker && (
+          <div data-trace-panel style={{
+            position: "absolute", bottom: 12, left: 12, right: 12, zIndex: 1000,
+            background: "var(--surface)", border: "1px solid var(--border)",
+            borderRadius: 10, padding: 16, maxWidth: 480,
+            boxShadow: "0 4px 20px rgba(0,0,0,0.5)",
+          }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <span style={{ fontSize: 10, padding: "2px 8px", borderRadius: 4, fontWeight: 700, background: "#f1c40f", color: "#000" }}>Sighting</span>
+                {selectedMarker.data?.plate && <span style={{ fontFamily: "var(--font-mono, monospace)", fontWeight: 700, letterSpacing: "0.1em", fontSize: 14 }}>{selectedMarker.data.plate}</span>}
+              </div>
+              <button onClick={() => setSelectedMarker(null)} style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", fontSize: 16 }}>✕</button>
+            </div>
+            {selectedMarker.data?.activityDescription && <p style={{ fontSize: 13, color: "var(--text-sec)", marginBottom: 6 }}>{selectedMarker.data.activityDescription}</p>}
+            <div style={{ display: "flex", gap: 16, fontSize: 11, color: "var(--text-muted)", marginBottom: 10 }}>
+              {selectedMarker.data?.observedAt && <span>{new Date(selectedMarker.data.observedAt).toLocaleString()}</span>}
+              {selectedMarker.data?.direction && <span>Heading: {selectedMarker.data.direction}</span>}
+              <span>{selectedMarker.lat.toFixed(5)}, {selectedMarker.lng.toFixed(5)}</span>
+            </div>
+            <button onClick={() => { setPlacingPin({ lat: selectedMarker.lat, lng: selectedMarker.lng }); setSelectedMarker(null); }}
+              style={{ background: "var(--accent)", color: "var(--accent-text)", border: "none", borderRadius: 6, padding: "8px 16px", fontSize: 12, fontWeight: 600, cursor: "pointer" }}>
+              Dispatch here
+            </button>
+          </div>
+        )}
+
+        {/* Dispatch pin detail overlay */}
+        {selectedPin && (
+          <div data-trace-panel style={{
+            position: "absolute", bottom: 12, left: 12, right: 12, zIndex: 1000,
+            background: "var(--surface)", border: "1px solid var(--border)",
+            borderRadius: 10, padding: 16, maxWidth: 480,
+            boxShadow: "0 4px 20px rgba(0,0,0,0.5)",
+          }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <span style={{ fontSize: 10, padding: "2px 8px", borderRadius: 4, fontWeight: 700, background: selectedPin.priority === "urgent" ? "#DC2626" : "#D97706", color: "#fff" }}>{selectedPin.priority}</span>
+                <span style={{ fontSize: 13, fontWeight: 600 }}>{selectedPin.eventTypeLabel || "Dispatch"}</span>
+              </div>
+              <button onClick={() => setSelectedPin(null)} style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", fontSize: 16 }}>✕</button>
+            </div>
+            {selectedPin.plate && <div style={{ fontFamily: "var(--font-mono, monospace)", fontWeight: 700, letterSpacing: "0.1em", marginBottom: 4 }}>{selectedPin.plate}</div>}
+            {selectedPin.notes && <p style={{ fontSize: 13, color: "var(--text-sec)", marginBottom: 6 }}>{selectedPin.notes}</p>}
+            <div style={{ fontSize: 11, color: "var(--text-muted)", marginBottom: 10 }}>
+              {(() => { const m = Math.round((Date.now() - new Date(selectedPin.createdAt).getTime()) / 60000); return m < 60 ? `${m}m ago` : `${Math.round(m/60)}h ago`; })()} · {selectedPin.status}
+            </div>
+            {selectedPin.status !== "closed" && selectedPin.status !== "expired" && (
+              <button onClick={async () => { await api.closeDispatch(selectedPin.id, "operator_closed").catch(() => {}); setSelectedPin(null); loadDispatchPins(); }}
+                style={{ background: "var(--bg)", color: "var(--text-sec)", border: "1px solid var(--border)", borderRadius: 6, padding: "8px 16px", fontSize: 12, cursor: "pointer" }}>
+                Close
+              </button>
+            )}
+          </div>
+        )}
+      </IntelMap>
 
       {/* Time Playback */}
       {temporalBuckets.length > 0 && (
@@ -407,7 +471,7 @@ export function Intelligence() {
         </div>
       )}
 
-      {/* Right-click pin placement form */}
+      {/* Pin creation form (still below map - needs full form space) */}
       {placingPin && (
         <PinCreationForm
           lat={placingPin.lat}
@@ -425,42 +489,10 @@ export function Intelligence() {
         />
       )}
 
-      {/* Selected pin detail */}
-      {selectedPin && (
-        <PinDetailPanel
-          pin={selectedPin}
-          reporters={reporters}
-          onClose={() => setSelectedPin(null)}
-          onDispatch={async (reporterIds) => {
-            for (const rid of reporterIds) {
-              await api.assignReporter(selectedPin.id, rid).catch(() => {});
-            }
-            loadDispatchPins();
-          }}
-          onCloseDispatch={async () => {
-            await api.closeDispatch(selectedPin.id, "operator_closed").catch(() => {});
-            setSelectedPin(null);
-            loadDispatchPins();
-          }}
-        />
-      )}
-
-      {/* Sighting detail panel */}
-      {selectedMarker && (
-        <SightingDetailPanel
-          marker={selectedMarker}
-          onClose={() => setSelectedMarker(null)}
-          onCreateDispatch={(lat, lng) => {
-            setPlacingPin({ lat, lng });
-            setSelectedMarker(null);
-          }}
-        />
-      )}
-
       {/* Right-click hint */}
-      <div className="mt-3 mb-2">
+      <div className="mt-2 mb-2">
         <span className="text-xs" style={{ color: "var(--text-muted)" }}>
-          Right-click anywhere on the map to drop a pin at that exact location.
+          Right-click the map to drop a pin at a specific location.
         </span>
       </div>
     </div>
