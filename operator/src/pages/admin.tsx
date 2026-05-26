@@ -873,19 +873,35 @@ function ReportersAdmin() {
 
       {lastInvite && (
         <div className="mt-4 p-5 bg-trace-bg rounded-lg border-2 border-trace-accent">
-          <div className="text-xs text-gray-500 uppercase tracking-wider mb-2">Invite Code for {lastInvite.callsign}</div>
-          <div className="text-3xl font-mono font-bold text-trace-accent tracking-[6px] text-center py-4">
-            {lastInvite.code}
+          <div className="text-xs uppercase tracking-wider mb-3" style={{ color: "var(--text-muted)" }}>Send this to the reporter via Signal or in person</div>
+
+          <div className="bg-trace-surface rounded-lg p-4 mb-3 border border-trace-border" style={{ fontFamily: "monospace" }}>
+            <div className="text-xs mb-1" style={{ color: "var(--text-muted)" }}>Callsign</div>
+            <div className="text-lg font-bold tracking-wider" style={{ color: "var(--text)" }}>{lastInvite.callsign}</div>
+            <div className="text-xs mt-3 mb-1" style={{ color: "var(--text-muted)" }}>Join Code</div>
+            <div className="text-2xl font-bold tracking-[5px] text-trace-accent">{lastInvite.code}</div>
           </div>
-          <div className="text-xs text-gray-500 text-center space-y-1">
-            <p>Give this code to the reporter in person.</p>
-            <p>They enter it in the TRACE app to join. No email needed.</p>
-            <p className="text-gray-600">Expires in 7 days. Single use.</p>
+
+          <div className="text-xs space-y-1" style={{ color: "var(--text-muted)" }}>
+            <p>The reporter enters the join code in the app. Their callsign identifies them in all operational data.</p>
+            <p>You will not see their real identity. Only their callsign.</p>
+            <p style={{ color: "var(--text-sec)" }}>Expires in 7 days. Single use. If compromised, generate a new one.</p>
           </div>
-          <button onClick={() => { navigator.clipboard?.writeText(lastInvite.code); toast("Copied", "success"); }}
-            className="w-full mt-3 py-2 bg-trace-surface text-gray-400 rounded-lg text-xs hover:text-gray-200 transition">
-            Copy to clipboard
-          </button>
+
+          <div className="flex gap-2 mt-3">
+            <button onClick={() => {
+              const msg = `Your TRACE callsign: ${lastInvite.callsign}\nJoin code: ${lastInvite.code}\n\nOpen TRACE, enter the join code. Your callsign is how we identify your reports.`;
+              navigator.clipboard?.writeText(msg);
+              toast("Copied message to clipboard", "success");
+            }}
+              className="flex-1 px-3 py-2 rounded-lg text-xs font-semibold bg-trace-accent text-trace-bg hover:opacity-90 transition">
+              Copy Signal Message
+            </button>
+            <button onClick={() => { navigator.clipboard?.writeText(lastInvite.code); toast("Code copied", "success"); }}
+              className="px-3 py-2 rounded-lg text-xs bg-trace-surface border border-trace-border hover:border-trace-accent transition">
+              Code Only
+            </button>
+          </div>
         </div>
       )}
     </div>
