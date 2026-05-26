@@ -55,7 +55,7 @@ export function TimeSlider({
         <span>{endDate.toLocaleString()}</span>
       </div>
       {/* mini histogram */}
-      {buckets.length > 1 && (
+      {buckets.length > 2 && (
         <div className="flex items-end gap-px mt-2 h-8">
           {buckets.map((b, i) => {
             const maxPts = Math.max(...buckets.map((x) => x.pointCount), 1);

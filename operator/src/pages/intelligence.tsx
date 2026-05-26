@@ -268,8 +268,17 @@ export function Intelligence() {
         </div>
       </div>
 
-      {/* Corridor input */}
-      <div className="flex flex-col sm:flex-row gap-2 mb-4">
+      {/* Corridor overlay */}
+      <div className="mb-4">
+        <div className="flex items-center gap-2 mb-2">
+          <label className="text-xs uppercase tracking-wider font-semibold" style={{ color: "var(--text-muted)" }}>
+            Movement Corridors
+          </label>
+        </div>
+        <p className="text-xs mb-2" style={{ color: "var(--text-sec)" }}>
+          Select a vehicle to draw its movement path on the map. Each line connects sighting locations in chronological order. Multiple corridors can be overlaid to compare routes.
+        </p>
+        <div className="flex flex-col sm:flex-row gap-2">
         <select
           value={corridorVehicleId}
           onChange={(e) => setCorridorVehicleId(e.target.value)}
@@ -299,6 +308,7 @@ export function Intelligence() {
             Clear
           </button>
         )}
+        </div>
       </div>
 
       {/* Map */}
@@ -310,9 +320,17 @@ export function Intelligence() {
         height="calc(100vh - 380px)"
       />
 
-      {/* Time Slider */}
+      {/* Time Playback */}
       {temporalBuckets.length > 0 && (
         <div className="mt-4">
+          <div className="flex items-center gap-2 mb-2">
+            <label className="text-xs uppercase tracking-wider font-semibold" style={{ color: "var(--text-muted)" }}>
+              Time Playback
+            </label>
+          </div>
+          <p className="text-xs mb-2" style={{ color: "var(--text-sec)" }}>
+            Sightings grouped into 1-hour windows. Drag the slider or press play to step through each window. The map shows only the sightings that occurred during the selected hour.
+          </p>
           <TimeSlider
             buckets={temporalBuckets.map((b) => ({
               startTime: b.startTime,

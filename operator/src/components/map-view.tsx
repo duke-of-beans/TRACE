@@ -80,7 +80,7 @@ export function IntelMap({
   const leafletRef = useRef<L.Map | null>(null);
   const layersRef = useRef<LayerRefs | null>(null);
   const tileRef = useRef<L.TileLayer | null>(null);
-  const [tileMode, setTileMode] = useState<TileMode>("light");
+  const [tileMode, setTileMode] = useState<TileMode>("satellite");
 
   // switch tile layer
   const switchTiles = useCallback((mode: TileMode) => {
@@ -99,7 +99,7 @@ export function IntelMap({
     const map = L.map(mapRef.current, { zoomControl: true }).setView(center, zoom);
 
     // default tiles
-    const t = TILES.light;
+    const t = TILES.satellite;
     tileRef.current = L.tileLayer(t.url, { attribution: t.attr, maxZoom: 19 }).addTo(map);
 
     const layers: LayerRefs = {
