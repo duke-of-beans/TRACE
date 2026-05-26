@@ -332,7 +332,7 @@ authRouter.get("/status", async (c) => {
 
 // --- GET /auth/vapid-public-key — return VAPID public key for push subscription ---
 authRouter.get("/vapid-public-key", (c) => {
-  const key = process.env.VAPID_PUBLIC_KEY || "";
+  const key = (process.env.VAPID_PUBLIC_KEY || "").trim();
   return c.json({ publicKey: key });
 });
 

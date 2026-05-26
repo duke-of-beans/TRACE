@@ -17,12 +17,16 @@ import {
 import { eq, and } from "drizzle-orm";
 
 // Configure VAPID (run once at startup)
-if (process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
-  webpush.setVapidDetails(
-    process.env.VAPID_SUBJECT || "mailto:admin@trace.local",
-    process.env.VAPID_PUBLIC_KEY,
-    process.env.VAPID_PRIVATE_KEY
-  );
+const vapidPublic = (process.env.VAPID_PUBLIC_KEY || "").trim();
+const vapidPrivate = (process.env.VAPID_PRIVATE_KEY || "").trim();
+const vapidSubject = (process.env.VAPID_SUBJECT || "mailto:admin@trace.local").trim();
+
+if (vapidPublic && vapidPrivate) {
+  try {
+    webpush.setVapidDetails(vapidSubject, vapidPublic, vapidPrivate);
+  } catch (err) {
+    console.error("VAPID configuration failed:", err);
+  }
 }
 
 type TriggerEvent = {
