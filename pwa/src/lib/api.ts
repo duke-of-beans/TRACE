@@ -117,6 +117,26 @@ export const api = {
   getMySightings: () =>
     request<Array<Record<string, unknown>>>("/sightings"),
 
+  // Plate check
+  checkPlate: (plate: string) =>
+    request<{ found: boolean; plate?: string; description?: string; suspicionLevel?: string }>(
+      `/sightings/plate-check?plate=${encodeURIComponent(plate)}`
+    ),
+
+  // Dispatch (reporter actions)
+  getActiveDispatches: () =>
+    request<Array<Record<string, unknown>>>("/dispatch/active"),
+  respondToDispatch: (id: string) =>
+    request(`/dispatch/${id}/respond`, { method: "POST" }),
+  arriveAtDispatch: (id: string) =>
+    request(`/dispatch/${id}/arrive`, { method: "POST" }),
+  submitOutcome: (id: string, data: Record<string, unknown>) =>
+    request(`/dispatch/${id}/outcome`, { method: "POST", body: JSON.stringify(data) }),
+  getMyFeedback: () =>
+    request<Array<Record<string, unknown>>>("/dispatch/my-feedback"),
+  markFeedbackRead: (id: string) =>
+    request(`/dispatch/feedback/${id}/read`, { method: "POST" }),
+
   // Vehicles
   searchVehicles: (q: string) =>
     request<Array<Record<string, unknown>>>(`/vehicles/search?q=${encodeURIComponent(q)}`),

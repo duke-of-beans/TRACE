@@ -16,6 +16,7 @@ import { actorsRouter } from "./api/actors/index.js";
 import { authRouter } from "./api/auth/index.js";
 import { adminRouter } from "./api/admin/index.js";
 import { geoRouter } from "./api/geo/index.js";
+import { dispatchRouter } from "./api/dispatch/index.js";
 import { closeAll } from "./db/connection.js";
 import { authMiddleware, operatorOnly, adminOnly } from "./middleware/auth.js";
 import { auditMiddleware } from "./middleware/audit.js";
@@ -83,6 +84,7 @@ api.route("/sightings", sightingsRouter);
 api.route("/vehicles", vehiclesRouter);
 api.route("/actors", actorsRouter);
 api.route("/geo", geoRouter);
+api.route("/dispatch", dispatchRouter);
 
 // Feedback — any authenticated user can submit
 api.post("/feedback", async (c) => {

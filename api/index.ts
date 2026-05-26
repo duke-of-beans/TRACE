@@ -14,6 +14,7 @@ import { actorsRouter } from "../src/api/actors/index.js";
 import { authRouter } from "../src/api/auth/index.js";
 import { adminRouter } from "../src/api/admin/index.js";
 import { geoRouter } from "../src/api/geo/index.js";
+import { dispatchRouter } from "../src/api/dispatch/index.js";
 import { authMiddleware, operatorOnly } from "../src/middleware/auth.js";
 import { auditMiddleware } from "../src/middleware/audit.js";
 
@@ -37,6 +38,7 @@ app.route("/sightings", sightingsRouter);
 app.route("/vehicles", vehiclesRouter);
 app.route("/actors", actorsRouter);
 app.route("/geo", geoRouter);
+app.route("/dispatch", dispatchRouter);
 
 // Feedback
 app.post("/feedback", async (c) => {

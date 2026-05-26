@@ -308,6 +308,9 @@ export const sightings = ops.table("sightings", {
   triaged: boolean("triaged").default(false),
   triagedBy: uuid("triaged_by"),
   triagedAt: timestamp("triaged_at", { withTimezone: true }),
+  // auto plate lookup result
+  plateMatched: boolean("plate_matched"),                       // null=not checked, true=matched, false=no match
+  matchedVehicleId: uuid("matched_vehicle_id").references(() => vehicles.id),
   // metadata
   createdAt: createdAt(),
   updatedAt: updatedAt(),
@@ -404,4 +407,107 @@ export const feedback = ops.table("feedback", {
   updatedAt: updatedAt(),
 }, (t) => [
   index("feedback_chapter_status").on(t.chapterId, t.status),
+]);
+
+// ============================================================
+// DISPATCH EVENT TYPES (chapter-configurable)
+// e.g. "Confirmed Vehicle", "Community Report", "Area Check"
+// ============================================================
+export const dispatchEventTypes = ops.table("dispatch_event_types", {
+  id: id(),
+  chapterId: uuid("chapter_id").notNull().references(() => chapters.id),
+  label: varchar("label", { length: 64 }).notNull(),
+  description: text("description"),
+  icon: varchar("icon", { length: 32 }).default("alert-triangle"),
+  color: varchar("color", { length: 7 }).default("#D97706"),
+  defaultPriority: varchar("default_priority", { length: 16 }).default("routine").notNull(),
+  autoCloseHours: smallint("auto_close_hours").default(4),
+  sortOrder: smallint("sort_order").default(0),
+  createdAt: createdAt(),
+}, (t) => [
+  uniqueIndex("det_chapter_label").on(t.chapterId, t.label),
+]);
+
+// ============================================================
+// DISPATCH EVENTS (the core dispatch record)
+// Created from triage (sighting-triggered) or from map (community call)
+// ============================================================
+export const dispatchEvents = ops.table("dispatch_events", {
+  id: id(),
+  chapterId: uuid("chapter_id").notNull().references(() => chapters.id),
+  sightingId: uuid("sighting_id").references(() => sightings.id),
+  eventTypeId: uuid("event_type_id").references(() => dispatchEventTypes.id),
+  // location
+  lat: real("lat").notNull(),
+  lng: real("lng").notNull(),
+  locationDescription: text("location_description"),
+  // details
+  plate: varchar("plate", { length: 32 }),
+  vehicleId: uuid("vehicle_id").references(() => vehicles.id),
+  notes: text("notes"),
+  source: varchar("source", { length: 16 }).default("sighting").notNull(), // sighting, community_call, operator
+  priority: varchar("priority", { length: 16 }).default("routine").notNull(), // urgent, routine, info
+  status: varchar("status", { length: 16 }).default("open").notNull(), // open, responding, on_scene, closed, expired
+  // lifecycle
+  createdBy: uuid("created_by"),
+  closedAt: timestamp("closed_at", { withTimezone: true }),
+  closeReason: varchar("close_reason", { length: 32 }),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+}, (t) => [
+  index("dispatch_events_chapter_status").on(t.chapterId, t.status),
+  index("dispatch_events_created").on(t.createdAt),
+]);
+
+// ============================================================
+// DISPATCH ASSIGNMENTS (who was dispatched)
+// ============================================================
+export const dispatchAssignments = ops.table("dispatch_assignments", {
+  id: id(),
+  dispatchEventId: uuid("dispatch_event_id").notNull().references(() => dispatchEvents.id),
+  reporterId: uuid("reporter_id").notNull().references(() => reporters.id),
+  status: varchar("status", { length: 16 }).default("assigned").notNull(), // assigned, responding, on_scene, completed, declined
+  assignedAt: timestamp("assigned_at", { withTimezone: true }).notNull().defaultNow(),
+  respondedAt: timestamp("responded_at", { withTimezone: true }),
+  arrivedAt: timestamp("arrived_at", { withTimezone: true }),
+  completedAt: timestamp("completed_at", { withTimezone: true }),
+  notes: text("notes"),
+  createdAt: createdAt(),
+}, (t) => [
+  index("da_dispatch").on(t.dispatchEventId),
+  index("da_reporter").on(t.reporterId),
+  uniqueIndex("da_dispatch_reporter").on(t.dispatchEventId, t.reporterId),
+]);
+
+// ============================================================
+// DISPATCH OUTCOMES (what happened when patroller arrived)
+// ============================================================
+export const dispatchOutcomes = ops.table("dispatch_outcomes", {
+  id: id(),
+  dispatchEventId: uuid("dispatch_event_id").notNull().references(() => dispatchEvents.id),
+  reporterId: uuid("reporter_id").notNull().references(() => reporters.id),
+  sightingId: uuid("sighting_id").references(() => sightings.id),
+  outcome: varchar("outcome", { length: 16 }).notNull(), // confirmed, not_found, suspect_fled, false_alarm, other
+  notes: text("notes"),
+  createdAt: createdAt(),
+}, (t) => [
+  index("do_dispatch").on(t.dispatchEventId),
+]);
+
+// ============================================================
+// SIGHTING FEEDBACK (pushed back to the original reporter)
+// "Confirmed, patrollers dispatched" or "Not in database, disregard"
+// ============================================================
+export const sightingFeedback = ops.table("sighting_feedback", {
+  id: id(),
+  sightingId: uuid("sighting_id").notNull().references(() => sightings.id),
+  reporterId: uuid("reporter_id").notNull().references(() => reporters.id),
+  feedbackType: varchar("feedback_type", { length: 16 }).notNull(), // confirmed, dismissed, info
+  message: text("message").notNull(),
+  sentAt: timestamp("sent_at", { withTimezone: true }).notNull().defaultNow(),
+  readAt: timestamp("read_at", { withTimezone: true }),
+  createdAt: createdAt(),
+}, (t) => [
+  index("sf_sighting").on(t.sightingId),
+  index("sf_reporter").on(t.reporterId),
 ]);

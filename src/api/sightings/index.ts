@@ -12,6 +12,7 @@ import { eq, desc, and } from "drizzle-orm";
 import { emitNewSighting } from "../../services/realtime.js";
 import { dispatch } from "../../services/notification.js";
 import { applyJitter, shouldApplyJitter } from "../../services/jitter.js";
+import { lookupPlate } from "../../services/plate-lookup.js";
 
 export const sightingsRouter = new Hono();
 
@@ -44,6 +45,16 @@ sightingsRouter.post("/", async (c) => {
     ? applyJitter(new Date(parsed.data.observedAt))
     : new Date(parsed.data.observedAt);
 
+  // Auto plate lookup — check if this plate is in the database
+  let plateMatched: boolean | null = null;
+  let matchedVehicleId: string | undefined;
+
+  if (parsed.data.plate) {
+    const match = await lookupPlate(parsed.data.plate, chapterId);
+    plateMatched = match.matched;
+    matchedVehicleId = match.vehicle?.id;
+  }
+
   const [sighting] = await opsDb
     .insert(sightings)
     .values({
@@ -52,6 +63,9 @@ sightingsRouter.post("/", async (c) => {
       ...parsed.data,
       observedAt,
       jitterApplied: shouldApplyJitter(role),
+      plateMatched,
+      matchedVehicleId,
+      vehicleId: parsed.data.vehicleId || matchedVehicleId,
     })
     .returning();
 
@@ -122,4 +136,45 @@ sightingsRouter.patch("/:id/triage", async (c) => {
 
   if (!updated) return c.json({ error: "Not found" }, 404);
   return c.json({ ...updated, triageAction: action });
+});
+
+// --- GET /sightings/plate-check?plate=ABC1234 — quick plate check ---
+sightingsRouter.get("/plate-check", async (c) => {
+  const plate = c.req.query("plate");
+  if (!plate || plate.length < 2) return c.json({ found: false });
+  const chapterId = c.req.header("x-chapter-id") || "";
+  const { quickPlateCheck } = await import("../../services/plate-lookup.js");
+  const result = await quickPlateCheck(plate, chapterId);
+  return c.json(result);
+});
+
+// --- GET /sightings/:id/feedback — get feedback for a sighting ---
+sightingsRouter.get("/:id/feedback", async (c) => {
+  const { sightingFeedback } = await import("../../db/schema/vault-a.js");
+  const sightingId = c.req.param("id");
+  const items = await opsDb
+    .select()
+    .from(sightingFeedback)
+    .where(eq(sightingFeedback.sightingId, sightingId));
+  return c.json(items);
+});
+
+// --- POST /sightings/:id/feedback — send feedback to reporter ---
+sightingsRouter.post("/:id/feedback", async (c) => {
+  const { sightingFeedback } = await import("../../db/schema/vault-a.js");
+  const sightingId = c.req.param("id");
+  const body = await c.req.json();
+
+  // Get the sighting to find the reporter
+  const [sighting] = await opsDb.select().from(sightings).where(eq(sightings.id, sightingId)).limit(1);
+  if (!sighting) return c.json({ error: "Sighting not found" }, 404);
+
+  const [fb] = await opsDb.insert(sightingFeedback).values({
+    sightingId,
+    reporterId: sighting.reporterId,
+    feedbackType: body.feedbackType || "info",
+    message: body.message,
+  }).returning();
+
+  return c.json(fb, 201);
 });

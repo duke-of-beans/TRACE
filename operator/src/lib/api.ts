@@ -80,4 +80,36 @@ export const api = {
     request(`/admin/actor-identifiers/${id}`, { method: "PUT", body: JSON.stringify(data) }),
   deleteActorIdentifier: (id: string) =>
     request(`/admin/actor-identifiers/${id}`, { method: "DELETE" }),
+
+  // Dispatch
+  getDispatches: (status?: string) =>
+    request<any[]>(`/dispatch${status ? `?status=${status}` : ""}`),
+  getActiveDispatches: () => request<any[]>("/dispatch/active"),
+  getDispatch: (id: string) => request<any>(`/dispatch/${id}`),
+  createDispatch: (data: any) =>
+    request("/dispatch", { method: "POST", body: JSON.stringify(data) }),
+  confirmAndDispatch: (sightingId: string, data: any) =>
+    request(`/dispatch/confirm-and-dispatch/${sightingId}`, { method: "POST", body: JSON.stringify(data) }),
+  dismissAndNotify: (sightingId: string, data?: any) =>
+    request(`/dispatch/dismiss-and-notify/${sightingId}`, { method: "POST", body: JSON.stringify(data || {}) }),
+  closeDispatch: (id: string, reason?: string) =>
+    request(`/dispatch/${id}/close`, { method: "POST", body: JSON.stringify({ reason }) }),
+  assignReporter: (dispatchId: string, reporterId: string) =>
+    request(`/dispatch/${dispatchId}/assign`, { method: "POST", body: JSON.stringify({ reporterId }) }),
+  getDispatchEventTypes: () => request<any[]>("/dispatch/event-types"),
+
+  // Dispatch (reporter actions)
+  respondToDispatch: (id: string) =>
+    request(`/dispatch/${id}/respond`, { method: "POST" }),
+  arriveAtDispatch: (id: string) =>
+    request(`/dispatch/${id}/arrive`, { method: "POST" }),
+  submitOutcome: (id: string, data: any) =>
+    request(`/dispatch/${id}/outcome`, { method: "POST", body: JSON.stringify(data) }),
+  getMyFeedback: () => request<any[]>("/dispatch/my-feedback"),
+  markFeedbackRead: (id: string) =>
+    request(`/dispatch/feedback/${id}/read`, { method: "POST" }),
+
+  // Plate check
+  checkPlate: (plate: string) =>
+    request<any>(`/sightings/plate-check?plate=${encodeURIComponent(plate)}`),
 };

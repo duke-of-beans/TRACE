@@ -10,6 +10,7 @@ import {
   chapters, vehicleTypes, suspicionLevels, suspicionPredicates,
   actorSuspicionLevels, actorIdentifierTypes, actorIdentifiers,
   reporters, vehicles, vehicleTypeAssignments, actors, sightings,
+  dispatchEventTypes,
 } from "./schema/vault-a.js";
 import { reporterIdentities } from "./schema/vault-b.js";
 
@@ -223,6 +224,19 @@ async function seed() {
     await identDb.insert(reporterIdentities).values({ reporterId: opReporter.id, email: "operator@trace.local", role: "operator" }).onConflictDoNothing();
   }
   console.log(`+ Operator: callsign OPERATOR`);
+
+  // DISPATCH EVENT TYPES
+  const dispatchTypes = [
+    { label: "Confirmed Vehicle", icon: "car",            color: "#DC2626", defaultPriority: "urgent",  description: "Known vehicle from the database", autoCloseHours: 2, sortOrder: 5 },
+    { label: "Community Report",  icon: "radio",           color: "#D97706", defaultPriority: "routine", description: "Called in by a community member",  autoCloseHours: 4, sortOrder: 4 },
+    { label: "Area Check",        icon: "compass",         color: "#4F46E5", defaultPriority: "routine", description: "General area to patrol",           autoCloseHours: 4, sortOrder: 3 },
+    { label: "Plate Swap Alert",  icon: "alert-triangle",  color: "#7C3AED", defaultPriority: "urgent",  description: "Vehicle suspected of changing plates", autoCloseHours: 2, sortOrder: 2 },
+    { label: "Suspicious Activity", icon: "eye",           color: "#EA580C", defaultPriority: "routine", description: "Non-vehicle activity to investigate", autoCloseHours: 4, sortOrder: 1 },
+  ];
+  for (const dt of dispatchTypes) {
+    await opsDb.insert(dispatchEventTypes).values({ ...dt, chapterId }).onConflictDoNothing();
+  }
+  console.log(`+ Dispatch event types: ${dispatchTypes.length}`);
 
   console.log("\nSeed complete. All demo data prefixed with DEMO/FAKE/TEST.");
   process.exit(0);
