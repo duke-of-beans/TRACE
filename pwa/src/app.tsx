@@ -70,7 +70,8 @@ export function App() {
 
   return (
     <div class="app-shell">
-      <main class="app-main">
+      <a href="#main-content" class="skip-nav">Skip to content</a>
+      <main id="main-content" class="app-main">
         {page === "submit" && <SubmitGate authed={authed} onJoin={() => { setAuthed(true); }} />}
         {page === "history" && <History />}
         {page === "security" && <SecurityInfo ttlHours={ttlHours} onBack={() => setPage("settings")} />}
