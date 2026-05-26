@@ -15,3 +15,7 @@ coverage/
 Thumbs.db
 .vercel
 _*.bat
+_*.py  
+_*.ts  
+_*.bat  
+.env.neon  
