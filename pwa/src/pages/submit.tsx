@@ -48,8 +48,14 @@ export function Submit() {
   const [draft, setDraft] = useState<SightingDraft>(emptyDraft());
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [submittedId, setSubmittedId] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState<any>(null);
   const [showCamera, setShowCamera] = useState(false);
   const [wipeConfirm, setWipeConfirm] = useState(false);
+  const [mode, setMode] = useState<"report" | "check">("report");
+  const [checkPlate, setCheckPlate] = useState("");
+  const [checkResult, setCheckResult] = useState<any>(null);
+  const [checking, setChecking] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const handlePhotos = async (e: Event) => {
@@ -97,22 +103,66 @@ export function Submit() {
       notes: draft.notes || undefined,
     };
     try {
-      await api.submitSighting(payload);
+      const result = await api.submitSighting(payload) as any;
+      setSubmittedId(result?.id || null);
       setSubmitted(true);
+      // Poll for feedback
+      if (result?.id) {
+        const pollInterval = setInterval(async () => {
+          try {
+            const fbList = await api.getMyFeedback() as any[];
+            const fb = fbList.find((f: any) => f.sightingId === result.id);
+            if (fb) { setFeedback(fb); clearInterval(pollInterval); }
+          } catch {}
+        }, 3000);
+        // Stop polling after 60s
+        setTimeout(() => clearInterval(pollInterval), 60000);
+      }
     } catch {
       await enqueue({ id: crypto.randomUUID(), payload, photos: [], queuedAt: new Date().toISOString() });
       setSubmitted(true);
     }
     setSubmitting(false);
-    setTimeout(() => { setDraft(emptyDraft()); setSubmitted(false); }, 2000);
+    // Auto-reset after 30 seconds
+    setTimeout(() => { setDraft(emptyDraft()); setSubmitted(false); setSubmittedId(null); setFeedback(null); }, 30000);
+  };
+
+  const handlePlateCheck = async () => {
+    if (!checkPlate.trim() || checkPlate.length < 2) return;
+    setChecking(true);
+    setCheckResult(null);
+    try {
+      const result = await api.checkPlate(checkPlate.trim());
+      setCheckResult(result);
+    } catch { setCheckResult({ found: false, error: true }); }
+    setChecking(false);
   };
 
   if (submitted) {
     return (
-      <div class="auth-screen">
-        <div class="auth-card">
-          <Icon name="check-circle" size={48} class="text-success" />
-          <p style={{ marginTop: "var(--sp-4)", color: "var(--text-sec)" }}>Sighting recorded</p>
+      <div style={{ padding: "var(--sp-4)" }}>
+        <div class="card" style={{ padding: "var(--sp-6)", textAlign: "center" }}>
+          <div style={{ color: "var(--success)", marginBottom: "var(--sp-3)" }}>
+            <Icon name="check" size={32} />
+          </div>
+          <h3 style={{ fontSize: "var(--text-lg)", fontWeight: 600, marginBottom: "var(--sp-4)" }}>Sighting Submitted</h3>
+
+          {/* Live status */}
+          <div style={{ textAlign: "left", fontSize: "var(--text-sm)" }}>
+            <StatusRow done label="Submitted" />
+            <StatusRow done={feedback !== null} pending={feedback === null} label="Plate check" />
+            {feedback?.feedbackType === "confirmed" && (
+              <StatusRow done label="Confirmed — patrollers dispatched" color="var(--success)" />
+            )}
+            {feedback?.feedbackType === "dismissed" && (
+              <StatusRow done label={feedback.message || "Not in database. No action needed."} color="var(--text-muted)" />
+            )}
+          </div>
+
+          <button onClick={() => { setDraft(emptyDraft()); setSubmitted(false); setSubmittedId(null); setFeedback(null); }}
+            class="btn btn-secondary btn-full" style={{ marginTop: "var(--sp-4)" }}>
+            Report Another
+          </button>
         </div>
       </div>
     );
@@ -120,9 +170,35 @@ export function Submit() {
 
   return (
     <div>
+      {/* Wipe confirmation overlay */}
+      {wipeConfirm && (
+        <div style={{
+          position: "fixed", inset: 0, zIndex: 9999,
+          background: "rgba(0,0,0,0.5)", backdropFilter: "blur(2px)",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          padding: "var(--sp-4)",
+        }} onClick={() => setWipeConfirm(false)}>
+          <div onClick={(e) => e.stopPropagation()} style={{
+            background: "var(--surface)", border: "1px solid var(--danger)",
+            borderRadius: "var(--radius-lg)", padding: "var(--sp-6)",
+            maxWidth: 340, width: "100%", textAlign: "center",
+          }}>
+            <div style={{ color: "var(--danger)", marginBottom: "var(--sp-3)" }}><Icon name="alert-triangle" size={32} /></div>
+            <h3 style={{ fontSize: "var(--text-lg)", fontWeight: 700, color: "var(--danger)", marginBottom: "var(--sp-2)" }}>Wipe all data?</h3>
+            <p style={{ fontSize: "var(--text-sm)", color: "var(--text-sec)", marginBottom: "var(--sp-5)", lineHeight: "var(--leading-relaxed)" }}>
+              This will permanently destroy all TRACE data on this device. It cannot be undone.
+            </p>
+            <div style={{ display: "flex", gap: "var(--sp-3)" }}>
+              <button class="btn btn-secondary" style={{ flex: 1 }} onClick={() => setWipeConfirm(false)}>Cancel</button>
+              <button class="btn btn-danger" style={{ flex: 1 }} onClick={() => panic()}><Icon name="x" size={14} /> Wipe Now</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Header with emergency wipe */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "var(--sp-5)" }}>
-        <h1 class="page-title" style={{ marginBottom: 0 }}>Report Sighting</h1>
+        <h1 class="page-title" style={{ marginBottom: 0 }}>{mode === "report" ? "Report Sighting" : "Check Plate"}</h1>
         <button
           onClick={() => setWipeConfirm(true)}
           aria-label="Emergency wipe"
@@ -138,39 +214,98 @@ export function Submit() {
         </button>
       </div>
 
-      {/* Wipe confirmation overlay */}
-      {wipeConfirm && (
-        <div style={{
-          position: "fixed", inset: 0, zIndex: 9999,
-          background: "rgba(0,0,0,0.5)", backdropFilter: "blur(2px)",
-          display: "flex", alignItems: "center", justifyContent: "center",
-          padding: "var(--sp-4)",
-        }} onClick={() => setWipeConfirm(false)}>
-          <div onClick={(e) => e.stopPropagation()} style={{
-            background: "var(--surface)", border: "1px solid var(--danger)",
-            borderRadius: "var(--radius-lg)", padding: "var(--sp-6)",
-            maxWidth: 340, width: "100%", textAlign: "center",
+      {/* Mode toggle */}
+      <div style={{ display: "flex", gap: "var(--sp-2)", marginBottom: "var(--sp-4)" }}>
+        <button onClick={() => { setMode("report"); setCheckResult(null); }}
+          style={{
+            flex: 1, padding: "var(--sp-2)", borderRadius: "var(--radius)",
+            fontSize: "var(--text-sm)", fontWeight: 500, cursor: "pointer", transition: "all 150ms",
+            background: mode === "report" ? "var(--accent)" : "var(--surface)",
+            color: mode === "report" ? "var(--accent-text)" : "var(--text-sec)",
+            border: mode === "report" ? "1px solid var(--accent)" : "1px solid var(--border)",
           }}>
-            <div style={{ color: "var(--danger)", marginBottom: "var(--sp-3)" }}>
-              <Icon name="alert-triangle" size={32} />
-            </div>
-            <h3 style={{ fontSize: "var(--text-lg)", fontWeight: 700, color: "var(--danger)", marginBottom: "var(--sp-2)" }}>
-              Wipe all data?
-            </h3>
-            <p style={{ fontSize: "var(--text-sm)", color: "var(--text-sec)", marginBottom: "var(--sp-5)", lineHeight: "var(--leading-relaxed)" }}>
-              This will permanently destroy all TRACE data on this device. It cannot be undone.
-            </p>
-            <div style={{ display: "flex", gap: "var(--sp-3)" }}>
-              <button class="btn btn-secondary" style={{ flex: 1 }} onClick={() => setWipeConfirm(false)}>
-                Cancel
-              </button>
-              <button class="btn btn-danger" style={{ flex: 1 }} onClick={() => panic()}>
-                <Icon name="x" size={14} /> Wipe Now
-              </button>
-            </div>
+          Report
+        </button>
+        <button onClick={() => setMode("check")}
+          style={{
+            flex: 1, padding: "var(--sp-2)", borderRadius: "var(--radius)",
+            fontSize: "var(--text-sm)", fontWeight: 500, cursor: "pointer", transition: "all 150ms",
+            background: mode === "check" ? "var(--accent)" : "var(--surface)",
+            color: mode === "check" ? "var(--accent-text)" : "var(--text-sec)",
+            border: mode === "check" ? "1px solid var(--accent)" : "1px solid var(--border)",
+          }}>
+          Check Plate
+        </button>
+      </div>
+
+      {/* PLATE CHECK MODE */}
+      {mode === "check" && (
+        <div>
+          <div style={{ marginBottom: "var(--sp-4)" }}>
+            <label class="section-label" for="check-plate">Enter Plate</label>
+            <input id="check-plate" placeholder="ABC 1234" value={checkPlate}
+              onInput={(e) => setCheckPlate((e.target as HTMLInputElement).value.toUpperCase())}
+              onKeyDown={(e) => { if ((e as KeyboardEvent).key === "Enter") handlePlateCheck(); }}
+              class="input input-plate"
+              autoFocus
+            />
           </div>
+          <button onClick={handlePlateCheck} disabled={checking || checkPlate.length < 2}
+            class="btn btn-primary btn-full" style={{ marginBottom: "var(--sp-4)" }}>
+            {checking ? "Checking..." : "Check Plate"}
+          </button>
+
+          {/* Result */}
+          {checkResult && checkResult.found && (
+            <div class="card" style={{
+              padding: "var(--sp-4)",
+              border: "1px solid rgba(220,38,38,0.3)",
+              background: "rgba(220,38,38,0.05)",
+            }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "var(--sp-2)", marginBottom: "var(--sp-2)" }}>
+                <span style={{
+                  fontSize: "10px", fontWeight: 700, padding: "2px 8px", borderRadius: 4,
+                  background: "rgba(220,38,38,0.15)", color: "#DC2626",
+                }}>MATCH</span>
+                <span style={{ fontFamily: "monospace", fontWeight: 700, letterSpacing: "0.1em" }}>{checkResult.plate}</span>
+              </div>
+              {checkResult.description && (
+                <p style={{ fontSize: "var(--text-sm)", color: "var(--text-sec)" }}>{checkResult.description}</p>
+              )}
+              {checkResult.suspicionLevel && (
+                <p style={{ fontSize: "var(--text-xs)", color: "var(--text-muted)", marginTop: "var(--sp-1)" }}>
+                  Suspicion: {checkResult.suspicionLevel}
+                </p>
+              )}
+              <button onClick={() => {
+                setDraft((d) => ({ ...d, plate: checkResult.plate || checkPlate }));
+                setMode("report");
+                setCheckResult(null);
+              }} class="btn btn-primary btn-full" style={{ marginTop: "var(--sp-3)" }}>
+                Submit Full Report →
+              </button>
+            </div>
+          )}
+
+          {checkResult && !checkResult.found && (
+            <div class="card" style={{ padding: "var(--sp-4)", textAlign: "center" }}>
+              <p style={{ fontSize: "var(--text-sm)", color: "var(--text-muted)" }}>
+                Not in the database.
+              </p>
+              <button onClick={() => {
+                setDraft((d) => ({ ...d, plate: checkPlate }));
+                setMode("report");
+                setCheckResult(null);
+              }} class="btn btn-secondary" style={{ marginTop: "var(--sp-3)", fontSize: "var(--text-xs)" }}>
+                Report anyway
+              </button>
+            </div>
+          )}
         </div>
       )}
+
+      {/* REPORT MODE */}
+      {mode === "report" && (<div>
 
       {/* Direct Camera */}
       {showCamera && (
@@ -276,6 +411,22 @@ export function Submit() {
         <Icon name="send" size={18} />
         {submitting ? "Sending..." : "Submit Sighting"}
       </button>
+      </div>)}
+    </div>
+  );
+}
+
+function StatusRow({ done, pending, label, color }: { done?: boolean; pending?: boolean; label: string; color?: string }) {
+  return (
+    <div style={{
+      display: "flex", alignItems: "center", gap: "var(--sp-2)",
+      padding: "var(--sp-2) 0",
+      color: color || (done ? "var(--text)" : "var(--text-muted)"),
+    }}>
+      {done && <span style={{ color: color || "var(--success)" }}>✓</span>}
+      {pending && <span style={{ opacity: 0.5 }}>⏳</span>}
+      {!done && !pending && <span style={{ opacity: 0.3 }}>○</span>}
+      <span>{label}</span>
     </div>
   );
 }
