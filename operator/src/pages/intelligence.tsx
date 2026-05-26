@@ -346,7 +346,7 @@ export function Intelligence() {
         coOccurrences={coOccurrences}
         dispatchPins={dispatchPins}
         onPlacePin={(lat, lng) => { setPlacingPin({ lat, lng }); setSelectedPin(null); }}
-        onPinClick={(pin) => { setSelectedPin(pin); setPlacingPin(null); }}
+        onPinClick={(pin) => { setSelectedPin(pin); setPlacingPin(null); setDispatchPins(p => [...p]); }}
         height="calc(100vh - 380px)"
       />
 
@@ -395,7 +395,7 @@ export function Intelligence() {
               loadDispatchPins();
             } catch {}
           }}
-          onCancel={() => setPlacingPin(null)}
+          onCancel={() => { setPlacingPin(null); setDispatchPins(p => [...p]); }}
         />
       )}
 
@@ -436,30 +436,18 @@ function PinCreationForm({ lat, lng, eventTypes, reporters, onSave, onCancel }: 
   const [priority, setPriority] = useState("routine");
   const [plate, setPlate] = useState("");
   const [notes, setNotes] = useState("");
-  const [locationDesc, setLocationDesc] = useState("");
   const [source, setSource] = useState("community_call");
   const [selectedReporters, setSelectedReporters] = useState<string[]>([]);
   const [sending, setSending] = useState(false);
 
   return (
     <div className="mt-4 bg-trace-surface rounded-lg p-5 border border-trace-border">
-      <div className="flex justify-between items-center mb-4">
-        <h3 className="text-sm font-semibold">Place Dispatch Pin</h3>
+      <div className="flex justify-between items-center mb-3">
+        <h3 className="text-sm font-semibold">Pin dropped — add details</h3>
         <button onClick={onCancel} style={{ color: "var(--text-muted)", background: "none", border: "none", cursor: "pointer" }}>✕</button>
       </div>
 
-      <div className="text-xs font-mono mb-3" style={{ color: "var(--text-muted)" }}>
-        {lat.toFixed(5)}, {lng.toFixed(5)}
-      </div>
-
       <div className="grid grid-cols-2 gap-3 mb-3">
-        {/* Location description */}
-        <div className="col-span-2">
-          <input placeholder="Location (e.g. Elm St near Shell station)" value={locationDesc}
-            onChange={(e) => setLocationDesc(e.target.value)}
-            className="w-full bg-trace-bg border border-trace-border rounded-lg px-3 py-2 text-sm" />
-        </div>
-
         {/* Event type */}
         {eventTypes.length > 0 && (
           <select value={eventTypeId} onChange={(e) => setEventTypeId(e.target.value)}
@@ -494,13 +482,11 @@ function PinCreationForm({ lat, lng, eventTypes, reporters, onSave, onCancel }: 
         ))}
       </div>
 
+      {/* Plate + Notes on one row */}
       <div className="grid grid-cols-2 gap-3 mb-3">
-        {/* Plate (optional) */}
         <input placeholder="Plate (optional)" value={plate}
           onChange={(e) => setPlate(e.target.value.toUpperCase())}
           className="bg-trace-bg border border-trace-border rounded-lg px-3 py-2 text-sm font-mono" />
-
-        {/* Notes */}
         <input placeholder="Notes (optional)" value={notes}
           onChange={(e) => setNotes(e.target.value)}
           className="bg-trace-bg border border-trace-border rounded-lg px-3 py-2 text-sm" />
@@ -537,7 +523,6 @@ function PinCreationForm({ lat, lng, eventTypes, reporters, onSave, onCancel }: 
             eventTypeId: eventTypeId || undefined,
             priority, plate: plate || undefined,
             notes: notes || undefined,
-            locationDescription: locationDesc || undefined,
             source,
             reporterIds: selectedReporters.length > 0 ? selectedReporters : undefined,
           });

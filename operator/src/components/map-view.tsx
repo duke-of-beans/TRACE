@@ -155,6 +155,24 @@ export function IntelMap({
     map.on("contextmenu", (e: any) => {
       if (onPlacePin) {
         e.originalEvent.preventDefault();
+        // Drop a temporary pulsing marker immediately
+        const tempMarker = L.marker([e.latlng.lat, e.latlng.lng], {
+          icon: L.divIcon({
+            className: "",
+            html: `<div style="
+              width:32px;height:32px;transform:rotate(45deg);
+              border:3px solid #D97706;background:rgba(217,119,6,0.3);
+              border-radius:4px;
+              animation:pulse 1.5s infinite;
+              box-shadow:0 0 12px rgba(217,119,6,0.5);
+            "></div>`,
+            iconSize: [32, 32],
+            iconAnchor: [16, 16],
+          }),
+        }).addTo(map);
+        // Store for cleanup
+        if ((map as any)._tempPin) (map as any)._tempPin.remove();
+        (map as any)._tempPin = tempMarker;
         onPlacePin(e.latlng.lat, e.latlng.lng);
       }
     });
@@ -314,6 +332,13 @@ export function IntelMap({
     const layer = layersRef.current?.dispatchPins;
     if (!layer) return;
     layer.clearLayers();
+
+    // Clear temp pin when real pins render
+    const map = leafletRef.current;
+    if (map && (map as any)._tempPin) {
+      (map as any)._tempPin.remove();
+      (map as any)._tempPin = null;
+    }
 
     dispatchPins.forEach((pin) => {
       const color = pin.eventTypeColor || PRIORITY_COLORS[pin.priority] || PRIORITY_COLORS.routine;
