@@ -259,6 +259,20 @@ function SettingsPage({ authed, ttlHours, theme, onShowSecurity, onShowJoin, onS
         </button>
       )}
 
+      {authed && (
+        <div style={{ marginBottom: "var(--sp-4)" }}>
+          <div class="info-card-label" style={{ marginBottom: "var(--sp-2)" }}>Quick Guide</div>
+          <div class="card" style={{ padding: "var(--sp-3)" }}>
+            <div style={{ fontSize: "var(--text-xs)", color: "var(--text-sec)", lineHeight: "var(--leading-relaxed)" }}>
+              <p style={{ marginBottom: "var(--sp-2)" }}><b style={{ color: "var(--text)" }}>Report tab.</b> Enter a plate, describe the activity, set location, submit. Takes 15 seconds.</p>
+              <p style={{ marginBottom: "var(--sp-2)" }}><b style={{ color: "var(--text)" }}>Check Plate.</b> Toggle to Check Plate mode. Type a plate to see if it is in the database.</p>
+              <p style={{ marginBottom: "var(--sp-2)" }}><b style={{ color: "var(--text)" }}>Map tab.</b> Shows dispatch pins from your operator. Tap to respond or mark on scene.</p>
+              <p style={{ marginBottom: "0" }}><b style={{ color: "var(--text)" }}>History tab.</b> Your submitted sightings and their current status.</p>
+            </div>
+          </div>
+        </div>
+      )}
+
       <button class="btn btn-secondary btn-full" onClick={onToggleTheme} style={{ marginBottom: "var(--sp-3)", justifyContent: "flex-start" }}>
         <Icon name="eye" size={16} /> {theme === "light" ? "Dark Mode" : "Light Mode"}
       </button>

@@ -38,6 +38,7 @@ export function App() {
   const [onboarded, setOnboarded] = useState(() => !needsOperatorOnboarding());
   const [theme, setThemeState] = useState(() => getTheme("dark"));
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [showGuide, setShowGuide] = useState(false);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -65,6 +66,7 @@ export function App() {
           <OperatorOnboarding onComplete={() => setOnboarded(true)} />
         ) : (
 
+        <>
         <div className="flex h-screen" style={{ background: "var(--bg)", color: "var(--text)" }}>
           {/* Mobile top bar */}
           <div className="lg:hidden fixed top-0 left-0 right-0 z-40 flex items-center justify-between px-4 py-2" style={{ background: "var(--surface)", borderBottom: "1px solid var(--border)" }}>
@@ -124,6 +126,12 @@ export function App() {
             </nav>
 
             <div className="px-4 py-3 space-y-2" style={{ borderTop: "1px solid var(--border)" }}>
+              <button onClick={() => setShowGuide(true)}
+                className="w-full text-left text-xs py-1 flex items-center gap-2 transition-colors"
+                style={{ color: "var(--text-muted)" }}>
+                <Icon name="file-text" size={14} />
+                Operator Guide
+              </button>
               <button onClick={handleToggleTheme}
                 className="w-full text-left text-xs py-1 flex items-center gap-2 transition-colors"
                 style={{ color: "var(--text-muted)" }}>
@@ -155,6 +163,47 @@ export function App() {
             </ErrorBoundary>
           </main>
         </div>
+
+        {/* Operator Guide Overlay */}
+        {showGuide && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: "rgba(0,0,0,0.7)" }} onClick={() => setShowGuide(false)}>
+            <div className="w-full max-w-lg max-h-[80vh] overflow-auto rounded-xl p-6" style={{ background: "var(--surface)", border: "1px solid var(--border)" }} onClick={(e) => e.stopPropagation()}>
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-lg font-bold">Operator Guide</h2>
+                <button onClick={() => setShowGuide(false)} className="text-sm" style={{ color: "var(--text-muted)", background: "none", border: "none", cursor: "pointer" }}>✕</button>
+              </div>
+              <div className="space-y-4 text-sm" style={{ color: "var(--text-sec)" }}>
+                <div>
+                  <h3 className="font-semibold mb-1" style={{ color: "var(--text)" }}>Triage</h3>
+                  <p>Incoming sightings appear here. Each shows MATCH (known plate) or NEW PLATE. Use Confirm & Dispatch to create a dispatch pin, Dismiss & Notify to send feedback to the reporter, or Add to Tracking to add the vehicle.</p>
+                  <p className="text-xs mt-1" style={{ color: "var(--text-muted)" }}>Shortcuts: C (confirm), D (dismiss), F (flag), N (next), P (previous)</p>
+                </div>
+                <div>
+                  <h3 className="font-semibold mb-1" style={{ color: "var(--text)" }}>Intel Map</h3>
+                  <p>All sightings on a satellite map. Right-click to drop a dispatch pin. Click sighting markers to see details. Time playback shows patterns hour by hour. Add corridor overlays to trace vehicle movements.</p>
+                </div>
+                <div>
+                  <h3 className="font-semibold mb-1" style={{ color: "var(--text)" }}>Vehicles & Actors</h3>
+                  <p>Dossier pages for tracked vehicles and persons of interest. Upload photos, set suspicion levels, view sighting history, record physical identifiers.</p>
+                </div>
+                <div>
+                  <h3 className="font-semibold mb-1" style={{ color: "var(--text)" }}>Admin</h3>
+                  <p>Configure vehicle types, suspicion ladders, dispatch event types, and actor identifiers. Generate reporter invite codes. Manage operator accounts.</p>
+                </div>
+                <div>
+                  <h3 className="font-semibold mb-1" style={{ color: "var(--text)" }}>Security</h3>
+                  <p>View connected reporters, suspend or kill devices remotely. The kill signal triggers on the reporter's next check-in.</p>
+                </div>
+                <div className="pt-2" style={{ borderTop: "1px solid var(--border)" }}>
+                  <p className="text-xs" style={{ color: "var(--text-muted)" }}>
+                    Press number keys 1-7 to switch pages. Press ? for the keyboard shortcut overlay.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+        </>
 
         )}
       </ConfirmProvider>
