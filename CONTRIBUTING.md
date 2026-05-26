@@ -9,7 +9,7 @@
 ### Quick Start
 
 ```bash
-git clone https://github.com/duke-of-beans/TRACE.git
+git clone <your-fork-url>
 cd TRACE
 npm install
 cd pwa && npm install && cd ..

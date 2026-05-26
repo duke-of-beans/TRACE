@@ -12,62 +12,73 @@ You need a computer with a web browser. That's it. Everything runs in the cloud 
 
 ### Step 1: Create your database
 
-1. Go to [neon.tech](https://neon.tech) and sign up (you can use your Google account)
-2. Click **New Project**
-3. Name it anything (like `trace`)
-4. After it's created, you'll see a **Connection String** box. Click the copy button next to it. It looks something like `postgresql://neondb_owner:abc123@ep-something.neon.tech/neondb?sslmode=require`
+Your database stores every sighting, vehicle, and dispatch record. It's private to you — no one else can access it. [Neon](https://neon.tech) provides free PostgreSQL databases that are encrypted at rest and in transit.
 
-Keep this copied — you'll need it in the next step.
+1. Go to [neon.tech](https://neon.tech) and sign up (Google account works, or create a fresh email/password)
+2. Click **New Project**, name it anything (like `trace`), pick the region closest to your area
+3. After it's created, you'll see a **Connection String** — it looks like gibberish, that's normal. Click the copy button next to it.
+
+This connection string is like an address + key for your database. Keep it private.
 
 ### Step 2: Deploy TRACE
 
+[Vercel](https://vercel.com) hosts your website for free — it's used by major companies and handles the infrastructure so you don't have to. Vercel needs a [GitHub](https://github.com) account (GitHub stores the code, Vercel turns it into a website). You won't need to learn GitHub — it's a one-time setup step.
+
 1. Click the blue **Deploy with Vercel** button above
-2. Sign in with GitHub (create a free account if you don't have one)
-3. It asks for `DATABASE_URL` — paste the connection string you just copied
+2. Sign in with GitHub (create a free account if you don't have one — just needs an email)
+3. It asks for `DATABASE_URL` — paste the connection string you copied in Step 1
 4. Click **Deploy** and wait about 2 minutes
 
-When it finishes, you'll get a URL like `trace-abc123.vercel.app`. This is your TRACE. Bookmark it.
+When it finishes, you get a URL like `trace-abc123.vercel.app`. This is your TRACE. Bookmark it.
 
 ### Step 3: Set up the database tables
 
+Your database exists but it's empty — like a filing cabinet with no folders. This step creates the structure TRACE needs to organize sightings, vehicles, dispatches, and accounts. You paste one file and click Run.
+
 1. Go back to [Neon](https://console.neon.tech) and click on your project
 2. Click **SQL Editor** in the left sidebar
-3. Open the file [`setup.sql`](setup.sql) from this repository (click it on GitHub, then click the copy button)
+3. Open [`setup.sql`](setup.sql) from this repository (click it, then click the copy button in the top-right)
 4. Paste the entire contents into the Neon SQL Editor
 5. Click **Run**
 
-You should see a series of "CREATE TABLE" confirmations. If you see any errors about things "already existing," that's fine — it means the tables were already created.
+You'll see "CREATE TABLE" confirmations. Errors about things "already existing" are fine — it's safe to run multiple times.
 
 ### Step 4: Create your operator account
 
-1. Go to `your-app.vercel.app/operator/` (replace with your actual Vercel URL)
-2. You'll see a **First-Time Setup** screen
+TRACE uses callsigns instead of email addresses to protect operator identity. Even if someone gained access to the database, they'd find code names, not real people.
+
+1. Go to `your-app.vercel.app/operator/`
+2. You'll see a **First-Time Setup** screen (only appears once — when no operators exist)
 3. Enter your **chapter name** (e.g., "Westside Watch")
-4. Choose a **callsign** (your operator name — like "ALPHA" or "DISPATCH-1")
-5. Choose an **access code** (like a password — 6+ characters, keep it safe)
+4. Choose a **callsign** — your operator code name (like "ALPHA" or "DISPATCH-1")
+5. Choose an **access code** — at least 6 characters, keep it safe
 6. Click **Create Operator & Start**
 
 You're in. The onboarding walkthrough will show you around.
 
 ### Step 5: Invite your first reporter
 
+Reporters don't create accounts with email or phone numbers — that would put them at risk if the system were ever compromised. Instead, you generate a one-time invite code and hand it to them directly.
+
 1. In the operator console, click **Admin** in the sidebar
 2. Click the **Reporters** tab
 3. Type a callsign for the reporter (their code name, not their real name)
 4. Click **Generate Invite Code**
-5. Send the invite code to your reporter via Signal, WhatsApp, or in person
+5. Send the code to your reporter via Signal, WhatsApp, or in person
 
 The reporter opens your TRACE URL on their phone, enters the code, and they're in.
 
 ### Step 6: Install the app on phones
 
-Tell reporters to open your TRACE URL in their phone's browser, then:
+TRACE installs from the browser — no App Store or Google Play needed. This means no review process, faster updates, and no trail in anyone's app purchase history.
 
 **iPhone (must use Safari):** Tap the Share button → Add to Home Screen → Add
 
 **Android (use Chrome):** Tap the three-dot menu → Add to Home Screen → Add
 
-The app icon appears on their home screen and runs full-screen like a real app.
+The app icon appears on their home screen and runs full-screen like a native app.
+
+> **Visual guide with mockups of every screen:** Once deployed, visit `your-app.vercel.app/guide.html`
 
 ## How It Works
 
@@ -186,7 +197,7 @@ The reporter app includes a panic button (configurable in Settings) and a PIN lo
 ### Setup
 
 ```bash
-git clone https://github.com/duke-of-beans/TRACE.git
+git clone <your-fork-url>
 cd TRACE
 npm install
 cd pwa && npm install && cd ..
@@ -247,7 +258,8 @@ The app appears on the home screen with a standalone icon. It runs full-screen w
 
 ## Documentation
 
-- [Chapter Setup Guide](docs/CHAPTER_SETUP.md) — complete deployment walkthrough for new chapters
+- [Visual Setup Guide](guide.html) — interactive walkthrough with mockups (available at `/guide.html` on any deployed instance)
+- [Chapter Setup Guide](docs/CHAPTER_SETUP.md) — detailed deployment walkthrough
 - [Dispatch System Design](DISPATCH_DESIGN.md)
 - [Voice Guide](VOICE_GUIDE.md)
 - [Design System](DESIGN_SYSTEM.md)
@@ -257,4 +269,4 @@ The app appears on the home screen with a standalone icon. It runs full-screen w
 
 ## License
 
-Source-available. Contact for chapter licensing.
+Source-available for community safety use. See repository for terms.
