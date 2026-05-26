@@ -297,21 +297,21 @@
 <div class="container">
 
 <p style="font-size:16px; color:var(--text-sec); text-align:center; margin-bottom:24px; line-height:1.8;">
-  TRACE is a vehicle tracking system for your neighborhood. Reporters use a phone app to submit sightings. You manage everything from a desktop dashboard.
+  TRACE is a vehicle tracking system for neighborhood chapters. Reporters submit sightings from a phone app. Operators review, dispatch, and track from a desktop console.
 </p>
 <p style="font-size:15px; color:var(--text-muted); text-align:center; margin-bottom:60px; line-height:1.8;">
-  To run TRACE, you need two things: a <strong style="color:var(--text-sec)">database</strong> (where your data lives) and a <strong style="color:var(--text-sec)">website</strong> (what people open on their phones and computers). Both are free, both are run by established companies, and you stay in full control.
+  TRACE requires two services: a <strong style="color:var(--text-sec)">database</strong> (stores your records) and a <strong style="color:var(--text-sec)">web host</strong> (serves the app to devices). Both are free. Both use industry-standard encryption. You control both accounts and can delete everything at any time.
 </p>
 
 <!-- ====== STEP 1 ====== -->
 <div class="step">
   <div class="step-number">1</div>
   <h2>Create your database</h2>
-  <p><strong>Why:</strong> Your database is where every sighting, vehicle, and dispatch record is stored. It's yours — no one else can see it. We use <strong>Neon</strong> because it's a trusted database company (used by thousands of businesses), it's free for small teams, and your data stays encrypted on their servers. You can export or delete everything at any time.</p>
+  <p>The database stores all sighting records, vehicle profiles, dispatch events, and reporter accounts. Neon hosts PostgreSQL databases with encryption at rest and TLS in transit. The free tier covers chapters with up to 50 reporters. Your database is isolated to your account. Neon staff cannot read your data without your connection credentials.</p>
   
   <ol class="instructions">
-    <li>Go to <strong><a href="https://neon.tech" target="_blank" style="color:var(--accent)">neon.tech</a></strong> and click <strong>Sign Up</strong>. You can use your Google account — or create a new email/password if you prefer not to link accounts.</li>
-    <li>Click <strong>New Project</strong>. Name it anything — "trace" works fine. Pick the region closest to your area for faster performance.</li>
+    <li>Go to <strong><a href="https://neon.tech" target="_blank" style="color:var(--accent)">neon.tech</a></strong> and click <strong>Sign Up</strong>. Google account works, or use a separate email/password.</li>
+    <li>Click <strong>New Project</strong>. Name it anything. Pick the region closest to your area.</li>
     <li>After it creates, you'll see a <strong>Connection String</strong>. It looks like gibberish — that's normal. Click the <strong>copy button</strong> next to it.</li>
   </ol>
 
@@ -336,20 +336,20 @@
   </div>
 
   <div class="callout">
-    <strong>What is this connection string?</strong> It's like an address + key for your database. TRACE uses it to store and retrieve your data. Keep it private — anyone with this string could access your database. Don't post it publicly or share it in group chats.
+    <strong>Connection string</strong> is the address and credential for your database. TRACE uses it to read and write records. Do not share it publicly. Anyone with this string has full access to your database.
   </div>
 </div>
 
 <!-- ====== STEP 2 ====== -->
 <div class="step">
   <div class="step-number">2</div>
-  <h2>Deploy your TRACE website</h2>
-  <p><strong>Why:</strong> Your website is what reporters and operators open on their devices. <strong>Vercel</strong> hosts it — they run websites for companies like Nike, Uber, and The Washington Post, and their free tier is more than enough for a chapter. Your TRACE website is private to people who have your URL and an invite code.</p>
-  <p><strong>Why GitHub:</strong> Vercel needs a <strong>GitHub</strong> account to work (GitHub stores the code, Vercel turns it into a website). Think of GitHub as the filing cabinet and Vercel as the storefront. You only need GitHub for this one step — you won't need to go back to it unless you want to update TRACE later.</p>
+  <h2>Deploy the TRACE application</h2>
+  <p>Vercel serves the TRACE application to browsers and phones. All traffic is encrypted via HTTPS. The application runs in isolated serverless functions with no shared state between chapters. The free tier supports thousands of daily requests.</p>
+  <p>Vercel requires a GitHub account. GitHub stores the application code. Vercel compiles and serves it. You will not need to use GitHub after this step unless you update TRACE.</p>
 
   <ol class="instructions">
-    <li>Click the blue <strong>Deploy</strong> button below. It opens Vercel.</li>
-    <li>Sign in with <strong>GitHub</strong>. If you don't have one, click "Create an account" — it just needs an email and password. You won't need to learn GitHub.</li>
+    <li>Click the <strong>Deploy</strong> button below. It opens Vercel.</li>
+    <li>Sign in with <strong>GitHub</strong>. If you do not have an account, create one. It requires an email and password.</li>
     <li>Vercel asks for <strong>DATABASE_URL</strong>. Paste the connection string you copied in Step 1.</li>
     <li>Click <strong>Deploy</strong>. Wait about 2 minutes while it builds your website.</li>
   </ol>
@@ -379,16 +379,15 @@
   </div>
 
   <div class="callout">
-    <strong>When it finishes,</strong> Vercel gives you a URL like <code style="color:var(--accent)">trace-abc123.vercel.app</code>. This is <em>your</em> TRACE. Bookmark it — this is the address your reporters will use too.
+    <strong>After deployment,</strong> Vercel provides a URL like <code style="color:var(--accent)">trace-abc123.vercel.app</code>. This is your TRACE instance. Bookmark it. This is also the URL your reporters will use.
   </div>
 </div>
 
 <!-- ====== STEP 3 ====== -->
 <div class="step">
   <div class="step-number">3</div>
-  <h2>Set up the database tables</h2>
-  <p><strong>Why:</strong> In Step 1, you created an empty database — like buying a filing cabinet with no folders inside. This step creates the folders (called "tables") that TRACE needs to organize sightings, vehicles, dispatches, and reporter accounts. You're pasting a set of instructions that tells the database how to organize itself.</p>
-  <p>You only do this once. It takes about 30 seconds.</p>
+  <h2>Create the database tables</h2>
+  <p>The database from Step 1 is empty. This step creates the table structure TRACE uses to organize sightings, vehicles, dispatches, and accounts. You paste one file into the Neon SQL editor and run it. One time only. Takes 30 seconds.</p>
 
   <ol class="instructions">
     <li>Go back to <strong><a href="https://console.neon.tech" target="_blank" style="color:var(--accent)">Neon</a></strong> and click your project.</li>
@@ -418,16 +417,16 @@
   </div>
 
   <div class="callout">
-    <strong>You should see "CREATE TABLE" messages.</strong> If you see errors about things "already existing," that's fine — it means they were already created. You can safely run this multiple times.
+    <strong>Expected output:</strong> a series of "CREATE TABLE" statements. Errors about objects "already existing" are normal and harmless. The file is safe to run multiple times.
   </div>
 </div>
 
 <!-- ====== STEP 4 ====== -->
 <div class="step">
   <div class="step-number">4</div>
-  <h2>Create your operator account</h2>
-  <p><strong>Why:</strong> The operator is the person who manages the chapter — reviewing sightings, dispatching reporters, and tracking vehicles. TRACE doesn't use email addresses or real names for operator accounts. Instead, you choose a <strong>callsign</strong> (a code name like "ALPHA") and an <strong>access code</strong> (like a password). This protects your identity even if someone gains access to the system.</p>
-  <p>This screen only appears once — the first time you open the operator console. After that, it becomes a normal login screen.</p>
+  <h2>Create the operator account</h2>
+  <p>TRACE does not use email addresses or real names for accounts. Operators authenticate with a <strong>callsign</strong> (a code name) and an <strong>access code</strong> (a passphrase, 6+ characters). No identifying information enters the system. If the database were compromised, an attacker would find callsigns, not people.</p>
+  <p>This screen appears once, on first access. After the first operator is created, it becomes a standard login.</p>
 
   <ol class="instructions">
     <li>Go to <strong>your-app.vercel.app/operator/</strong> (your Vercel URL + <code style="color:var(--accent)">/operator/</code>)</li>
@@ -461,15 +460,15 @@
   </div>
 
   <div class="callout">
-    <strong>You're in!</strong> The onboarding walkthrough will show you around the operator console. You can skip it and come back later from the sidebar.
+    <strong>After login,</strong> the operator console loads with an onboarding walkthrough covering each section. You can skip it and access it later from the sidebar.
   </div>
 </div>
 
 <!-- ====== STEP 5 ====== -->
 <div class="step">
   <div class="step-number">5</div>
-  <h2>Invite your first reporter</h2>
-  <p><strong>Why invite codes:</strong> Reporters don't create accounts with email or phone numbers — that would put them at risk if the system were ever compromised. Instead, you generate a one-time invite code and hand it to them directly (in person or via encrypted chat like Signal). The code works once and expires in 7 days. No email, no phone number, no real name ever enters the system.</p>
+  <h2>Invite reporters</h2>
+  <p>Reporters do not create accounts with email or phone numbers. The operator generates a one-time invite code and delivers it directly (in person or via encrypted channel). The code is single-use and expires in 7 days. No email, phone number, or real name enters the system at any point.</p>
 
   <ol class="instructions">
     <li>In the operator console, click <strong>Admin</strong> in the left sidebar.</li>
@@ -498,15 +497,15 @@
   </div>
 
   <div class="callout-warn callout">
-    <strong>Security note:</strong> Give invite codes in person or through an encrypted chat (Signal). Never post them publicly. Each code works exactly once and expires in 7 days.
+    <strong>Deliver codes through encrypted channels only.</strong> Signal, in person, or encrypted email. Do not post codes in group chats or public channels. Each code is single-use and expires in 7 days.
   </div>
 </div>
 
 <!-- ====== STEP 6 ====== -->
 <div class="step">
   <div class="step-number">6</div>
-  <h2>Reporters install the app</h2>
-  <p><strong>Why no App Store:</strong> TRACE runs as a "web app" — it works like a regular app (full screen, home screen icon, push notifications) but installs straight from the browser. No App Store or Google Play needed. This means faster updates, no review process, and no trail in anyone's app purchase history. The app is indistinguishable from a regular app once installed.</p>
+  <h2>Reporter app installation</h2>
+  <p>TRACE is a Progressive Web App. It installs from the browser directly to the home screen. No App Store. No Google Play. No download history. No app purchase record. Once installed, it runs full-screen with push notifications, indistinguishable from a native app.</p>
 
   <div style="display:flex; gap:24px; justify-content:center; flex-wrap:wrap; margin:32px 0;">
     <!-- iPhone -->
@@ -573,10 +572,9 @@
 
 <!-- ====== DONE ====== -->
 <div style="text-align:center; padding:40px 0 20px; border-top:1px solid var(--border); margin-top:20px;">
-  <div style="font-size:40px; margin-bottom:16px;">✓</div>
-  <h2 style="font-size:24px; margin-bottom:12px;">You're live.</h2>
+  <h2 style="font-size:24px; margin-bottom:12px;">Setup complete.</h2>
   <p style="color:var(--text-sec); font-size:15px; max-width:400px; margin:0 auto; line-height:1.8;">
-    Your TRACE chapter is up and running. Reporters submit sightings from their phones. You triage, dispatch, and track from your operator console.
+    The chapter is operational. Reporters submit sightings from their phones. The operator console receives them for triage, dispatch, and tracking.
   </p>
 </div>
 
@@ -612,31 +610,31 @@
   <h3 style="font-size:16px; margin-bottom:16px; margin-top:32px; color:var(--text-muted);">Your Accounts & Security</h3>
 
   <details style="margin-bottom:12px; border:1px solid var(--border); border-radius:8px; padding:12px 16px;">
-    <summary style="font-size:14px; font-weight:600; cursor:pointer; color:var(--text-sec);">What accounts did I just create?</summary>
+    <summary style="font-size:14px; font-weight:600; cursor:pointer; color:var(--text-sec);">What accounts were created?</summary>
     <div style="font-size:13px; color:var(--text-muted); margin-top:8px; line-height:1.7;">
-      <p style="margin-bottom:8px;"><strong style="color:var(--text-sec)">Neon</strong> — hosts your database. Your sightings, vehicles, and records live here. Free tier covers small-to-medium chapters. <a href="https://console.neon.tech" style="color:var(--accent)" target="_blank">console.neon.tech</a></p>
-      <p style="margin-bottom:8px;"><strong style="color:var(--text-sec)">Vercel</strong> — hosts your website. This is what people open in their browser. Free tier covers most chapters. <a href="https://vercel.com/dashboard" style="color:var(--accent)" target="_blank">vercel.com/dashboard</a></p>
-      <p><strong style="color:var(--text-sec)">GitHub</strong> — stores the code that Vercel builds from. You created this to deploy. You won't need to use it day-to-day. <a href="https://github.com" style="color:var(--accent)" target="_blank">github.com</a></p>
+      <p style="margin-bottom:8px;"><strong style="color:var(--text-sec)">Neon</strong> — database host. Sighting records, vehicle data, and reporter accounts are stored here. Free tier covers small-to-medium chapters. <a href="https://console.neon.tech" style="color:var(--accent)" target="_blank">console.neon.tech</a></p>
+      <p style="margin-bottom:8px;"><strong style="color:var(--text-sec)">Vercel</strong> — web host. Serves the application to browsers and phones. Free tier covers most chapters. <a href="https://vercel.com/dashboard" style="color:var(--accent)" target="_blank">vercel.com/dashboard</a></p>
+      <p><strong style="color:var(--text-sec)">GitHub</strong> — code repository. Stores the application source that Vercel compiles. Not used after initial deployment. <a href="https://github.com" style="color:var(--accent)" target="_blank">github.com</a></p>
     </div>
   </details>
 
   <details style="margin-bottom:12px; border:1px solid var(--border); border-radius:8px; padding:12px 16px;">
-    <summary style="font-size:14px; font-weight:600; cursor:pointer; color:var(--text-sec);">Is my data safe?</summary>
+    <summary style="font-size:14px; font-weight:600; cursor:pointer; color:var(--text-sec);">How is the data stored?</summary>
     <div style="font-size:13px; color:var(--text-muted); margin-top:8px; line-height:1.7;">
-      <p style="margin-bottom:8px;">Yes. Your data is stored in your own private database on Neon's servers — encrypted at rest and in transit. Neon is SOC 2 Type II certified (an industry security standard). No one at Neon, Vercel, or GitHub can see your sighting data without your database connection string.</p>
-      <p>TRACE also separates reporter identities from sighting data at the architecture level. Even if someone got access to the sighting records, they couldn't determine who submitted them — that information is stored in a separate, isolated section of the database.</p>
+      <p style="margin-bottom:8px;">All data is stored in your Neon database. Neon encrypts data at rest (AES-256) and in transit (TLS 1.3). Neon holds SOC 2 Type II certification. Your database is isolated to your account. Neon cannot access your data without your connection credentials.</p>
+      <p>TRACE separates reporter identities from sighting data at the database level. Sighting records, vehicle profiles, and dispatch events are stored in one schema. Reporter identities (callsign-to-person mappings) are stored in a separate, isolated schema. A full export of the sighting data reveals zero real identities. The separation is structural, not policy.</p>
     </div>
   </details>
 
   <details style="margin-bottom:12px; border:1px solid var(--border); border-radius:8px; padding:12px 16px;">
-    <summary style="font-size:14px; font-weight:600; cursor:pointer; color:var(--text-sec);">Can anyone find my TRACE website?</summary>
-    <p style="font-size:13px; color:var(--text-muted); margin-top:8px; line-height:1.7;">Your Vercel URL (like <code>trace-abc123.vercel.app</code>) is not listed anywhere publicly. It's a random URL that only people you share it with can find. Search engines won't index it. Even if someone discovers the URL, they can't do anything without an invite code (for the reporter app) or an operator callsign + access code (for the operator console).</p>
+    <summary style="font-size:14px; font-weight:600; cursor:pointer; color:var(--text-sec);">Who can access the TRACE URL?</summary>
+    <p style="font-size:13px; color:var(--text-muted); margin-top:8px; line-height:1.7;">The Vercel URL (e.g. <code>trace-abc123.vercel.app</code>) is not indexed by search engines or listed in any directory. Only people you share it with can find it. The reporter app requires a valid invite code to access any functionality. The operator console requires a callsign and access code. An unauthenticated visitor sees a login screen and nothing else.</p>
   </details>
 
   <details style="margin-bottom:12px; border:1px solid var(--border); border-radius:8px; padding:12px 16px;">
     <summary style="font-size:14px; font-weight:600; cursor:pointer; color:var(--text-sec);">How do I shut everything down and delete my data?</summary>
     <div style="font-size:13px; color:var(--text-muted); margin-top:8px; line-height:1.7;">
-      <p style="margin-bottom:8px;">You're in full control. To completely remove TRACE:</p>
+      <p style="margin-bottom:8px;">Three steps remove all data from all servers:</p>
       <p style="margin-bottom:4px;"><strong style="color:var(--text-sec)">1. Delete your Neon project</strong> — go to <a href="https://console.neon.tech" style="color:var(--accent)" target="_blank">console.neon.tech</a>, click your project → Settings → Delete Project. This permanently destroys all sighting data, vehicle records, and reporter accounts.</p>
       <p style="margin-bottom:4px;"><strong style="color:var(--text-sec)">2. Delete your Vercel project</strong> — go to <a href="https://vercel.com/dashboard" style="color:var(--accent)" target="_blank">vercel.com/dashboard</a>, click your project → Settings → scroll to bottom → Delete Project. Your website goes offline immediately.</p>
       <p style="margin-bottom:4px;"><strong style="color:var(--text-sec)">3. (Optional) Delete the GitHub repo</strong> — go to github.com, open your TRACE repository → Settings → scroll to bottom → Delete this repository.</p>

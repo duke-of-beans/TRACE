@@ -12,28 +12,26 @@ You need a computer with a web browser. That's it. Everything runs in the cloud 
 
 ### Step 1: Create your database
 
-Your database stores every sighting, vehicle, and dispatch record. It's private to you — no one else can access it. [Neon](https://neon.tech) provides free PostgreSQL databases that are encrypted at rest and in transit.
+The database stores all sighting records, vehicle profiles, dispatch events, and accounts. Neon hosts PostgreSQL databases with encryption at rest and TLS in transit. Free tier covers chapters up to 50 reporters.
 
-1. Go to [neon.tech](https://neon.tech) and sign up (Google account works, or create a fresh email/password)
-2. Click **New Project**, name it anything (like `trace`), pick the region closest to your area
-3. After it's created, you'll see a **Connection String** — it looks like gibberish, that's normal. Click the copy button next to it.
-
-This connection string is like an address + key for your database. Keep it private.
+1. Go to [neon.tech](https://neon.tech) and sign up (Google account works, or use a separate email/password)
+2. Click **New Project**, name it anything, pick the region closest to your area
+3. After creation, copy the **Connection String** (the address and credential for your database). Keep it private.
 
 ### Step 2: Deploy TRACE
 
-[Vercel](https://vercel.com) hosts your website for free — it's used by major companies and handles the infrastructure so you don't have to. Vercel needs a [GitHub](https://github.com) account (GitHub stores the code, Vercel turns it into a website). You won't need to learn GitHub — it's a one-time setup step.
+Vercel serves the TRACE application to browsers and phones. All traffic is HTTPS-encrypted. Vercel requires a GitHub account (GitHub stores the code, Vercel compiles and serves it). You will not need GitHub after this step.
 
-1. Click the blue **Deploy with Vercel** button above
-2. Sign in with GitHub (create a free account if you don't have one — just needs an email)
-3. It asks for `DATABASE_URL` — paste the connection string you copied in Step 1
-4. Click **Deploy** and wait about 2 minutes
+1. Click the **Deploy with Vercel** button above
+2. Sign in with GitHub (create a free account if you do not have one)
+3. It asks for `DATABASE_URL`. Paste the connection string from Step 1.
+4. Click **Deploy**. Build takes about 2 minutes.
 
-When it finishes, you get a URL like `trace-abc123.vercel.app`. This is your TRACE. Bookmark it.
+After deployment, Vercel provides a URL like `trace-abc123.vercel.app`. Bookmark it. This is also the URL reporters use.
 
-### Step 3: Set up the database tables
+### Step 3: Create the database tables
 
-Your database exists but it's empty — like a filing cabinet with no folders. This step creates the structure TRACE needs to organize sightings, vehicles, dispatches, and accounts. You paste one file and click Run.
+The database from Step 1 is empty. This creates the table structure. Paste one file into the Neon SQL editor and run it. One time only.
 
 1. Go back to [Neon](https://console.neon.tech) and click on your project
 2. Click **SQL Editor** in the left sidebar
