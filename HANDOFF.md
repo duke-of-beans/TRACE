@@ -115,6 +115,15 @@ Seed: use pooler URL with `npx tsx src/db/seed.ts`
 
 ### Previous: UX + Docs Session
 
+### Core Features Completed (deployed)
+- **Reporter photo upload** — photos sent as base64 in sighting payload, stored in sighting_photos table with photoData + mimeType columns. Max 5 photos per sighting. EXIF scrubbed on device before upload.
+- **Auto-close stale dispatches** — lazy check on GET /dispatch: if event type has autoCloseHours and dispatch exceeds that, auto-sets status to "expired". No cron needed.
+- **Plate auto-suggest** — debounced search as reporter types plate (3+ chars). GET /vehicles/search-plates returns up to 5 matching plates with make/model/color. Dropdown appears below plate input with MATCH badges.
+- **Dispatch outcome UI** — when reporter is on_scene, shows 4 outcome buttons: Confirmed, Not Found, Suspect Fled, False Alarm. One tap submits outcome and closes assignment. Vibrates on success.
+- **Submission vibration** — `navigator.vibrate(100)` on successful sighting submit and dispatch outcome.
+
+### Previous: Auth + Productization Session
+
 ### Dispatch System (Full Stack)
 - **Design document:** DISPATCH_DESIGN.md — 5 workflows, 12 little things, 4-phase plan
 - **5 new DB tables** + 2 new columns on sightings + photoUrl on vehicles/actors
@@ -153,68 +162,24 @@ Seed: use pooler URL with `npx tsx src/db/seed.ts`
 - **Auth hardening** — no auto-create operators, role verification on login
 - **Responsive nav** — hidden until authenticated and briefed
 
-## REMAINING WORK — NEXT SESSION SEQUENCE
+## REMAINING WORK — NEXT SESSION
 
-### Phase 1: Infrastructure (do first, everything depends on it)
-
-**1a. Push latest schema to Neon**
-```
-set DATABASE_URL=postgresql://neondb_owner:npg_yQfC4A6DsbFx@ep-restless-scene-aqhfsf50.c-8.us-east-1.aws.neon.tech/trace?sslmode=require
-node --import tsx node_modules/drizzle-kit/bin.cjs generate --name photos-and-fixes
-node --import tsx node_modules/drizzle-kit/bin.cjs migrate
-set DATABASE_URL=postgresql://neondb_owner:npg_yQfC4A6DsbFx@ep-restless-scene-aqhfsf50-pooler.c-8.us-east-1.aws.neon.tech/trace?sslmode=require
-npx tsx src/db/seed.ts
-```
-
-**1b. Verify deployment**
-```
-git add -A && git commit -m "session close: handoff" && git push
-npx vercel --prod
-```
-Test: reporter login with TEST-CODE, operator login with OPERATOR, submit sighting, check triage, right-click map for pin, check corridors.
-
-### Phase 2: Core Dispatch Completion (highest impact)
-
-**2a. Reporter photo upload** — the camera captures and scrubs photos but the submit handler doesn't send them to the server. Wire `sighting.photos` into the POST /sightings payload. The sighting_photos table exists. Files: `pwa/src/pages/submit.tsx` (handleSubmit), `src/api/sightings/index.ts` (POST handler).
-
-**2b. Push notifications for dispatch** — reporters currently poll every 30s. For real dispatch, implement Web Push:
-- Add push subscription endpoint to auth API
+### Phase 1: Push notifications (highest remaining impact)
+- Web Push subscription endpoint
 - Store push subscriptions on reporter records
-- Send web-push notifications when dispatch is created/assigned
-- Service worker in PWA to receive push events
-- Files: `pwa/src/lib/push.ts` (new), `src/services/notification.ts` (enhance), `pwa/public/sw.js` (add push handler)
+- Send notifications when dispatch is created/assigned
+- Service worker push handler in PWA
 
-**2c. Auto-close stale dispatches** — add a check on dispatch GET endpoints: if `autoCloseHours > 0` and `createdAt + autoCloseHours < now`, auto-set status to "expired". No cron needed — check on read.
-- File: `src/api/dispatch/index.ts` (add to GET / and GET /active)
+### Phase 2: Dispatch management page
+- New operator page showing all dispatches (active/closed/expired)
+- Response times, outcomes, table view with filters
+- Add to operator nav
 
-**2d. Dispatch management page** — new operator page showing all dispatches (active/closed), response times, outcomes. Table view with filters.
-- File: `operator/src/pages/dispatch.tsx` (new)
-- Add to operator app.tsx navigation
-
-### Phase 3: Reporter Lifecycle Completion
-
-**3a. Dispatch outcome UI** — when reporter is "on_scene", show outcome buttons: Confirmed, Not Found, Suspect Fled, False Alarm. One tap submits the outcome and closes the assignment.
-- File: `pwa/src/pages/reporter-map.tsx` (add outcome buttons to pin card)
-
-**3b. Plate auto-suggest** — debounced search as reporter types plate. New endpoint GET /vehicles/search-plates?q=ABC returns matching plates with vehicle info. Show inline suggestions.
-- Files: `src/api/vehicles/index.ts` (add search-plates), `pwa/src/pages/submit.tsx` (add suggest dropdown)
-
-**3c. Submission vibration** — add `navigator.vibrate?.(100)` after successful submit in submit.tsx.
-
-### Phase 4: Polish
-
-**4a. Night mode auto-switch** — check time against sunrise/sunset (use GPS lat/lng + simple solar calc or hardcoded 6pm-6am). Auto-toggle theme in app.tsx.
-
-**4b. "Drop Pin" button fix** — currently tries querySelector which doesn't work. Change to prompt right-click or use a placement mode toggle.
-
-**4c. Dispatch event type enrichment timing** — intelligence.tsx loads event types and dispatches in parallel but enrichment runs before types arrive. Fix: await types before enriching, or enrich in a separate useEffect that depends on both.
-
-### Phase 5: Packaging
-
-**5a. README.md** — project overview, screenshots, setup guide, architecture, security model
-**5b. Docker/docker-compose** — one-command local setup with PostgreSQL
-**5c. .env.example** — documented template for all env vars
-**5d. CONTRIBUTING.md** — dev setup, code structure, testing
+### Phase 3: Polish
+- Night mode auto-switch (time-based theme toggle)
+- Operator photo viewer (show sighting photos in triage)
+- Docker/docker-compose for one-command local setup
+- CONTRIBUTING.md
 
 ## FILE MAP (key files to know)
 

@@ -43,7 +43,7 @@ async function autoCloseStale(chapterId: string) {
       const deadline = new Date(new Date(d.createdAt!).getTime() + autoCloseH * 60 * 60 * 1000);
       if (now > deadline) {
         await opsDb.update(dispatchEvents)
-          .set({ status: "expired", closedAt: now, closedBy: "system", closeReason: "Auto-expired" })
+          .set({ status: "expired", closedAt: now, closeReason: "auto-expired" })
           .where(eq(dispatchEvents.id, d.id));
       }
     }
