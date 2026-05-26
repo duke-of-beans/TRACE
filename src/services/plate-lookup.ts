@@ -87,6 +87,7 @@ export async function lookupPlate(plate: string, chapterId: string): Promise<Pla
     matched: true,
     vehicle: {
       ...match,
+      plate: match.plate || "",
       suspicionLabel,
       suspicionRank,
       suspicionColor,
