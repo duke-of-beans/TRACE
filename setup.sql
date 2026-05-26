@@ -1,5 +1,5 @@
 -- ============================================================
--- TRACE — Tracking, Reporting, Analysis & Community Evidence
+-- TRACE. Tracking, Reporting, Analysis & Community Evidence
 -- Complete Database Setup
 -- 
 -- Paste this entire file into the Neon SQL Editor and click Run.

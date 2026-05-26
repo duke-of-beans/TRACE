@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TRACE — Chapter Setup Guide</title>
+<title>TRACE: Chapter Setup Guide</title>
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Exo+2:wght@100;200;300;400&family=DM+Sans:wght@400;500;600;700&display=swap');
@@ -312,7 +312,7 @@
   <ol class="instructions">
     <li>Go to <strong><a href="https://neon.tech" target="_blank" style="color:var(--accent)">neon.tech</a></strong> and click <strong>Sign Up</strong>. Google account works, or use a separate email/password.</li>
     <li>Click <strong>New Project</strong>. Name it anything. Pick the region closest to your area.</li>
-    <li>After it creates, you'll see a <strong>Connection String</strong>. It looks like gibberish — that's normal. Click the <strong>copy button</strong> next to it.</li>
+    <li>After creation, you will see a <strong>Connection String</strong>. It is a long string of characters. Click the <strong>copy button</strong> next to it.</li>
   </ol>
 
   <!-- Neon mockup -->
@@ -432,8 +432,8 @@
     <li>Go to <strong>your-app.vercel.app/operator/</strong> (your Vercel URL + <code style="color:var(--accent)">/operator/</code>)</li>
     <li>You'll see a <strong>First-Time Setup</strong> screen.</li>
     <li>Enter your <strong>chapter name</strong> (e.g., "Westside Watch")</li>
-    <li>Choose a <strong>callsign</strong> — this is your operator name (like "ALPHA" or "DISPATCH-1")</li>
-    <li>Choose an <strong>access code</strong> — like a password, at least 6 characters. <em>Keep this safe.</em></li>
+    <li>Choose a <strong>callsign</strong> (your operator code name, e.g. "ALPHA" or "DISPATCH-1")</li>
+    <li>Choose an <strong>access code</strong> (passphrase, at least 6 characters). Store this securely.</li>
     <li>Click <strong>Create Operator & Start</strong></li>
   </ol>
 
@@ -473,7 +473,7 @@
   <ol class="instructions">
     <li>In the operator console, click <strong>Admin</strong> in the left sidebar.</li>
     <li>Click the <strong>Reporters</strong> tab.</li>
-    <li>Type a <strong>callsign</strong> for the reporter. This is their code name — not their real name. (e.g., "SCOUT-1")</li>
+    <li>Type a <strong>callsign</strong> for the reporter. This is their code name, not their real name. (e.g., "SCOUT-1")</li>
     <li>Click <strong>Generate Invite Code</strong>.</li>
     <li>You'll see a code like <strong style="color:var(--accent); font-family:monospace;">ABCD-EFGH</strong>. Send it to the reporter via Signal, WhatsApp, or in person.</li>
   </ol>
@@ -604,7 +604,7 @@
   
   <details style="margin-bottom:12px; border:1px solid var(--border); border-radius:8px; padding:12px 16px;">
     <summary style="font-size:14px; font-weight:600; cursor:pointer; color:var(--text-sec);">How do I update TRACE when new versions come out?</summary>
-    <p style="font-size:13px; color:var(--text-muted); margin-top:8px;">In your GitHub repository, click "Sync fork" → "Update branch." Vercel automatically deploys the update. Your data in Neon is untouched — updates only change the app, not your records.</p>
+    <p style="font-size:13px; color:var(--text-muted); margin-top:8px;">In your GitHub repository, click "Sync fork" → "Update branch." Vercel automatically deploys the update. Your data in Neon is untouched. updates only change the app, not your records.</p>
   </details>
 
   <h3 style="font-size:16px; margin-bottom:16px; margin-top:32px; color:var(--text-muted);">Your Accounts & Security</h3>
@@ -612,9 +612,9 @@
   <details style="margin-bottom:12px; border:1px solid var(--border); border-radius:8px; padding:12px 16px;">
     <summary style="font-size:14px; font-weight:600; cursor:pointer; color:var(--text-sec);">What accounts were created?</summary>
     <div style="font-size:13px; color:var(--text-muted); margin-top:8px; line-height:1.7;">
-      <p style="margin-bottom:8px;"><strong style="color:var(--text-sec)">Neon</strong> — database host. Sighting records, vehicle data, and reporter accounts are stored here. Free tier covers small-to-medium chapters. <a href="https://console.neon.tech" style="color:var(--accent)" target="_blank">console.neon.tech</a></p>
-      <p style="margin-bottom:8px;"><strong style="color:var(--text-sec)">Vercel</strong> — web host. Serves the application to browsers and phones. Free tier covers most chapters. <a href="https://vercel.com/dashboard" style="color:var(--accent)" target="_blank">vercel.com/dashboard</a></p>
-      <p><strong style="color:var(--text-sec)">GitHub</strong> — code repository. Stores the application source that Vercel compiles. Not used after initial deployment. <a href="https://github.com" style="color:var(--accent)" target="_blank">github.com</a></p>
+      <p style="margin-bottom:8px;"><strong style="color:var(--text-sec)">Neon</strong>. database host. Sighting records, vehicle data, and reporter accounts are stored here. Free tier covers small-to-medium chapters. <a href="https://console.neon.tech" style="color:var(--accent)" target="_blank">console.neon.tech</a></p>
+      <p style="margin-bottom:8px;"><strong style="color:var(--text-sec)">Vercel</strong>. web host. Serves the application to browsers and phones. Free tier covers most chapters. <a href="https://vercel.com/dashboard" style="color:var(--accent)" target="_blank">vercel.com/dashboard</a></p>
+      <p><strong style="color:var(--text-sec)">GitHub</strong>. code repository. Stores the application source that Vercel compiles. Not used after initial deployment. <a href="https://github.com" style="color:var(--accent)" target="_blank">github.com</a></p>
     </div>
   </details>
 
@@ -635,9 +635,9 @@
     <summary style="font-size:14px; font-weight:600; cursor:pointer; color:var(--text-sec);">How do I shut everything down and delete my data?</summary>
     <div style="font-size:13px; color:var(--text-muted); margin-top:8px; line-height:1.7;">
       <p style="margin-bottom:8px;">Three steps remove all data from all servers:</p>
-      <p style="margin-bottom:4px;"><strong style="color:var(--text-sec)">1. Delete your Neon project</strong> — go to <a href="https://console.neon.tech" style="color:var(--accent)" target="_blank">console.neon.tech</a>, click your project → Settings → Delete Project. This permanently destroys all sighting data, vehicle records, and reporter accounts.</p>
-      <p style="margin-bottom:4px;"><strong style="color:var(--text-sec)">2. Delete your Vercel project</strong> — go to <a href="https://vercel.com/dashboard" style="color:var(--accent)" target="_blank">vercel.com/dashboard</a>, click your project → Settings → scroll to bottom → Delete Project. Your website goes offline immediately.</p>
-      <p style="margin-bottom:4px;"><strong style="color:var(--text-sec)">3. (Optional) Delete the GitHub repo</strong> — go to github.com, open your TRACE repository → Settings → scroll to bottom → Delete this repository.</p>
+      <p style="margin-bottom:4px;"><strong style="color:var(--text-sec)">1. Delete your Neon project</strong>. go to <a href="https://console.neon.tech" style="color:var(--accent)" target="_blank">console.neon.tech</a>, click your project → Settings → Delete Project. This permanently destroys all sighting data, vehicle records, and reporter accounts.</p>
+      <p style="margin-bottom:4px;"><strong style="color:var(--text-sec)">2. Delete your Vercel project</strong>. go to <a href="https://vercel.com/dashboard" style="color:var(--accent)" target="_blank">vercel.com/dashboard</a>, click your project → Settings → scroll to bottom → Delete Project. Your website goes offline immediately.</p>
+      <p style="margin-bottom:4px;"><strong style="color:var(--text-sec)">3. (Optional) Delete the GitHub repo</strong>. go to github.com, open your TRACE repository → Settings → scroll to bottom → Delete this repository.</p>
       <p>After these three steps, no trace of your chapter exists on any server. Reporter apps will stop working immediately and show an error screen.</p>
     </div>
   </details>

@@ -1,6 +1,6 @@
 # Chapter Setup Guide
 
-**TRACE** — **T**racking, **R**eporting, **A**nalysis & **C**ommunity **E**vidence
+**TRACE**. **T**racking, **R**eporting, **A**nalysis & **C**ommunity **E**vidence
 
 How to set up TRACE for your neighborhood chapter. No coding required. Takes about 20 minutes.
 

@@ -39,24 +39,24 @@ The database from Step 1 is empty. This creates the table structure. Paste one f
 4. Paste the entire contents into the Neon SQL Editor
 5. Click **Run**
 
-You'll see "CREATE TABLE" confirmations. Errors about things "already existing" are fine — it's safe to run multiple times.
+You'll see "CREATE TABLE" confirmations. Errors about things "already existing" are fine. it's safe to run multiple times.
 
 ### Step 4: Create your operator account
 
 TRACE uses callsigns instead of email addresses to protect operator identity. Even if someone gained access to the database, they'd find code names, not real people.
 
 1. Go to `your-app.vercel.app/operator/`
-2. You'll see a **First-Time Setup** screen (only appears once — when no operators exist)
+2. You'll see a **First-Time Setup** screen (only appears once. when no operators exist)
 3. Enter your **chapter name** (e.g., "Westside Watch")
-4. Choose a **callsign** — your operator code name (like "ALPHA" or "DISPATCH-1")
-5. Choose an **access code** — at least 6 characters, keep it safe
+4. Choose a **callsign**. your operator code name (like "ALPHA" or "DISPATCH-1")
+5. Choose an **access code**. at least 6 characters, keep it safe
 6. Click **Create Operator & Start**
 
 You're in. The onboarding walkthrough will show you around.
 
 ### Step 5: Invite your first reporter
 
-Reporters don't create accounts with email or phone numbers — that would put them at risk if the system were ever compromised. Instead, you generate a one-time invite code and hand it to them directly.
+Reporters don't create accounts with email or phone numbers. that would put them at risk if the system were ever compromised. Instead, you generate a one-time invite code and hand it to them directly.
 
 1. In the operator console, click **Admin** in the sidebar
 2. Click the **Reporters** tab
@@ -68,7 +68,7 @@ The reporter opens your TRACE URL on their phone, enters the code, and they're i
 
 ### Step 6: Install the app on phones
 
-TRACE installs from the browser — no App Store or Google Play needed. This means no review process, faster updates, and no trail in anyone's app purchase history.
+TRACE installs from the browser. no App Store or Google Play needed. This means no review process, faster updates, and no trail in anyone's app purchase history.
 
 **iPhone (must use Safari):** Tap the Share button → Add to Home Screen → Add
 
@@ -256,8 +256,8 @@ The app appears on the home screen with a standalone icon. It runs full-screen w
 
 ## Documentation
 
-- [Visual Setup Guide](guide.html) — interactive walkthrough with mockups (available at `/guide.html` on any deployed instance)
-- [Chapter Setup Guide](docs/CHAPTER_SETUP.md) — detailed deployment walkthrough
+- [Visual Setup Guide](guide.html). interactive walkthrough with mockups (available at `/guide.html` on any deployed instance)
+- [Chapter Setup Guide](docs/CHAPTER_SETUP.md). detailed deployment walkthrough
 - [Dispatch System Design](DISPATCH_DESIGN.md)
 - [Voice Guide](VOICE_GUIDE.md)
 - [Design System](DESIGN_SYSTEM.md)
