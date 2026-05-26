@@ -1,175 +1,203 @@
 # TRACE — Session Handoff
-# Generated: 2026-05-26 | 59 commits | 144 files | 25,524 lines
-# YUMA: 22/22 passing, score 89
+# Updated: 2026-05-26 | Post-Dispatch System Build
+# Deployment: https://trace-jet.vercel.app (Vercel + Neon PostgreSQL)
 
 ## PROJECT OVERVIEW
 
-TRACE (Tracking, Reporting, Analysis & Community Evidence) is a community
-vehicle tracking platform. Field reporters submit sightings via a mobile
-PWA. Chapter operators triage, analyze, and manage intelligence via a
-desktop dashboard. The system is built for hostile environments where
-reporter safety is the primary constraint.
+TRACE (Tracking, Reporting, Analysis & Community Evidence) — community
+vehicle tracking platform with dispatch system. Reporter PWA + Operator
+Dashboard. Three-vault PostgreSQL architecture. Hono + Drizzle + Preact/React + Leaflet.
 
-Repository: https://github.com/duke-of-beans/TRACE
-Path: D:\Projects\TRACE
-KERNL project ID: trace
+- **Repo:** https://github.com/duke-of-beans/TRACE
+- **Local:** D:\Projects\TRACE
+- **Live Reporter:** https://trace-jet.vercel.app
+- **Live Operator:** https://trace-jet.vercel.app/operator/
+- **API Health:** https://trace-jet.vercel.app/api/v1/health
+- **Design Doc:** D:\Projects\TRACE\DISPATCH_DESIGN.md
+- **Voice Guide:** D:\Projects\TRACE\VOICE_GUIDE.md
+- **Design System:** D:\Projects\TRACE\DESIGN_SYSTEM.md
 
-## TECH STACK
-
-Server: Node.js 22 + TypeScript + Hono + Drizzle ORM
-Database: PostgreSQL (3 vaults: ops/ident/evidence, separate roles)
-Reporter PWA: Preact + Vite (63KB JS, 11.5KB CSS)
-Operator Dashboard: React + Vite + Tailwind (465KB JS, 16.5KB CSS)
-Map: Leaflet (OSM/CARTO tiles)
-Design: Exo 2 Thin wordmark, Slate+Indigo palette, CSS custom properties
-
-## HOW TO RUN
+## ARCHITECTURE
 
 ```
-# WSL: sudo service postgresql start
-# CMD:
-cd /d D:\Projects\TRACE
-npx tsx src/db/seed.ts      # seed demo data
-npx tsx src/index.ts         # start server on :3100
+pwa/               Preact reporter app (mobile-first PWA)
+operator/           React operator dashboard (desktop)
+src/                Hono API server
+  api/              Route handlers (sightings, vehicles, actors, auth, admin, geo, dispatch)
+  db/               Drizzle schema + connection (3-vault: ops, ident, evidence)
+  services/         Business logic (plate-lookup, geospatial, notification, jitter)
+  middleware/       Auth, audit
+api/index.ts        Vercel serverless entry point
+shared/design/      Design tokens, theme
 ```
 
-Reporter: http://localhost:3100 (test code: TEST-CODE)
-Operator: http://localhost:3100/operator (callsign: OPERATOR, access code blank in dev)
+## DATABASE
 
-## FILE STRUCTURE (key files)
+**Neon PostgreSQL** — Project `late-wave-08620201`, database `trace`
+- Pooler (app): `postgresql://neondb_owner:npg_yQfC4A6DsbFx@ep-restless-scene-aqhfsf50-pooler.c-8.us-east-1.aws.neon.tech/trace?sslmode=require`
+- Direct (migrations): `postgresql://neondb_owner:npg_yQfC4A6DsbFx@ep-restless-scene-aqhfsf50.c-8.us-east-1.aws.neon.tech/trace?sslmode=require`
+
+Three schemas: ops (operational), ident (identity), evidence (write-once)
+
+**Key tables added this session:**
+- `ops.dispatch_event_types` — chapter-configurable event categories
+- `ops.dispatch_events` — core dispatch records with location, priority, lifecycle
+- `ops.dispatch_assignments` — reporter assignments with response tracking
+- `ops.dispatch_outcomes` — what happened when patroller arrived
+- `ops.sighting_feedback` — feedback pushed back to original reporter
+- `ops.sightings` gained: `plate_matched` (bool), `matched_vehicle_id` (uuid)
+- `ops.vehicles` gained: `photo_url` (text, base64)
+- `ops.actors` gained: `photo_url` (text, base64)
+
+## VERCEL DEPLOYMENT
+
+**Project:** prj_qvFAyYUjX246zdNX0wGtuOCz6gmZ
+**Team:** team_3Bg0XHuxlkLx71xnTGn2G6PA
+**Env vars:** DATABASE_URL (sensitive, production+preview)
+
+Deploy: `npx vercel --prod`
+Schema push: use direct URL with `drizzle-kit generate` then `migrate`
+Seed: use pooler URL with `npx tsx src/db/seed.ts`
+
+## AUTH
+
+- **Reporter:** invite code (TEST-CODE for demo) → PIN setup → onboarding
+- **Operator:** callsign OPERATOR (blank access code for demo)
+- Dev-login disabled by `TRACE_DISABLE_DEV_LOGIN=true`
+- Test code disabled by `TRACE_DISABLE_TEST_CODE=true`
+- Operator login checks role — rejects non-operator/admin
+- Dev-login never auto-creates operator accounts
+
+## WHAT WAS BUILT THIS SESSION
+
+### Dispatch System (Full Stack)
+- **Design document:** DISPATCH_DESIGN.md — 5 workflows, 12 little things, 4-phase plan
+- **5 new DB tables** + 2 new columns on sightings + photoUrl on vehicles/actors
+- **Plate auto-lookup service** — checks plate on sighting creation, stores match
+- **Dispatch API** — 15+ endpoints: event types CRUD, create dispatch, confirm-and-dispatch, dismiss-and-notify, reporter lifecycle, close, assign, feedback
+- **Seed** — 5 default dispatch event types
+
+### Operator UI
+- **Triage rewrite** — MATCH/NEW PLATE badges, auto plate check, Confirm & Dispatch (opens dispatch panel), Dismiss & Notify (sends feedback), Add to Tracking, keyboard shortcuts C/D/F/N/P
+- **Dispatch panel** — event type, priority, notes, reporter selection with select-all
+- **Intel Map pin placement** — right-click drops pulsing diamond marker, form slides in below map, all fields optional, "Drop Pin" button as alternative
+- **Dispatch pin layer** — diamond markers colored by priority, popups with details
+- **Pin detail panel** — click pins to view status, add reporters, close
+- **Dispatch Types admin** — full CRUD in Admin → Dispatch Types tab with icon/color/priority/auto-close config
+- **Link from pin form to admin** for customizing types
+- **Map popups** — clicking sighting markers shows plate, activity, time, coordinates
+- **Corridor fix** — falls back to plate matching when vehicleId isn't set
+- **Photos** — vehicle dossier photo upload/display, actor dossier photo upload/display, thumbnails on list cards
+- **Satellite default** on all maps
+- **Time slider histogram removed** (was confusing)
+- **Help text audit** — tooltips on all actions, contextual descriptions, keyboard shortcut hints
+
+### Reporter UI
+- **Map tab** — Leaflet satellite map, dispatch pins by priority, pin info cards, Responding/On Scene lifecycle, Navigate to Google Maps, 30s polling
+- **Plate check mode** — Report/Check Plate toggle, instant database lookup, escalate to full report
+- **Live sighting status** — after submit shows Submitted → Plate check → Confirmed/Dismissed with polling
+- **30-second auto-reset** — status card clears, returns to plate input
+- **4-tab nav** — Report, Map, History, Settings (hidden until auth+briefed)
+- **Mode toggle descriptions** — contextual help text per mode
+- **Direction label** — "Which way was the vehicle heading?"
+
+### UX Polish
+- **Both onboardings rewritten** — tool tour not security briefing, approachable language
+- **Skip button** on both tutorials
+- **Feedback form restyled** with design system classes
+- **Auth hardening** — no auto-create operators, role verification on login
+- **Responsive nav** — hidden until authenticated and briefed
+
+## REMAINING WORK — NEXT SESSION SEQUENCE
+
+### Phase 1: Infrastructure (do first, everything depends on it)
+
+**1a. Push latest schema to Neon**
+```
+set DATABASE_URL=postgresql://neondb_owner:npg_yQfC4A6DsbFx@ep-restless-scene-aqhfsf50.c-8.us-east-1.aws.neon.tech/trace?sslmode=require
+node --import tsx node_modules/drizzle-kit/bin.cjs generate --name photos-and-fixes
+node --import tsx node_modules/drizzle-kit/bin.cjs migrate
+set DATABASE_URL=postgresql://neondb_owner:npg_yQfC4A6DsbFx@ep-restless-scene-aqhfsf50-pooler.c-8.us-east-1.aws.neon.tech/trace?sslmode=require
+npx tsx src/db/seed.ts
+```
+
+**1b. Verify deployment**
+```
+git add -A && git commit -m "session close: handoff" && git push
+npx vercel --prod
+```
+Test: reporter login with TEST-CODE, operator login with OPERATOR, submit sighting, check triage, right-click map for pin, check corridors.
+
+### Phase 2: Core Dispatch Completion (highest impact)
+
+**2a. Reporter photo upload** — the camera captures and scrubs photos but the submit handler doesn't send them to the server. Wire `sighting.photos` into the POST /sightings payload. The sighting_photos table exists. Files: `pwa/src/pages/submit.tsx` (handleSubmit), `src/api/sightings/index.ts` (POST handler).
+
+**2b. Push notifications for dispatch** — reporters currently poll every 30s. For real dispatch, implement Web Push:
+- Add push subscription endpoint to auth API
+- Store push subscriptions on reporter records
+- Send web-push notifications when dispatch is created/assigned
+- Service worker in PWA to receive push events
+- Files: `pwa/src/lib/push.ts` (new), `src/services/notification.ts` (enhance), `pwa/public/sw.js` (add push handler)
+
+**2c. Auto-close stale dispatches** — add a check on dispatch GET endpoints: if `autoCloseHours > 0` and `createdAt + autoCloseHours < now`, auto-set status to "expired". No cron needed — check on read.
+- File: `src/api/dispatch/index.ts` (add to GET / and GET /active)
+
+**2d. Dispatch management page** — new operator page showing all dispatches (active/closed), response times, outcomes. Table view with filters.
+- File: `operator/src/pages/dispatch.tsx` (new)
+- Add to operator app.tsx navigation
+
+### Phase 3: Reporter Lifecycle Completion
+
+**3a. Dispatch outcome UI** — when reporter is "on_scene", show outcome buttons: Confirmed, Not Found, Suspect Fled, False Alarm. One tap submits the outcome and closes the assignment.
+- File: `pwa/src/pages/reporter-map.tsx` (add outcome buttons to pin card)
+
+**3b. Plate auto-suggest** — debounced search as reporter types plate. New endpoint GET /vehicles/search-plates?q=ABC returns matching plates with vehicle info. Show inline suggestions.
+- Files: `src/api/vehicles/index.ts` (add search-plates), `pwa/src/pages/submit.tsx` (add suggest dropdown)
+
+**3c. Submission vibration** — add `navigator.vibrate?.(100)` after successful submit in submit.tsx.
+
+### Phase 4: Polish
+
+**4a. Night mode auto-switch** — check time against sunrise/sunset (use GPS lat/lng + simple solar calc or hardcoded 6pm-6am). Auto-toggle theme in app.tsx.
+
+**4b. "Drop Pin" button fix** — currently tries querySelector which doesn't work. Change to prompt right-click or use a placement mode toggle.
+
+**4c. Dispatch event type enrichment timing** — intelligence.tsx loads event types and dispatches in parallel but enrichment runs before types arrive. Fix: await types before enriching, or enrich in a separate useEffect that depends on both.
+
+### Phase 5: Packaging
+
+**5a. README.md** — project overview, screenshots, setup guide, architecture, security model
+**5b. Docker/docker-compose** — one-command local setup with PostgreSQL
+**5c. .env.example** — documented template for all env vars
+**5d. CONTRIBUTING.md** — dev setup, code structure, testing
+
+## FILE MAP (key files to know)
 
 ```
-src/
-  index.ts                    — Hono app, routes, middleware, WebSocket
-  middleware/auth.ts           — Auth middleware (3 guards: auth, operatorOnly, adminOnly)
-  api/auth/index.ts            — Auth routes (dev-login, invite-code, magic-link, status)
-  api/sightings/index.ts       — Sighting CRUD + triage
-  api/vehicles/index.ts        — Vehicle CRUD + promote + retire
-  api/actors/index.ts          — Actor CRUD + vehicle linking
-  api/admin/index.ts           — Admin CRUD (types, levels, predicates, reporters, feedback)
-  api/geo/index.ts             — Heatmap, corridor analysis
-  db/schema/vault-a.ts         — Operational schema (pseudonymous)
-  db/schema/vault-b.ts         — Identity schema (encrypted)
-  db/schema/vault-c.ts         — Evidence schema (write-once)
-  db/seed.ts                   — Demo data seeder
-  services/                    — Suspicion engine, geospatial, jitter, photo, notification
+src/db/schema/vault-a.ts     All operational tables including dispatch
+src/api/dispatch/index.ts    Full dispatch API
+src/services/plate-lookup.ts  Auto plate matching
+src/api/sightings/index.ts   Enhanced with plate lookup + feedback
+src/api/auth/index.ts        Dev-login + invite-code auth
+src/db/seed.ts               Seeds including dispatch event types
+api/index.ts                 Vercel serverless entry (mirrors src/index.ts routes)
 
-pwa/
-  src/app.tsx                  — PWA root (gate flow: PIN→lock→invite→briefing→app)
-  src/pages/submit.tsx         — Sighting submission (camera, file picker, EXIF scrub)
-  src/components/onboarding.tsx — Security briefing (7 steps, post-auth)
-  src/components/pin-setup.tsx  — PIN setup (pre-auth, minimal)
-  src/components/pin-lock.tsx   — PIN lock screen
-  src/components/security-info.tsx — Security docs (laymen + technical)
-  src/components/feedback-button.tsx — Bug report form
-  src/components/panic-button.tsx — Emergency wipe button
-  src/lib/photo-scrub.ts       — EXIF metadata scrubber (canvas re-encode)
-  src/lib/deadman.ts           — Dead man's switch (72h TTL, background sync)
-  src/lib/crypto.ts            — AES-256-GCM encryption
-  src/lib/queue.ts             — Offline queue
-  src/lib/panic.ts             — Self-destruct sequence
-  src/lib/app-lock.ts          — PIN lock + auto-lock
-  public/sw.js                 — Service worker (cache, push kill, background sync)
+operator/src/pages/triage.tsx      Dispatch-aware triage with MATCH/NEW badges
+operator/src/pages/intelligence.tsx Pin placement + dispatch form
+operator/src/pages/vehicles.tsx     Vehicle dossier with photos
+operator/src/pages/actors.tsx       Actor dossier with photos
+operator/src/pages/admin.tsx        Includes Dispatch Types tab
+operator/src/components/map-view.tsx IntelMap with dispatch pin layer + right-click
+operator/src/lib/api.ts             All dispatch methods
 
-operator/
-  src/app.tsx                  — Operator root (auth gate → onboarding → dashboard)
-  src/pages/dashboard.tsx      — Overview stats
-  src/pages/triage.tsx         — Sighting triage (keyboard-driven: A/F/D/E)
-  src/pages/vehicles.tsx       — Vehicle list + dossier + add/edit/retire
-  src/pages/actors.tsx         — Actor list + dossier + add/edit/deactivate
-  src/pages/admin.tsx          — Full CRUD admin panel (7 tabs including Feedback)
-  src/pages/security.tsx       — Security ops (overview + device control + nuke)
-  src/components/operator-onboarding.tsx — 7-step operator briefing (post-login)
-  src/components/map-view.tsx  — Leaflet Intel Map
-  src/lib/api.ts               — API client (all endpoints)
-  src/lib/auth-gate.tsx        — Login screen
+pwa/src/pages/submit.tsx      Report + Check Plate modes, live status
+pwa/src/pages/reporter-map.tsx Dispatch map with pin interaction
+pwa/src/app.tsx               4-tab nav, auth gates
+pwa/src/components/onboarding.tsx Rewritten tutorial with skip
 
-shared/design/
-  tokens.css                   — CSS custom properties (light/dark)
-  icons.ts                     — 30+ custom SVG icons
-  theme.ts                     — Theme toggle + persistence
-  wordmark.ts                  — Wordmark constants
-
-VOICE_GUIDE.md                 — Tranche-adapted voice rules
-DESIGN_SYSTEM.md               — Full design system spec + WCAG audit
-scripts/test-api.ts            — API contract test runner
-scripts/test-regression.ts     — Regression + chain test runner
+DISPATCH_DESIGN.md            Full workflow analysis document
 ```
 
-## ARCHITECTURE DECISIONS
+## VOICE GUIDE REMINDER
 
-[DECISION] Three-vault PostgreSQL: ops (pseudonymous), ident (encrypted),
-  evidence (write-once). Separate DB roles with minimal privileges.
-[DECISION] Invite code auth: no email. XXXX-XXXX format, no confusing chars
-  (0/O/1/I excluded). Single-use, 7-day expiry. TEST-CODE accepted in dev.
-[DECISION] Onboarding AFTER auth in BOTH apps. Bad actors see only PIN
-  setup and invite code screens. Security briefing gated behind authentication.
-[DECISION] Callsign is the identity. Operators know reporters by callsign only.
-  PIN protects the device. Never shared with operator.
-[DECISION] No email anywhere. Reporters authenticate with invite codes.
-  Operators authenticate with callsign + access code (generated by admin,
-  handed off in person). Email is an unnecessary identification point:
-  interceptable, subpoena-able, traceable. Architecture over credentials.
-[DECISION] EXIF scrubbing: canvas re-encode destroys all metadata. GPS and
-  timestamp extracted before stripping. No device fingerprint survives.
-[DECISION] Dead man's switch: 72h TTL, background sync (6h periodic, 5min
-  in-app heartbeat), 4h grace period with warnings. Auto-wipe on expiry.
-[DECISION] Voice: Tranche-adapted. Data forward, no emotion, approachable
-  deadpan. All copy has laymen summary (bold, readable) + technical detail
-  (smaller, muted). Zero AI patterns (no em-dashes, no "designed to", etc).
-[DECISION] Reporter flow: Wiped → PIN setup → PIN lock → Invite code → 
-  Security briefing → Main app. Emergency wipe on Report screen.
-[DECISION] Operator flow: Login → Operator onboarding → Dashboard.
-  Keyboard shortcuts throughout (1-7 nav, A/F/D/E triage, ? overlay).
-
-## SECURITY FEATURES
-
-- AES-256-GCM device encryption (key from PIN via PBKDF2)
-- Gallery-free camera (getUserMedia → encrypted storage)
-- EXIF metadata scrubbing (canvas re-encode, no device identifiers)
-- Encrypted offline queue (auto-drain on connectivity)
-- Emergency wipe (destroy key first, then clear all storage)
-- Dead man's switch (72h auto-wipe, background sync keepalive)
-- Remote kill (suspend/kill/nuke-all, push + heartbeat delivery)
-- 10-attempt PIN brute force auto-wipe
-- Auto-lock (30s background, 5min inactivity)
-- Time jitter on sighting timestamps (±30s reporter protection)
-- Three-vault data isolation
-- Write-once evidence vault (SHA-256 hash chain)
-
-## YUMA TEST SUITE (22/22)
-
-SMOKE (4): Server health, TypeScript compiles, PWA builds, Operator builds
-CONTRACT (10): Dev login, TEST-CODE, 401 unauth, GET vehicles/actors/sightings/
-  vehicle-types, generate invite, nuke auth, triage workflow
-REGRESSION (5): Operator role, admin access, invite chars, auth required, nuke perms
-CHAIN (3): Reporter lifecycle, suspicion config, device kill
-
-Run: KERNL:test_run project "trace" (server must be running)
-
-## REMAINING WORK (priority order)
-
-### HIGH PRIORITY
-(all high-priority items completed)
-
-### MEDIUM PRIORITY
-1. Responsive audit on operator dashboard — DONE. Sidebar collapses to
-   slide-out drawer below lg breakpoint. Mobile top bar with hamburger.
-   Vehicle/actor/triage pages stack list-above-detail on tablet.
-   Dashboard grids responsive. Intel Map stats wrap.
-
-### LOW PRIORITY
-2. Case package PDF generation — export vehicle/actor dossier as PDF.
-3. Docker compose config for deployment.
-4. Production deployment adapter (PM2, systemd, etc).
-5. Auth middleware not wired to all API routes consistently — some
-   routes may lack proper chapter-scoping.
-
-## .env REQUIRED
-
-```
-DATABASE_URL_OPS=postgresql://trace_ops:trace_ops_dev@127.0.0.1:5432/trace
-DATABASE_URL_IDENT=postgresql://trace_ident:trace_ident_dev@127.0.0.1:5432/trace
-DATABASE_URL_EVIDENCE=postgresql://trace_evidence:trace_evidence_dev@127.0.0.1:5432/trace
-NODE_ENV=development
-```
+All UI text follows VOICE_GUIDE.md — factual, no editorializing, present tense, state what the system does. Bold for layman summary, muted for technical detail. Labels as questions in forms ("What type of event?" not "Event Type").
