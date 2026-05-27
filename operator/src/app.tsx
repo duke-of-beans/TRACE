@@ -148,6 +148,12 @@ export function App() {
                 <Icon name="eye" size={14} />
                 {theme === "dark" ? "Light Mode" : "Dark Mode"}
               </button>
+              <a href="/docs.html" target="_blank" rel="noopener"
+                className="w-full text-left text-xs py-1 flex items-center gap-2 transition-colors hover:text-indigo-400"
+                style={{ color: "var(--text-muted)", textDecoration: "none" }}>
+                <Icon name="book-open" size={14} />
+                Operations Guide
+              </a>
               <button onClick={() => setShowBugReport(true)}
                 className="w-full text-left text-xs py-1 flex items-center gap-2 transition-colors"
                 style={{ color: "var(--text-muted)" }}>

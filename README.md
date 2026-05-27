@@ -309,8 +309,9 @@ Operators can also write a short response (280 characters) that the reporter see
 
 ## Documentation
 
-- [Visual Setup Guide](guide.html). interactive walkthrough with mockups (available at `/guide.html` on any deployed instance)
-- [Chapter Setup Guide](docs/CHAPTER_SETUP.md). detailed deployment walkthrough
+- [Visual Setup Guide](guide.html) - interactive deployment walkthrough with mockups (at `/guide.html` on any deployed instance)
+- [Operations Guide](docs.html) - complete feature walkthrough for operators and reporters (at `/docs.html`)
+- [Chapter Setup Guide](docs/CHAPTER_SETUP.md) - detailed deployment walkthrough
 - [Dispatch System Design](DISPATCH_DESIGN.md)
 - [Voice Guide](VOICE_GUIDE.md)
 - [Design System](DESIGN_SYSTEM.md)

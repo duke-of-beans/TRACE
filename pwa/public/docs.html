@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TRACE: Operations Guide</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@100;300;400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #F8FAFC; --surface: #FFFFFF; --surface-alt: #F1F5F9;
+    --border: #E2E8F0; --accent: #4F46E5; --accent-hover: #4338CA;
+    --accent-soft: rgba(79,70,229,0.06); --accent-text: #FFFFFF;
+    --text: #1E293B; --text-sec: #64748B; --text-muted: #94A3B8;
+    --success: #16A34A; --warning: #D97706; --danger: #DC2626;
+    --font: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    --font-mono: "SF Mono", "Cascadia Code", "Fira Code", ui-monospace, monospace;
+  }
+  :root[data-theme="dark"] {
+    --bg: #0F172A; --surface: #1E293B; --surface-alt: #334155;
+    --border: #334155; --accent: #818CF8; --accent-hover: #6366F1;
+    --accent-soft: rgba(129,140,248,0.1); --accent-text: #FFFFFF;
+    --text: #F1F5F9; --text-sec: #94A3B8; --text-muted: #7C8BA4;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:var(--font); background:var(--bg); color:var(--text); line-height:1.7; -webkit-font-smoothing:antialiased; }
+  a { color:var(--accent); text-decoration:none; } a:hover { text-decoration:underline; }
+  .container { max-width:660px; margin:0 auto; padding:0 24px; }
+
+  /* Hero */
+  .hero { text-align:center; padding:60px 24px 48px; }
+  .hero-brand { font-family:'Exo 2',system-ui; font-weight:100; font-size:36px; letter-spacing:0.22em; color:var(--accent); line-height:1; }
+  .hero-rule { width:100px; height:1px; background:var(--accent); opacity:0.5; margin:12px auto; }
+  .hero-sub { font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:var(--text-muted); margin-top:4px; }
+  .hero-label { display:inline-block; margin-top:16px; font-size:10px; letter-spacing:0.15em; text-transform:uppercase; color:var(--text-sec); background:var(--surface); border:1px solid var(--border); border-radius:100px; padding:5px 16px; }
+
+  /* Steps */
+  .step { padding:48px 0 32px; }
+  .step-header { display:flex; align-items:center; gap:12px; margin-bottom:16px; }
+  .step-number { font-family:'Exo 2',system-ui; font-weight:700; font-size:12px; letter-spacing:0.15em; color:var(--accent); white-space:nowrap; }
+  .step-rule { flex:1; height:1px; background:var(--border); }
+  h2 { font-family:'Exo 2',system-ui; font-weight:600; font-size:18px; letter-spacing:0.04em; color:var(--text); margin-bottom:12px; }
+  h3 { font-size:14px; font-weight:600; color:var(--text-sec); margin:24px 0 8px; }
+  p { margin:0 0 12px; font-size:14px; color:var(--text-sec); }
+</style>
+<style>
+  /* Mockup - browser chrome */
+  .mockup { background:var(--surface); border:1px solid var(--border); border-radius:10px; overflow:hidden; margin:20px 0; }
+  .mockup-header { display:flex; align-items:center; gap:5px; margin:10px 12px 8px; }
+  .mockup-dot { width:8px; height:8px; border-radius:50%; }
+  .mockup-url { flex:1; background:var(--surface-alt); border-radius:4px; padding:3px 8px; font-size:9px; color:var(--text-muted); font-family:var(--font-mono); }
+  .mockup-body { padding:12px; }
+  .mockup-label { font-size:9px; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-muted); margin:0 12px 6px; }
+
+  /* Phone frame */
+  .phone-frame { width:200px; margin:16px auto; background:var(--surface); border-radius:20px; padding:8px; border:1px solid var(--border); }
+  .phone-notch { width:60px; height:5px; background:var(--border); border-radius:3px; margin:0 auto 6px; }
+  .phone-screen { background:var(--bg); border-radius:10px; padding:12px; min-height:200px; }
+
+  /* Console mockup - operator page simulation */
+  .console-mock { display:flex; gap:0; background:var(--surface); border:1px solid var(--border); border-radius:10px; overflow:hidden; margin:20px 0; }
+  .console-sidebar { width:140px; background:var(--bg); border-right:1px solid var(--border); padding:12px 8px; flex-shrink:0; }
+  .console-sidebar .nav-item { display:block; font-size:9px; padding:4px 8px; border-radius:4px; color:var(--text-muted); margin-bottom:2px; letter-spacing:0.03em; }
+  .console-sidebar .nav-item.active { background:var(--accent-soft); color:var(--accent); font-weight:600; }
+  .console-main { flex:1; padding:14px; min-height:180px; }
+  .console-title { font-family:'Exo 2',system-ui; font-weight:600; font-size:13px; color:var(--text); margin-bottom:8px; }
+
+  /* Callout boxes */
+  .callout { background:var(--accent-soft); border:1px solid var(--accent); border-radius:6px; padding:12px 14px; margin:16px 0; font-size:13px; color:var(--text); }
+  .callout-warn { border-color:var(--warning); background:rgba(217,119,6,0.06); }
+  .callout strong { color:var(--accent); }
+  .callout-warn strong { color:var(--warning); }
+
+  /* Keyboard shortcut badge */
+  kbd { display:inline-block; background:var(--surface-alt); border:1px solid var(--border); border-radius:3px; padding:1px 6px; font-family:var(--font-mono); font-size:11px; color:var(--text); line-height:1.6; }
+
+  /* Workflow arrow */
+  .workflow { display:flex; align-items:center; gap:6px; margin:16px 0; flex-wrap:wrap; }
+  .workflow-step { background:var(--surface); border:1px solid var(--border); border-radius:6px; padding:6px 12px; font-size:11px; color:var(--text-sec); }
+  .workflow-step.highlight { border-color:var(--accent); color:var(--accent); background:var(--accent-soft); }
+  .workflow-arrow { color:var(--text-muted); font-size:12px; }
+
+  /* Stat card mockup */
+  .stat-row { display:flex; gap:8px; margin:12px 0; }
+  .stat-card { flex:1; background:var(--surface-alt); border-radius:6px; padding:8px; text-align:center; }
+  .stat-val { font-family:'Exo 2',system-ui; font-weight:700; font-size:18px; }
+  .stat-label { font-size:8px; text-transform:uppercase; letter-spacing:0.1em; color:var(--text-muted); margin-top:2px; }
+
+  /* Mock form elements */
+  .mock-input { background:var(--surface-alt); border:1px solid var(--border); border-radius:4px; padding:5px 8px; font-size:10px; color:var(--text-muted); margin:4px 0; }
+  .mock-btn { display:inline-block; background:var(--accent); color:var(--accent-text); border-radius:4px; padding:4px 12px; font-size:10px; font-weight:600; }
+  .mock-badge { display:inline-block; border-radius:3px; padding:1px 6px; font-size:8px; font-weight:700; letter-spacing:0.05em; text-transform:uppercase; }
+
+  /* Level ladder */
+  .ladder { display:flex; flex-direction:column; gap:4px; margin:12px 0; }
+  .ladder-rung { display:flex; align-items:center; gap:8px; padding:6px 10px; border-radius:6px; border:1px solid var(--border); font-size:11px; }
+  .ladder-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+  .ladder-label { flex:1; color:var(--text-sec); }
+  .ladder-desc { font-size:9px; color:var(--text-muted); }
+
+  /* Scroll nav */
+  .scroll-nav { position:fixed; right:12px; top:50%; transform:translateY(-50%); z-index:100; display:flex; flex-direction:column; align-items:center; gap:0; }
+  .scroll-nav-track { position:absolute; top:0; bottom:0; width:2px; background:var(--border); border-radius:1px; left:50%; transform:translateX(-50%); z-index:0; }
+  .scroll-nav-fill { width:100%; background:var(--accent); border-radius:1px; transition:height 0.15s; height:0%; }
+  .scroll-nav-dot { position:relative; z-index:1; display:flex; align-items:center; padding:6px 0; text-decoration:none !important; }
+  .scroll-nav-pip { width:8px; height:8px; border-radius:50%; background:var(--border); border:2px solid var(--bg); transition:all 0.2s; }
+  .scroll-nav-dot.active .scroll-nav-pip { background:var(--accent); transform:scale(1.3); }
+  .scroll-nav-label { position:absolute; right:18px; white-space:nowrap; font-size:9px; letter-spacing:0.06em; color:var(--text-muted); opacity:0; transition:opacity 0.2s; pointer-events:none; }
+  .scroll-nav-dot:hover .scroll-nav-label, .scroll-nav-dot.active .scroll-nav-label { opacity:1; }
+
+  /* Theme toggle */
+  .theme-toggle { position:fixed; top:12px; right:12px; z-index:200; background:var(--surface); border:1px solid var(--border); border-radius:6px; padding:5px 10px; font-size:10px; color:var(--text-sec); cursor:pointer; }
+
+  /* Footer */
+  .footer { text-align:center; padding:48px 24px 32px; color:var(--text-muted); font-size:11px; }
+
+  /* Responsive */
+  @media (max-width:600px) {
+    .console-mock { flex-direction:column; }
+    .console-sidebar { width:100%; border-right:0; border-bottom:1px solid var(--border); padding:8px; display:flex; gap:4px; overflow-x:auto; }
+    .phone-frame { width:180px; }
+    .scroll-nav { display:none; }
+    .stat-row { flex-wrap:wrap; }
+  }
+</style>
+</head>
+<body>
+<button class="theme-toggle" onclick="toggleTheme()">Toggle theme</button>
+
+<nav class="scroll-nav" id="scrollNav" aria-label="Guide progress">
+  <div class="scroll-nav-track"><div class="scroll-nav-fill" id="scrollFill"></div></div>
+  <a class="scroll-nav-dot" href="#overview"><span class="scroll-nav-label">Overview</span><span class="scroll-nav-pip"></span></a>
+  <a class="scroll-nav-dot" href="#reporter"><span class="scroll-nav-label">Reporter</span><span class="scroll-nav-pip"></span></a>
+  <a class="scroll-nav-dot" href="#triage"><span class="scroll-nav-label">Triage</span><span class="scroll-nav-pip"></span></a>
+  <a class="scroll-nav-dot" href="#map"><span class="scroll-nav-label">Map</span><span class="scroll-nav-pip"></span></a>
+  <a class="scroll-nav-dot" href="#vehicles"><span class="scroll-nav-label">Vehicles</span><span class="scroll-nav-pip"></span></a>
+  <a class="scroll-nav-dot" href="#incidents"><span class="scroll-nav-label">Incidents</span><span class="scroll-nav-pip"></span></a>
+  <a class="scroll-nav-dot" href="#safety"><span class="scroll-nav-label">Safety</span><span class="scroll-nav-pip"></span></a>
+  <a class="scroll-nav-dot" href="#admin"><span class="scroll-nav-label">Admin</span><span class="scroll-nav-pip"></span></a>
+</nav>
+
+<div class="hero">
+  <div class="hero-brand">TRACE</div>
+  <div class="hero-rule"></div>
+  <div class="hero-sub">Tracking - Reporting - Analysis - Community Evidence</div>
+  <div class="hero-label">Operations Guide</div>
+</div>
+
+<div class="container">
+
+<!-- ============================================ -->
+<div class="step" id="overview">
+  <div class="step-header"><span class="step-number">01</span><div class="step-rule"></div></div>
+  <h2>How TRACE works</h2>
+  <p>Reporters in the field submit sightings from their phones. Operators at the console triage, dispatch, and build intelligence. Three separate database vaults keep reporter identities isolated from operational data.</p>
+
+  <div class="workflow">
+    <span class="workflow-step">Reporter spots vehicle</span>
+    <span class="workflow-arrow">&#8594;</span>
+    <span class="workflow-step">Submits sighting</span>
+    <span class="workflow-arrow">&#8594;</span>
+    <span class="workflow-step highlight">Operator triages</span>
+    <span class="workflow-arrow">&#8594;</span>
+    <span class="workflow-step">Confirm &amp; dispatch</span>
+    <span class="workflow-arrow">&#8594;</span>
+    <span class="workflow-step">Reporters respond</span>
+  </div>
+
+  <div class="console-mock">
+    <div class="console-sidebar">
+      <span class="nav-item active">Dashboard</span>
+      <span class="nav-item">Triage</span>
+      <span class="nav-item">Activity Map</span>
+      <span class="nav-item">Dispatches</span>
+      <span class="nav-item">Incidents</span>
+      <span class="nav-item">Vehicles</span>
+      <span class="nav-item">Actors</span>
+      <span class="nav-item">Harassment</span>
+      <span class="nav-item">Admin</span>
+      <span class="nav-item">Security</span>
+    </div>
+    <div class="console-main">
+      <div class="console-title">Dashboard</div>
+      <div class="stat-row">
+        <div class="stat-card"><div class="stat-val" style="color:var(--warning)">3</div><div class="stat-label">Pending Triage</div></div>
+        <div class="stat-card"><div class="stat-val" style="color:var(--accent)">8</div><div class="stat-label">Active Vehicles</div></div>
+        <div class="stat-card"><div class="stat-val" style="color:var(--danger)">5</div><div class="stat-label">Known Actors</div></div>
+        <div class="stat-card"><div class="stat-val" style="color:var(--success)">2</div><div class="stat-label">Dispatches</div></div>
+      </div>
+      <p style="font-size:9px;color:var(--text-muted);margin:8px 0 0;">10 pages. Every page has contextual help text and empty state guidance.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================ -->
+<div class="step" id="reporter">
+  <div class="step-header"><span class="step-number">02</span><div class="step-rule"></div></div>
+  <h2>Reporter workflow</h2>
+  <p>Reporters use the phone app. No accounts with email or phone numbers - just a one-time invite code handed to them in person or via Signal.</p>
+
+  <div style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap;">
+    <div class="phone-frame">
+      <div class="phone-notch"></div>
+      <div class="phone-screen">
+        <div style="font-family:'Exo 2',system-ui;font-weight:100;font-size:14px;letter-spacing:0.15em;color:var(--accent);text-align:center;margin-bottom:8px;">TRACE</div>
+        <div class="mock-input" style="text-align:center;">ABC-1234</div>
+        <div style="font-size:8px;color:var(--text-muted);text-align:center;margin:4px 0;">Enter plate, describe activity, drop pin</div>
+        <div class="mock-btn" style="display:block;text-align:center;margin-top:8px;">Submit Sighting</div>
+        <div style="display:flex;justify-content:space-around;margin-top:16px;padding-top:8px;border-top:1px solid var(--border);">
+          <span style="font-size:8px;color:var(--accent);">Report</span>
+          <span style="font-size:8px;color:var(--text-muted);">Map</span>
+          <span style="font-size:8px;color:var(--text-muted);">Alert</span>
+          <span style="font-size:8px;color:var(--text-muted);">Settings</span>
+        </div>
+      </div>
+    </div>
+    <div class="phone-frame">
+      <div class="phone-notch"></div>
+      <div class="phone-screen">
+        <div style="font-size:10px;font-weight:600;color:var(--text);margin-bottom:6px;">Active Dispatches</div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:6px;margin-bottom:6px;">
+          <div style="font-size:9px;color:var(--warning);font-weight:600;">URGENT</div>
+          <div style="font-size:8px;color:var(--text-sec);">White sedan near Oak &amp; 3rd</div>
+          <div class="mock-btn" style="margin-top:4px;font-size:8px;padding:2px 8px;">Respond</div>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:6px;">
+          <div style="font-size:9px;color:var(--success);font-weight:600;">ROUTINE</div>
+          <div style="font-size:8px;color:var(--text-sec);">Dark truck - Maple parking lot</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <h3>What reporters can do</h3>
+  <p><strong>Submit sightings</strong> - plate, activity, location, photos. Takes 15 seconds. Reports queue offline and sync automatically.</p>
+  <p><strong>Check plates</strong> - type a plate to check if it is already tracked. One-tap escalation to a full report.</p>
+  <p><strong>Respond to dispatches</strong> - see operator-placed map pins. Tap to respond. Status flows back to the operator (responding, on scene, completed).</p>
+  <p><strong>Report harassment</strong> - submit harassing phone numbers via the Alert tab. See operator responses and cross-reporter correlation.</p>
+</div>
+
+<!-- ============================================ -->
+<div class="step" id="triage">
+  <div class="step-header"><span class="step-number">03</span><div class="step-rule"></div></div>
+  <h2>Triage and dispatch</h2>
+  <p>Incoming sightings land in the triage queue. Each one shows whether the plate matches a known vehicle or is new. Process them with keyboard shortcuts or click the action buttons.</p>
+
+  <div class="console-mock">
+    <div class="console-sidebar">
+      <span class="nav-item">Dashboard</span>
+      <span class="nav-item active">Triage</span>
+      <span class="nav-item">Activity Map</span>
+    </div>
+    <div class="console-main">
+      <div class="console-title">Triage Queue</div>
+      <div style="background:var(--surface-alt);border:1px solid var(--border);border-radius:6px;padding:8px;margin-bottom:6px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span style="font-size:10px;font-weight:600;color:var(--text);">ABC-1234</span>
+          <span class="mock-badge" style="background:var(--accent-soft);color:var(--accent);">MATCH</span>
+        </div>
+        <div style="font-size:9px;color:var(--text-sec);margin-top:3px;">Circling the block slowly - 3rd pass in 20 min</div>
+        <div style="display:flex;gap:4px;margin-top:6px;">
+          <span class="mock-btn" style="font-size:8px;padding:2px 8px;">Confirm</span>
+          <span class="mock-btn" style="font-size:8px;padding:2px 8px;background:var(--surface-alt);color:var(--text-sec);border:1px solid var(--border);">Dismiss</span>
+        </div>
+      </div>
+      <div style="background:var(--surface-alt);border:1px solid var(--border);border-radius:6px;padding:8px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span style="font-size:10px;font-weight:600;color:var(--text);">XYZ-5678</span>
+          <span class="mock-badge" style="background:rgba(217,119,6,0.15);color:var(--warning);">NEW PLATE</span>
+        </div>
+        <div style="font-size:9px;color:var(--text-sec);margin-top:3px;">Parked, engine running, watching house</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout">
+    <strong>Keyboard shortcuts</strong> speed up triage. Press <kbd>?</kbd> to see all shortcuts. The essentials: <kbd>C</kbd> confirm and dispatch, <kbd>D</kbd> dismiss with feedback, <kbd>F</kbd> flag for follow-up, <kbd>N</kbd> / <kbd>P</kbd> next and previous.
+  </div>
+
+  <h3>Confirm and dispatch</h3>
+  <p>When you confirm a sighting, choose an event type (configurable in Admin), set urgency (routine or urgent), and write a brief note for field reporters. A dispatch pin appears on every reporter's map.</p>
+
+  <h3>Dismiss with feedback</h3>
+  <p>Dismissing sends the reporter a brief explanation. This closes the feedback loop - reporters know their sighting was reviewed and why it was not acted on.</p>
+</div>
+
+<!-- ============================================ -->
+<div class="step" id="map">
+  <div class="step-header"><span class="step-number">04</span><div class="step-rule"></div></div>
+  <h2>Activity Map</h2>
+  <p>The intelligence layer. All sightings plotted on a map with multiple analysis overlays.</p>
+
+  <div class="console-mock">
+    <div class="console-sidebar">
+      <span class="nav-item">Triage</span>
+      <span class="nav-item active">Activity Map</span>
+      <span class="nav-item">Dispatches</span>
+    </div>
+    <div class="console-main" style="background:var(--bg);position:relative;min-height:200px;">
+      <div style="position:absolute;top:8px;left:8px;display:flex;gap:4px;">
+        <span class="mock-btn" style="font-size:8px;padding:2px 8px;">Heatmap</span>
+        <span class="mock-btn" style="font-size:8px;padding:2px 8px;background:var(--surface);color:var(--text-sec);border:1px solid var(--border);">Corridors</span>
+        <span class="mock-btn" style="font-size:8px;padding:2px 8px;background:var(--surface);color:var(--text-sec);border:1px solid var(--border);">Playback</span>
+      </div>
+      <!-- Mock map with sighting markers -->
+      <div style="display:flex;flex-wrap:wrap;gap:12px;justify-content:center;padding-top:40px;">
+        <div style="width:10px;height:10px;border-radius:50%;background:var(--accent);opacity:0.6;"></div>
+        <div style="width:14px;height:14px;border-radius:50%;background:var(--accent);opacity:0.8;margin-top:20px;"></div>
+        <div style="width:8px;height:8px;border-radius:50%;background:var(--warning);opacity:0.7;margin-top:8px;"></div>
+        <div style="width:12px;height:12px;border-radius:50%;background:var(--accent);opacity:0.5;margin-top:30px;"></div>
+        <div style="width:16px;height:16px;border-radius:50%;background:var(--danger);border:2px solid var(--danger);opacity:0.4;margin-top:12px;"></div>
+        <div style="width:10px;height:10px;border-radius:50%;background:var(--accent);opacity:0.6;margin-top:24px;"></div>
+      </div>
+      <div style="position:absolute;bottom:8px;left:8px;right:8px;background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:4px 8px;">
+        <div style="font-size:8px;color:var(--text-muted);">Time playback: drag the slider to see sightings hour by hour</div>
+        <div style="height:3px;background:var(--border);border-radius:2px;margin-top:3px;position:relative;">
+          <div style="position:absolute;left:40%;top:-2px;width:8px;height:8px;border-radius:50%;background:var(--accent);"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <h3>Map layers</h3>
+  <p><strong>Heatmap</strong> shows concentration areas. Where are sightings clustering? Which intersections see the most activity?</p>
+  <p><strong>Corridors</strong> trace a vehicle's movement path. Select a tracked vehicle to see every sighting location connected by route segments.</p>
+  <p><strong>Time playback</strong> animates sightings hour by hour. Drag the slider to spot temporal patterns - a vehicle that appears every Tuesday at 3pm, for example.</p>
+  <p><strong>Co-occurrence</strong> identifies vehicles that appear in the same area within the same time window. This surfaces potential associations.</p>
+  <p><strong>Dispatch pins</strong> are placed by right-clicking the map. Reporters see these on their phones and can respond.</p>
+</div>
+
+<!-- ============================================ -->
+<div class="step" id="vehicles">
+  <div class="step-header"><span class="step-number">05</span><div class="step-rule"></div></div>
+  <h2>Vehicles and actors</h2>
+  <p>Tracked vehicles and observed persons are the core intelligence records. Vehicles have concern levels that escalate based on evidence. Actors persist across vehicle retirements.</p>
+
+  <h3>Concern levels</h3>
+  <p>Vehicles progress through graduated concern levels as evidence accumulates. Promote a vehicle with a logged reason - the full from/to history is preserved.</p>
+
+  <div class="ladder">
+    <div class="ladder-rung"><div class="ladder-dot" style="background:var(--text-muted);"></div><span class="ladder-label">Noticed</span><span class="ladder-desc">First sighting, no pattern yet</span></div>
+    <div class="ladder-rung"><div class="ladder-dot" style="background:var(--warning);"></div><span class="ladder-label">Monitoring</span><span class="ladder-desc">Repeat sightings, watching for pattern</span></div>
+    <div class="ladder-rung"><div class="ladder-dot" style="background:#F97316;"></div><span class="ladder-label">Active Concern</span><span class="ladder-desc">Clear pattern, active tracking</span></div>
+    <div class="ladder-rung"><div class="ladder-dot" style="background:var(--danger);"></div><span class="ladder-label">Priority Watch</span><span class="ladder-desc">High-priority, immediate response</span></div>
+  </div>
+
+  <div class="callout">
+    Concern levels and their names are fully configurable in Admin. Create your own ladder to match your chapter's terminology. Each level can have promotion predicates that define what evidence justifies escalation.
+  </div>
+
+  <h3>Vehicle detail view</h3>
+  <p>Click any vehicle to see its complete record: plate, make, model, color, type assignments, concern history (last 10 promotions with reasons), recent sightings (last 20 with locations), and linked actors.</p>
+
+  <h3>Actors</h3>
+  <p>Observed person profiles with aliases (never real names), physical identifiers (scars, tattoos, build, clothing patterns), photos, and linked vehicles. An actor outlives their vehicles - when a car is retired, the person record persists and any new vehicle is linked to the same profile.</p>
+</div>
+
+<!-- ============================================ -->
+<div class="step" id="incidents">
+  <div class="step-header"><span class="step-number">06</span><div class="step-rule"></div></div>
+  <h2>Incidents and evidence</h2>
+  <p>When sightings become an investigation, create an incident. Link actors and vehicles, collect evidence through four phases, generate witness forms, and produce printable records.</p>
+
+  <div class="workflow">
+    <span class="workflow-step highlight">Create incident</span>
+    <span class="workflow-arrow">&#8594;</span>
+    <span class="workflow-step">Link actors/vehicles</span>
+    <span class="workflow-arrow">&#8594;</span>
+    <span class="workflow-step">Collect evidence</span>
+    <span class="workflow-arrow">&#8594;</span>
+    <span class="workflow-step">Generate witness form</span>
+    <span class="workflow-arrow">&#8594;</span>
+    <span class="workflow-step">Close or escalate</span>
+  </div>
+
+  <h3>Evidence phases</h3>
+  <p>Evidence flows through four phases: <strong>Collection</strong> (gathering raw observations), <strong>Processing</strong> (organizing and tagging), <strong>Analysis</strong> (connecting patterns), and <strong>Presentation</strong> (printable observation record for authorities or community meetings).</p>
+
+  <h3>Public witness forms</h3>
+  <p>Generate a link to share with witnesses outside your reporter network. The link is token-gated (only works with the specific token), rate-limited (20 submissions max), and expires after 48 hours. Witnesses submit their account without needing an app or account.</p>
+
+  <h3>Printable observation record</h3>
+  <p>Every incident has a printable HTML record at <code>/incidents/:id/record/print</code>. Open it in a browser and print to PDF for a professional document suitable for authorities, insurance, or community meetings.</p>
+
+  <div class="callout">
+    <strong>Evidence encryption.</strong> When <code>EVIDENCE_ENCRYPTION_KEY</code> is set in your Vercel environment variables, all evidence data is encrypted at rest using AES-256-GCM before writing to disk. The key should be 64 hex characters (256 bits).
+  </div>
+</div>
+
+<!-- ============================================ -->
+<div class="step" id="safety">
+  <div class="step-header"><span class="step-number">07</span><div class="step-rule"></div></div>
+  <h2>Safety and security</h2>
+  <p>TRACE is designed for situations where reporter safety matters. Multiple layers protect both the data and the people who submit it.</p>
+
+  <h3>Three-vault architecture</h3>
+  <p>Reporter identities (Vault B) are physically separated from operational data (Vault A). A full dump of the operations database reveals callsigns, never real names. Evidence sits in its own write-once vault (Vault C) with an independent encryption key.</p>
+
+  <div style="display:flex;gap:8px;margin:16px 0;flex-wrap:wrap;">
+    <div style="flex:1;min-width:140px;background:var(--accent-soft);border:1px solid var(--accent);border-radius:6px;padding:10px;text-align:center;">
+      <div style="font-size:10px;font-weight:700;color:var(--accent);">Vault A - Ops</div>
+      <div style="font-size:9px;color:var(--text-sec);margin-top:4px;">Vehicles, sightings, actors, dispatches</div>
+      <div style="font-size:8px;color:var(--text-muted);margin-top:2px;">Zero real identities</div>
+    </div>
+    <div style="flex:1;min-width:140px;background:rgba(217,119,6,0.06);border:1px solid var(--warning);border-radius:6px;padding:10px;text-align:center;">
+      <div style="font-size:10px;font-weight:700;color:var(--warning);">Vault B - Identity</div>
+      <div style="font-size:9px;color:var(--text-sec);margin-top:4px;">Real names, auth tokens, sessions</div>
+      <div style="font-size:8px;color:var(--text-muted);margin-top:2px;">Encrypted, separate key</div>
+    </div>
+    <div style="flex:1;min-width:140px;background:rgba(22,163,74,0.06);border:1px solid var(--success);border-radius:6px;padding:10px;text-align:center;">
+      <div style="font-size:10px;font-weight:700;color:var(--success);">Vault C - Evidence</div>
+      <div style="font-size:9px;color:var(--text-sec);margin-top:4px;">Write-once evidence locker</div>
+      <div style="font-size:8px;color:var(--text-muted);margin-top:2px;">Hash chain, AES-256-GCM</div>
+    </div>
+  </div>
+
+  <h3>Reporter safety features</h3>
+  <p><strong>PIN lock</strong> - the app requires a PIN to open. If someone picks up a reporter's phone, they cannot access sighting data.</p>
+  <p><strong>Panic button</strong> - configurable in Settings. Triggers an emergency action defined by the operator. Accessible from any screen.</p>
+  <p><strong>Dead man's switch</strong> - if a reporter does not open the app for 72 hours, local data is automatically wiped. No action required.</p>
+  <p><strong>Offline queue</strong> - sightings submitted without connectivity are stored locally and synced when the connection returns. No data is lost.</p>
+
+  <h3>Operator security controls</h3>
+  <p>The Security page provides remote control over reporter devices: <strong>suspend</strong> (temporarily disable), <strong>kill</strong> (permanently disable), or <strong>nuke</strong> (wipe all data). These take effect the next time the reporter's app checks in.</p>
+</div>
+
+<!-- ============================================ -->
+<div class="step" id="admin">
+  <div class="step-header"><span class="step-number">08</span><div class="step-rule"></div></div>
+  <h2>Admin configuration</h2>
+  <p>Everything is configurable per chapter. The Admin page has 11 sections with contextual help on each one.</p>
+
+  <div class="console-mock">
+    <div class="console-sidebar">
+      <span class="nav-item">Security</span>
+      <span class="nav-item active">Admin</span>
+    </div>
+    <div class="console-main">
+      <div class="console-title">Admin</div>
+      <div style="display:flex;flex-wrap:wrap;gap:4px;">
+        <span class="mock-btn" style="font-size:8px;padding:3px 8px;">Vehicle Types</span>
+        <span class="mock-btn" style="font-size:8px;padding:3px 8px;background:var(--surface-alt);color:var(--text-sec);border:1px solid var(--border);">Concern Levels</span>
+        <span class="mock-btn" style="font-size:8px;padding:3px 8px;background:var(--surface-alt);color:var(--text-sec);border:1px solid var(--border);">Dispatch Types</span>
+        <span class="mock-btn" style="font-size:8px;padding:3px 8px;background:var(--surface-alt);color:var(--text-sec);border:1px solid var(--border);">Reporters</span>
+        <span class="mock-btn" style="font-size:8px;padding:3px 8px;background:var(--surface-alt);color:var(--text-sec);border:1px solid var(--border);">Operators</span>
+        <span class="mock-btn" style="font-size:8px;padding:3px 8px;background:var(--surface-alt);color:var(--text-sec);border:1px solid var(--border);">Integrations</span>
+      </div>
+    </div>
+  </div>
+
+  <h3>What you can configure</h3>
+  <p><strong>Vehicle types</strong> - categories like Sedan, SUV, Pickup, Van. Each gets a color label. Assign multiple types to a vehicle.</p>
+  <p><strong>Concern levels</strong> - your chapter's escalation ladder. Name them, set colors, define promotion predicates (what evidence justifies moving a vehicle up).</p>
+  <p><strong>Dispatch event types</strong> - suspicious vehicle, welfare check, follow-up. Each has an icon, color, and auto-close timer (dispatches close automatically after the timer expires if not resolved).</p>
+  <p><strong>Actor identifier types</strong> - field types for physical identifiers. Tattoo (text + body location), Hair Color (dropdown), Build (dropdown), etc. Dropdowns use a JSON options array.</p>
+  <p><strong>Reporters</strong> - generate invite codes, view active reporters by callsign, see last check-in times.</p>
+  <p><strong>Operators</strong> - create operator accounts with callsign + access code. Access codes work like passwords but are intentionally simple to share in person.</p>
+  <p><strong>Integrations</strong> - CarAPI for automatic plate lookup (VIN, make, model, color). Spokeo for harassment phone number identification. Both optional, both cost per lookup.</p>
+
+  <div class="callout">
+    <strong>Bug reports</strong> go directly to GitHub Issues. Click "Report Bug" in the sidebar to describe a problem. The report automatically sanitizes sensitive data (UUIDs, tokens) before creating the issue.
+  </div>
+
+  <h3>Production hardening</h3>
+  <p>Before giving anyone access, set these environment variables in your Vercel dashboard (production only):</p>
+  <p><code>CORS_ORIGINS</code> - your deployed URL (e.g. <code>https://trace-abc123.vercel.app</code>). Blocks cross-origin requests from other domains.</p>
+  <p><code>TRACE_DISABLE_DEV_LOGIN</code> - set to <code>true</code>. Requires real access codes for operator login.</p>
+  <p><code>EVIDENCE_ENCRYPTION_KEY</code> - 64 hex characters. Enables AES-256-GCM encryption for all evidence data at rest.</p>
+</div>
+
+</div><!-- end container -->
+
+<div class="footer">
+  <p style="font-family:'Exo 2',system-ui,sans-serif;font-weight:100;font-size:18px;letter-spacing:0.22em;color:var(--accent);margin-bottom:0;">TRACE</p>
+  <div style="height:1px;background:var(--accent);opacity:0.5;width:100px;margin:8px auto 0;"></div>
+  <p style="margin-top:6px;font-size:8px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);">Tracking - Reporting - Analysis - Community Evidence</p>
+  <p style="margin-top:8px;color:var(--text-sec);"><a href="/guide.html">Setup Guide</a> &middot; <a href="https://github.com/duke-of-beans/TRACE">Source</a></p>
+</div>
+
+<script>
+function getTheme() { return localStorage.getItem('trace_docs_theme') || 'dark'; }
+function applyTheme(t) { document.documentElement.setAttribute('data-theme', t); }
+function toggleTheme() { var n = getTheme() === 'dark' ? 'light' : 'dark'; localStorage.setItem('trace_docs_theme', n); applyTheme(n); }
+applyTheme(getTheme());
+</script>
+
+<script>
+(function() {
+  var dots = document.querySelectorAll('.scroll-nav-dot');
+  var fill = document.getElementById('scrollFill');
+  var sections = [];
+  dots.forEach(function(dot) {
+    var id = dot.getAttribute('href').replace('#','');
+    var el = document.getElementById(id);
+    if (el) sections.push({ el: el, dot: dot });
+  });
+  if (!sections.length) return;
+  function update() {
+    var scrollY = window.scrollY + window.innerHeight * 0.35;
+    var docH = document.documentElement.scrollHeight - window.innerHeight;
+    var pct = Math.min(100, Math.max(0, (window.scrollY / docH) * 100));
+    if (fill) fill.style.height = pct + '%';
+    var activeIdx = 0;
+    for (var i = sections.length - 1; i >= 0; i--) {
+      if (scrollY >= sections[i].el.offsetTop) { activeIdx = i; break; }
+    }
+    dots.forEach(function(d) { d.classList.remove('active'); });
+    if (sections[activeIdx]) sections[activeIdx].dot.classList.add('active');
+  }
+  dots.forEach(function(dot) {
+    dot.addEventListener('click', function(e) {
+      e.preventDefault();
+      var id = this.getAttribute('href').replace('#','');
+      var el = document.getElementById(id);
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  });
+  window.addEventListener('scroll', update, { passive: true });
+  update();
+})();
+</script>
+</body>
+</html>
