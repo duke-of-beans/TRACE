@@ -33,7 +33,7 @@ const NAV: { key: Page; label: string; shortcut: string; icon: string; desc: str
   { key: "incidents",  label: "Incidents",  shortcut: "5", icon: "alert-octagon",  desc: "Incident reports and evidence" },
   { key: "harassment", label: "Harassment", shortcut: "6", icon: "alert-triangle", desc: "Phone number reports and dossiers" },
   { key: "vehicles",   label: "Vehicles",   shortcut: "7", icon: "car",            desc: "Vehicle dossiers and search" },
-  { key: "actors",     label: "Actors",     shortcut: "8", icon: "user",           desc: "Criminal profiles" },
+  { key: "actors",     label: "Actors",     shortcut: "8", icon: "user",           desc: "Person profiles and identifiers" },
   { key: "admin",      label: "Admin",      shortcut: "9", icon: "sliders",        desc: "Chapter configuration" },
   { key: "security",   label: "Security",   shortcut: "",  icon: "shield",         desc: "Device control and kill switches" },
 ];

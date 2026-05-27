@@ -440,6 +440,215 @@ def test_toast_api():
 
 
 # ============================================================
+# TEST 14: TERMINOLOGY COMPLIANCE (YUMA-C)
+# Banned legal/LE terms in user-facing code.
+# Tier 1 = blocks deploy, Tier 2 = warns.
+# ============================================================
+def test_terminology():
+    print("\n[14] TERMINOLOGY (legally risky language in user-facing code)")
+    # Tier 1: terms that presuppose guilt or imply LE authority
+    TIER1 = [
+        ("criminal profile", "Presupposes guilt"),
+        ("Primary Target", "Military/LE targeting terminology"),
+        ("Person of Interest", "Specific legal meaning in criminal procedure"),
+    ]
+    # Tier 2: terms that should be reviewed (warn, don't block)
+    TIER2 = [
+        ("dossier", "LE/intelligence connotation"),
+    ]
+
+    user_dirs = ["pwa/src", "operator/src"]
+    skip = {"node_modules", "dist", ".git"}
+    t1_found = 0
+    t2_found = 0
+
+    for ud in user_dirs:
+        full = os.path.join(ROOT, ud)
+        if not os.path.isdir(full):
+            continue
+        for dirpath, dirnames, files in os.walk(full):
+            dirnames[:] = [d for d in dirnames if d not in skip]
+            for f in files:
+                if not any(f.endswith(ext) for ext in [".tsx", ".ts"]):
+                    continue
+                fpath = os.path.join(dirpath, f)
+                rel = os.path.relpath(fpath, ROOT)
+                try:
+                    content_lines = open(fpath, "r", encoding="utf-8").readlines()
+                except:
+                    continue
+                for i, line in enumerate(content_lines, 1):
+                    stripped = line.strip()
+                    if stripped.startswith("//") or stripped.startswith("*") or stripped.startswith("/*"):
+                        continue
+                    low = line.lower()
+                    for term, risk in TIER1:
+                        if term.lower() in low:
+                            fail("TERMINOLOGY", f"{rel}:{i} Tier 1 [{term}] {risk}")
+                            t1_found += 1
+                    for term, risk in TIER2:
+                        if term.lower() in low:
+                            warn("TERMINOLOGY", f"{rel}:{i} Tier 2 [{term}] {risk}")
+                            t2_found += 1
+    if t1_found == 0:
+        ok("TERMINOLOGY", f"No Tier 1 banned terms ({t2_found} Tier 2 warnings)")
+
+
+# ============================================================
+# TEST 15: API CONTRACT PATTERNS (YUMA-B)
+# Static analysis of API routers for common behavioral bugs:
+# - Missing await on db calls
+# - Wrong HTTP status on error returns
+# - Unprotected destructuring of query results
+# ============================================================
+def test_api_contracts():
+    print("\n[15] API CONTRACTS (behavioral pattern analysis)")
+    api_dir = os.path.join(ROOT, "src", "api")
+    if not os.path.isdir(api_dir):
+        fail("API_CONTRACT", "src/api directory not found")
+        return
+
+    issues = 0
+    for dirpath, dirnames, files in os.walk(api_dir):
+        for f in files:
+            if not f.endswith(".ts"):
+                continue
+            fpath = os.path.join(dirpath, f)
+            rel = os.path.relpath(fpath, ROOT)
+            try:
+                content = open(fpath, "r", encoding="utf-8").read()
+                content_lines = content.split("\n")
+            except:
+                continue
+
+            for i, line in enumerate(content_lines, 1):
+                stripped = line.strip()
+                # Missing await: opsDb.select/insert/update/delete without await
+                if re.search(r'(?<!await\s)opsDb\.(select|insert|update|delete)', stripped):
+                    # Check if line or previous line has await
+                    prev = content_lines[i-2].strip() if i >= 2 else ""
+                    if "await" not in stripped and "await" not in prev:
+                        fail("API_CONTRACT", f"{rel}:{i} DB call without await")
+                        issues += 1
+
+                # 404 returning 200: c.json({error:...}) without any HTTP status code
+                if re.search(r'c\.json\(\s*\{\s*error:', stripped):
+                    # Check for any 4xx or 5xx status code on the same line
+                    if not re.search(r',\s*[45]\d\d\s*\)', stripped):
+                        fail("API_CONTRACT", f"{rel}:{i} Error response may be missing HTTP status code")
+                        issues += 1
+
+    if issues == 0:
+        ok("API_CONTRACT", "All API routers pass contract checks")
+
+
+# ============================================================
+# TEST 16: DEPENDENCY BLAST RADIUS (YUMA-E)
+# When shared schema files change, verify all consumers exist.
+# ============================================================
+def test_dependency_graph():
+    print("\n[16] DEPENDENCY GRAPH (shared module consumers exist)")
+    # Critical shared files that many modules import
+    shared_modules = {
+        "src/db/schema/vault-a.ts": "Schema definitions",
+        "src/db/schema/shared.ts": "Shared types and enums",
+        "src/db/connection.ts": "Database connections",
+    }
+
+    for mod, desc in shared_modules.items():
+        mod_path = os.path.join(ROOT, mod)
+        if not os.path.exists(mod_path):
+            fail("DEP_GRAPH", f"Shared module missing: {mod}")
+            continue
+
+        # Find all files that import from this module
+        import_pattern = mod.replace("src/", "").replace(".ts", "")
+        consumers = []
+        for dirpath, dirnames, files in os.walk(os.path.join(ROOT, "src")):
+            dirnames[:] = [d for d in dirnames if d not in {"node_modules", "dist", ".git"}]
+            for f in files:
+                if not f.endswith(".ts"):
+                    continue
+                fpath = os.path.join(dirpath, f)
+                if fpath == mod_path:
+                    continue
+                try:
+                    content = open(fpath, "r", encoding="utf-8").read()
+                except:
+                    continue
+                if import_pattern in content or os.path.basename(mod).replace(".ts", "") in content:
+                    consumers.append(os.path.relpath(fpath, ROOT))
+
+        if consumers:
+            ok("DEP_GRAPH", f"{mod} has {len(consumers)} consumers")
+        else:
+            warn("DEP_GRAPH", f"{mod} ({desc}) has no consumers — orphaned?")
+
+    # Count API modules for informational purposes (test 1 already validates sync)
+    api_modules = set()
+    for dirpath, dirnames, files in os.walk(os.path.join(ROOT, "src", "api")):
+        dirnames[:] = [d for d in dirnames if d not in {"node_modules"}]
+        for f in files:
+            if f == "index.ts":
+                api_modules.add(os.path.relpath(os.path.join(dirpath, f), ROOT))
+
+    ok("DEP_GRAPH", f"Tracked {len(api_modules)} API modules (route sync in test 1)")
+
+
+# ============================================================
+# TEST 17: EVIDENCE CHAIN INTEGRITY (YUMA-F)
+# Verify evidence-handling code tracks provenance properly.
+# ============================================================
+def test_evidence_chain():
+    print("\n[17] EVIDENCE CHAIN (provenance tracking in evidence code)")
+    incidents_api = read("src/api/incidents/index.ts") or ""
+
+    if not incidents_api:
+        warn("EVIDENCE_CHAIN", "Incidents API not found, skipping")
+        return
+
+    checks = 0
+    # Evidence uploads must capture uploadedBy
+    if "uploadedBy" in incidents_api or "uploaded_by" in incidents_api:
+        ok("EVIDENCE_CHAIN", "Evidence tracks uploadedBy field")
+        checks += 1
+    else:
+        fail("EVIDENCE_CHAIN", "Evidence upload missing uploadedBy tracking")
+
+    # Evidence must capture addedAt timestamp
+    if "addedAt" in incidents_api or "added_at" in incidents_api:
+        ok("EVIDENCE_CHAIN", "Evidence tracks addedAt timestamp")
+        checks += 1
+    else:
+        fail("EVIDENCE_CHAIN", "Evidence missing addedAt timestamp")
+
+    # Public form submissions must be distinguishable
+    if "submittedViaPublic" in incidents_api or "submitted_via_public" in incidents_api:
+        ok("EVIDENCE_CHAIN", "Public submissions are flagged")
+        checks += 1
+    else:
+        fail("EVIDENCE_CHAIN", "No flag distinguishing public from authenticated submissions")
+
+    # Evidence must have phase tracking
+    if "phase" in incidents_api:
+        ok("EVIDENCE_CHAIN", "Evidence tracks phase (during/post/follow-up/court)")
+        checks += 1
+    else:
+        fail("EVIDENCE_CHAIN", "Evidence missing phase tracking")
+
+    # Schema must include evidence_type field
+    schema = read("src/db/schema/vault-a.ts") or ""
+    if "evidenceType" in schema or "evidence_type" in schema:
+        ok("EVIDENCE_CHAIN", "Schema includes evidence type classification")
+        checks += 1
+    else:
+        fail("EVIDENCE_CHAIN", "Schema missing evidence type field")
+
+    if checks == 5:
+        ok("EVIDENCE_CHAIN", "All 5 provenance checks passed")
+
+
+# ============================================================
 # RUNNER
 # ============================================================
 def main():
@@ -460,6 +669,10 @@ def main():
     test_shortcuts()
     test_css_vars()
     test_toast_api()
+    test_terminology()
+    test_api_contracts()
+    test_dependency_graph()
+    test_evidence_chain()
 
     print("\n" + "=" * 60)
     total = PASS + FAIL + WARN
