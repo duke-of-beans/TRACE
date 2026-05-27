@@ -13,6 +13,7 @@ import { relations } from "drizzle-orm";
 import {
   ops, id, createdAt, updatedAt,
   reporterStatusEnum, vehicleStatusEnum, actorStatusEnum,
+  incidentStatusEnum, incidentSeverityEnum, evidencePhaseEnum,
 } from "./shared.js";
 
 // ============================================================
@@ -635,4 +636,129 @@ export const vehicleEnrichments = ops.table("vehicle_enrichments", {
   expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
 }, (t) => [
   index("enrichment_vehicle").on(t.vehicleId),
+]);
+
+// ============================================================
+// INCIDENT TYPES (chapter-configurable taxonomy)
+// Same pattern as vehicleTypes/dispatchEventTypes.
+// ============================================================
+export const incidentTypes = ops.table("incident_types", {
+  id: id(),
+  chapterId: uuid("chapter_id").notNull().references(() => chapters.id),
+  label: varchar("label", { length: 64 }).notNull(),
+  description: text("description"),
+  icon: varchar("icon", { length: 32 }).default("alert-triangle"),
+  color: varchar("color", { length: 7 }).default("#EF4444"),
+  sortOrder: smallint("sort_order").default(0),
+  defaultPriority: varchar("default_priority", { length: 16 }).default("elevated").notNull(),
+  autoDispatch: boolean("auto_dispatch").default(false),
+  requiresFields: jsonb("requires_fields").default([]),       // JSON array of extra required fields
+  notificationRule: varchar("notification_rule", { length: 32 }).default("standard"),
+  lawEnforcementFlag: boolean("law_enforcement_flag").default(false),
+  evidenceRequired: boolean("evidence_required").default(false),
+  createdAt: createdAt(),
+}, (t) => [
+  uniqueIndex("incident_types_chapter_label").on(t.chapterId, t.label),
+]);
+
+// ============================================================
+// INCIDENTS (the core incident record)
+// Parallel to sightings but for documenting harm.
+// Accumulates evidence over days/weeks until closed.
+// ============================================================
+export const incidents = ops.table("incidents", {
+  id: id(),
+  chapterId: uuid("chapter_id").notNull().references(() => chapters.id),
+  incidentTypeId: uuid("incident_type_id").references(() => incidentTypes.id),
+  reporterId: uuid("reporter_id").references(() => reporters.id),        // who filed it
+  filedOnBehalfOf: text("filed_on_behalf_of"),                            // verbal report source
+  // location
+  lat: real("lat"),
+  lng: real("lng"),
+  locationDescription: text("location_description"),
+  // timing
+  occurredAt: timestamp("occurred_at", { withTimezone: true }),
+  reportedAt: timestamp("reported_at", { withTimezone: true }).notNull().defaultNow(),
+  // content
+  title: varchar("title", { length: 256 }),
+  description: text("description"),
+  // lifecycle
+  status: incidentStatusEnum("status").default("open").notNull(),
+  severity: incidentSeverityEnum("severity").default("elevated").notNull(),
+  // operator fields
+  operatorNotes: text("operator_notes"),
+  closedAt: timestamp("closed_at", { withTimezone: true }),
+  closedBy: uuid("closed_by"),
+  closeReason: varchar("close_reason", { length: 64 }),
+  // public form support
+  publicToken: varchar("public_token", { length: 64 }),                   // shareable link token
+  submittedViaPublic: boolean("submitted_via_public").default(false),
+  publicContactInfo: text("public_contact_info"),                          // optional contact from public form
+  // linked sighting (a sighting can be part of an incident)
+  linkedSightingId: uuid("linked_sighting_id").references(() => sightings.id),
+  // metadata
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+}, (t) => [
+  index("incidents_chapter_status").on(t.chapterId, t.status),
+  index("incidents_reporter").on(t.reporterId),
+  index("incidents_occurred").on(t.occurredAt),
+  index("incidents_public_token").on(t.publicToken),
+]);
+
+// ============================================================
+// INCIDENT <-> ACTOR (many-to-many)
+// ============================================================
+export const incidentActors = ops.table("incident_actors", {
+  id: id(),
+  incidentId: uuid("incident_id").notNull().references(() => incidents.id),
+  actorId: uuid("actor_id").notNull().references(() => actors.id),
+  role: varchar("role", { length: 32 }).default("suspect"),   // suspect, witness, victim, bystander
+  notes: text("notes"),
+  createdAt: createdAt(),
+}, (t) => [
+  uniqueIndex("incident_actors_pair").on(t.incidentId, t.actorId),
+  index("incident_actors_incident").on(t.incidentId),
+  index("incident_actors_actor").on(t.actorId),
+]);
+
+// ============================================================
+// INCIDENT <-> VEHICLE (many-to-many)
+// ============================================================
+export const incidentVehicles = ops.table("incident_vehicles", {
+  id: id(),
+  incidentId: uuid("incident_id").notNull().references(() => incidents.id),
+  vehicleId: uuid("vehicle_id").notNull().references(() => vehicles.id),
+  role: varchar("role", { length: 32 }).default("involved"),  // involved, suspect, getaway, blocking
+  notes: text("notes"),
+  createdAt: createdAt(),
+}, (t) => [
+  uniqueIndex("incident_vehicles_pair").on(t.incidentId, t.vehicleId),
+  index("incident_vehicles_incident").on(t.incidentId),
+  index("incident_vehicles_vehicle").on(t.vehicleId),
+]);
+
+// ============================================================
+// INCIDENT EVIDENCE (timeline of attachments)
+// An incident grows over days/weeks as evidence accumulates.
+// ============================================================
+export const incidentEvidence = ops.table("incident_evidence", {
+  id: id(),
+  incidentId: uuid("incident_id").notNull().references(() => incidents.id),
+  uploadedBy: uuid("uploaded_by"),                                         // reporter or operator UUID
+  evidenceType: varchar("evidence_type", { length: 20 }).notNull(),        // photo, video, audio, document, text_note, medical_record
+  caption: text("caption"),
+  phase: evidencePhaseEnum("phase").default("during_incident").notNull(),
+  capturedAt: timestamp("captured_at", { withTimezone: true }),            // when media was taken
+  addedAt: timestamp("added_at", { withTimezone: true }).notNull().defaultNow(),
+  // storage (base64 initially, object storage later)
+  mimeType: varchar("mime_type", { length: 64 }),
+  fileSize: integer("file_size"),                                          // bytes
+  storageKey: text("storage_key"),                                         // base64 data or future object key
+  metadata: jsonb("metadata").default({}),                                 // EXIF, dimensions, duration
+  createdAt: createdAt(),
+}, (t) => [
+  index("incident_evidence_incident").on(t.incidentId),
+  index("incident_evidence_phase").on(t.phase),
+  index("incident_evidence_added").on(t.addedAt),
 ]);

@@ -10,7 +10,7 @@ import {
   chapters, vehicleTypes, suspicionLevels, suspicionPredicates,
   actorSuspicionLevels, actorIdentifierTypes, actorIdentifiers,
   reporters, vehicles, vehicleTypeAssignments, actors, actorVehicles, sightings,
-  dispatchEventTypes, tagDefinitions,
+  dispatchEventTypes, tagDefinitions, incidentTypes,
 } from "./schema/vault-a.js";
 import { reporterIdentities } from "./schema/vault-b.js";
 
@@ -328,6 +328,22 @@ async function seed() {
     await opsDb.insert(dispatchEventTypes).values({ ...dt, chapterId }).onConflictDoNothing();
   }
   console.log(`+ Dispatch event types: ${dispatchTypes.length}`);
+
+  // INCIDENT TYPES (default set per chapter)
+  const incidentTypeData = [
+    { label: "Surveillance",          icon: "eye",             color: "#D97706", sortOrder: 8, defaultPriority: "elevated",  lawEnforcementFlag: false, evidenceRequired: false, description: "Observed surveillance activity" },
+    { label: "Following",             icon: "navigation",      color: "#EA580C", sortOrder: 7, defaultPriority: "elevated",  lawEnforcementFlag: false, evidenceRequired: false, description: "Subject or vehicle following a target" },
+    { label: "Assault",               icon: "alert-triangle",  color: "#DC2626", sortOrder: 6, defaultPriority: "critical",  lawEnforcementFlag: true,  evidenceRequired: true,  autoDispatch: true, description: "Physical assault on a person" },
+    { label: "Kidnapping/Abduction",  icon: "alert-octagon",   color: "#991B1B", sortOrder: 5, defaultPriority: "critical",  lawEnforcementFlag: true,  evidenceRequired: true,  autoDispatch: true, description: "Person taken against their will" },
+    { label: "Property Crime",        icon: "home",            color: "#7C3AED", sortOrder: 4, defaultPriority: "elevated",  lawEnforcementFlag: false, evidenceRequired: false, description: "Damage or theft of property" },
+    { label: "Harassment",            icon: "phone-off",       color: "#E11D48", sortOrder: 3, defaultPriority: "elevated",  lawEnforcementFlag: false, evidenceRequired: false, description: "Threatening or intimidating behavior" },
+    { label: "Drug Activity",         icon: "package",         color: "#4F46E5", sortOrder: 2, defaultPriority: "routine",   lawEnforcementFlag: false, evidenceRequired: false, description: "Suspected drug-related activity" },
+    { label: "Trespassing",           icon: "shield-off",      color: "#64748B", sortOrder: 1, defaultPriority: "routine",   lawEnforcementFlag: false, evidenceRequired: false, description: "Unauthorized entry onto property" },
+  ];
+  for (const it of incidentTypeData) {
+    await opsDb.insert(incidentTypes).values({ ...it, chapterId } as any).onConflictDoNothing();
+  }
+  console.log(`+ Incident types: ${incidentTypeData.length}`);
 
   // TAG DEFINITIONS (default set per context)
   const tagData: { context: string; label: string; color: string; sortOrder: number }[] = [

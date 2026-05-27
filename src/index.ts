@@ -23,6 +23,7 @@ import { integrationsRouter } from "./api/integrations/index.js";
 import { importRouter } from "./api/import/index.js";
 import { platesRouter } from "./api/plates/index.js";
 import { harassmentRouter } from "./api/harassment/index.js";
+import { incidentsRouter, publicIncidentsRouter } from "./api/incidents/index.js";
 import { closeAll } from "./db/connection.js";
 import { authMiddleware, operatorOnly, adminOnly } from "./middleware/auth.js";
 import { auditMiddleware } from "./middleware/audit.js";
@@ -83,6 +84,9 @@ const api = new Hono();
 api.route("/auth", authRouter);
 api.route("/setup", setupRouter);
 
+// Public incident form (no auth, token-gated)
+api.route("/incidents/public", publicIncidentsRouter);
+
 // All other routes require authentication
 api.use("/*", authMiddleware);
 api.use("/*", auditMiddleware);
@@ -95,6 +99,7 @@ api.route("/dispatch", dispatchRouter);
 api.route("/tag-definitions", tagRouter);
 api.route("/plates", platesRouter);
 api.route("/harassment-reports", harassmentRouter);
+api.route("/incidents", incidentsRouter);
 
 // Feedback — any authenticated user can submit
 api.post("/feedback", async (c) => {

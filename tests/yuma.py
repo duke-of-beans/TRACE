@@ -215,7 +215,7 @@ def test_structure():
         "src/api/dispatch/index.ts", "src/api/setup/index.ts",
         "src/api/tags/index.ts", "src/api/integrations/index.ts",
         "src/api/import/index.ts", "src/api/plates/index.ts",
-        "src/api/harassment/index.ts",
+        "src/api/harassment/index.ts", "src/api/incidents/index.ts",
         # Services
         "src/services/carapi.ts", "src/services/spokeo.ts",
         # Entry points
@@ -226,8 +226,9 @@ def test_structure():
         # Operator pages
         "operator/src/pages/dashboard.tsx", "operator/src/pages/triage.tsx",
         "operator/src/pages/intelligence.tsx", "operator/src/pages/dispatches.tsx",
-        "operator/src/pages/harassment.tsx", "operator/src/pages/vehicles.tsx",
-        "operator/src/pages/actors.tsx", "operator/src/pages/admin.tsx",
+        "operator/src/pages/incidents.tsx", "operator/src/pages/harassment.tsx",
+        "operator/src/pages/vehicles.tsx", "operator/src/pages/actors.tsx",
+        "operator/src/pages/admin.tsx",
         "operator/src/pages/security.tsx",
         # Config
         "vercel.json", "pwa/public/guide.html",
@@ -363,7 +364,8 @@ def test_shortcuts():
     print("\n[11] KEYBOARD SHORTCUTS (count matches NAV length)")
     app = read("operator/src/app.tsx") or ""
 
-    nav_count = len(re.findall(r'key:\s*["\'](\w+)["\'].*?shortcut', app))
+    # Count NAV items with non-empty shortcuts
+    nav_count = len(re.findall(r'shortcut:\s*["\'][1-9]["\']', app))
     # Check keyboard overlay
     overlay = read("operator/src/components/ux/keyboard-overlay.tsx") or ""
     shortcut_range = re.search(r'"(\d+)-(\d+)"', overlay)

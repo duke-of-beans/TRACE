@@ -14,6 +14,7 @@ import { Intelligence } from "./pages/intelligence.js";
 import { Security } from "./pages/security.js";
 import { Dispatches } from "./pages/dispatches.js";
 import { Harassment } from "./pages/harassment.js";
+import { Incidents } from "./pages/incidents.js";
 import { Icon } from "./components/icon.js";
 import {
   ToastProvider, ConfirmProvider, ErrorBoundary, KeyboardOverlay, Tooltip,
@@ -22,18 +23,19 @@ import { LoginScreen, logout } from "./lib/auth-gate.js";
 import { OperatorOnboarding, needsOperatorOnboarding } from "./components/operator-onboarding.js";
 import { toggleTheme, getTheme } from "../../shared/design/theme.js";
 
-type Page = "dashboard" | "triage" | "intel" | "dispatches" | "harassment" | "vehicles" | "actors" | "admin" | "security";
+type Page = "dashboard" | "triage" | "intel" | "dispatches" | "incidents" | "harassment" | "vehicles" | "actors" | "admin" | "security";
 
 const NAV: { key: Page; label: string; shortcut: string; icon: string; desc: string }[] = [
   { key: "dashboard",  label: "Dashboard",  shortcut: "1", icon: "grid",           desc: "Overview stats and status" },
   { key: "triage",     label: "Triage",     shortcut: "2", icon: "zap",            desc: "Review incoming sightings" },
   { key: "intel",      label: "Intel Map",  shortcut: "3", icon: "globe",          desc: "Geospatial intelligence" },
   { key: "dispatches", label: "Dispatches", shortcut: "4", icon: "radio",          desc: "Dispatch management" },
-  { key: "harassment", label: "Harassment", shortcut: "5", icon: "alert-triangle",  desc: "Phone number reports and dossiers" },
-  { key: "vehicles",   label: "Vehicles",   shortcut: "6", icon: "car",            desc: "Vehicle dossiers and search" },
-  { key: "actors",     label: "Actors",     shortcut: "7", icon: "user",           desc: "Criminal profiles" },
-  { key: "admin",      label: "Admin",      shortcut: "8", icon: "sliders",        desc: "Chapter configuration" },
-  { key: "security",   label: "Security",   shortcut: "9", icon: "shield",         desc: "Device control and kill switches" },
+  { key: "incidents",  label: "Incidents",  shortcut: "5", icon: "alert-octagon",  desc: "Incident reports and evidence" },
+  { key: "harassment", label: "Harassment", shortcut: "6", icon: "alert-triangle", desc: "Phone number reports and dossiers" },
+  { key: "vehicles",   label: "Vehicles",   shortcut: "7", icon: "car",            desc: "Vehicle dossiers and search" },
+  { key: "actors",     label: "Actors",     shortcut: "8", icon: "user",           desc: "Criminal profiles" },
+  { key: "admin",      label: "Admin",      shortcut: "9", icon: "sliders",        desc: "Chapter configuration" },
+  { key: "security",   label: "Security",   shortcut: "",  icon: "shield",         desc: "Device control and kill switches" },
 ];
 
 export function App() {
@@ -168,6 +170,7 @@ export function App() {
               {page === "triage"     && <Triage />}
               {page === "intel"      && <Intelligence />}
               {page === "dispatches" && <Dispatches />}
+              {page === "incidents" && <Incidents />}
               {page === "harassment" && <Harassment />}
               {page === "vehicles"   && <Vehicles />}
               {page === "actors"    && <Actors />}

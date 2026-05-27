@@ -40,3 +40,25 @@ export const roleEnum = ident.enum("user_role", [
   "operator",
   "admin",
 ]);
+
+export const incidentStatusEnum = ops.enum("incident_status", [
+  "open",
+  "documenting",
+  "under_review",
+  "closed",
+  "escalated_to_le",
+]);
+
+export const incidentSeverityEnum = ops.enum("incident_severity", [
+  "routine",
+  "elevated",
+  "urgent",
+  "critical",
+]);
+
+export const evidencePhaseEnum = ops.enum("evidence_phase", [
+  "during_incident",
+  "post_scene",
+  "follow_up",
+  "court_prep",
+]);

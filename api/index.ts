@@ -21,6 +21,7 @@ import { integrationsRouter } from "../src/api/integrations/index.js";
 import { importRouter } from "../src/api/import/index.js";
 import { platesRouter } from "../src/api/plates/index.js";
 import { harassmentRouter } from "../src/api/harassment/index.js";
+import { incidentsRouter, publicIncidentsRouter } from "../src/api/incidents/index.js";
 import { authMiddleware, operatorOnly } from "../src/middleware/auth.js";
 import { auditMiddleware } from "../src/middleware/audit.js";
 
@@ -37,6 +38,9 @@ app.get("/health", (c) => c.json({ status: "ok", service: "trace-vercel" }));
 app.route("/auth", authRouter);
 app.route("/setup", setupRouter);
 
+// Public incident form (no auth, token-gated)
+app.route("/incidents/public", publicIncidentsRouter);
+
 // Protected routes
 app.use("/*", authMiddleware);
 app.use("/*", auditMiddleware);
@@ -49,6 +53,7 @@ app.route("/dispatch", dispatchRouter);
 app.route("/tag-definitions", tagRouter);
 app.route("/plates", platesRouter);
 app.route("/harassment-reports", harassmentRouter);
+app.route("/incidents", incidentsRouter);
 
 // Feedback
 app.post("/feedback", async (c) => {

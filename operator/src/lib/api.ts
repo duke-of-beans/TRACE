@@ -121,4 +121,46 @@ export const api = {
     request("/admin/operators/create", { method: "POST", body: JSON.stringify({ callsign, accessCode }) }),
   updateOperatorCode: (id: string, accessCode: string) =>
     request(`/admin/operators/${id}/access-code`, { method: "PUT", body: JSON.stringify({ accessCode }) }),
+
+  // Incidents
+  getIncidents: (status?: string, severity?: string) => {
+    const params = new URLSearchParams();
+    if (status) params.set("status", status);
+    if (severity) params.set("severity", severity);
+    const qs = params.toString();
+    return request<any[]>(`/incidents${qs ? `?${qs}` : ""}`);
+  },
+  getIncident: (id: string) => request<any>(`/incidents/${id}`),
+  createIncident: (data: any) =>
+    request("/incidents", { method: "POST", body: JSON.stringify(data) }),
+  updateIncident: (id: string, data: any) =>
+    request(`/incidents/${id}`, { method: "PATCH", body: JSON.stringify(data) }),
+  closeIncident: (id: string, reason?: string) =>
+    request(`/incidents/${id}/close`, { method: "POST", body: JSON.stringify({ reason }) }),
+  escalateIncident: (id: string) =>
+    request(`/incidents/${id}/escalate`, { method: "POST", body: JSON.stringify({}) }),
+  getIncidentTypes: () => request<any[]>("/incidents/types"),
+  createIncidentType: (data: any) =>
+    request("/incidents/types", { method: "POST", body: JSON.stringify(data) }),
+  updateIncidentType: (id: string, data: any) =>
+    request(`/incidents/types/${id}`, { method: "PUT", body: JSON.stringify(data) }),
+  deleteIncidentType: (id: string) =>
+    request(`/incidents/types/${id}`, { method: "DELETE" }),
+  linkActorToIncident: (incidentId: string, actorId: string, role?: string) =>
+    request(`/incidents/${incidentId}/actors`, { method: "POST", body: JSON.stringify({ actorId, role }) }),
+  unlinkActorFromIncident: (incidentId: string, actorId: string) =>
+    request(`/incidents/${incidentId}/actors/${actorId}`, { method: "DELETE" }),
+  linkVehicleToIncident: (incidentId: string, vehicleId: string, role?: string) =>
+    request(`/incidents/${incidentId}/vehicles`, { method: "POST", body: JSON.stringify({ vehicleId, role }) }),
+  unlinkVehicleFromIncident: (incidentId: string, vehicleId: string) =>
+    request(`/incidents/${incidentId}/vehicles/${vehicleId}`, { method: "DELETE" }),
+  addIncidentEvidence: (incidentId: string, data: any) =>
+    request(`/incidents/${incidentId}/evidence`, { method: "POST", body: JSON.stringify(data) }),
+  getIncidentEvidence: (incidentId: string) =>
+    request<any[]>(`/incidents/${incidentId}/evidence`),
+  deleteIncidentEvidence: (incidentId: string, evidenceId: string) =>
+    request(`/incidents/${incidentId}/evidence/${evidenceId}`, { method: "DELETE" }),
+  generatePublicLink: (incidentId: string) =>
+    request<any>(`/incidents/${incidentId}/public-link`, { method: "POST", body: JSON.stringify({}) }),
+  getIncidentStats: () => request<any>("/incidents/stats"),
 };
