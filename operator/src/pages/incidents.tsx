@@ -299,8 +299,22 @@ function IncidentDetail({ incident, typeMap, onBack, onRefresh }: { incident: an
       const fullUrl = `${window.location.origin}${res.url}`;
       setPublicLink(fullUrl);
       await navigator.clipboard.writeText(fullUrl).catch(() => {});
-      toast("Public link copied", "success");
+      toast("Public link copied (expires in 48 hours)", "success");
     } catch { toast("Failed to generate link", "error"); }
+  };
+
+  const handleDownloadRecord = async () => {
+    try {
+      const record = await api.getIncidentRecord(incident.id);
+      const blob = new Blob([JSON.stringify(record, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `incident-${incident.id.slice(0, 8)}-record.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast("Observation record downloaded", "success");
+    } catch { toast("Failed to generate record", "error"); }
   };
 
   const isActive = ["open", "documenting", "under_review"].includes(incident.status);
@@ -333,22 +347,28 @@ function IncidentDetail({ incident, typeMap, onBack, onRefresh }: { incident: an
         </div>
 
         {/* Actions */}
-        {isActive && (
-          <div className="flex gap-2">
-            <button onClick={handlePublicLink} className="text-xs px-3 py-1.5 rounded-lg flex items-center gap-1"
-              style={{ background: "var(--bg)", border: "1px solid var(--border)", color: "var(--text-sec)" }}>
-              <Icon name="link" size={12} /> Share Link
-            </button>
-            <button onClick={handleEscalate} className="text-xs px-3 py-1.5 rounded-lg flex items-center gap-1"
-              style={{ background: "rgba(220,38,38,0.1)", border: "1px solid rgba(220,38,38,0.3)", color: "#DC2626" }}>
-              <Icon name="shield" size={12} /> Escalate
-            </button>
-            <button onClick={handleClose} className="text-xs px-3 py-1.5 rounded-lg flex items-center gap-1"
-              style={{ background: "var(--bg)", border: "1px solid var(--border)", color: "var(--text-sec)" }}>
-              Close
-            </button>
-          </div>
-        )}
+        <div className="flex gap-2">
+          <button onClick={handleDownloadRecord} className="text-xs px-3 py-1.5 rounded-lg flex items-center gap-1"
+            style={{ background: "var(--bg)", border: "1px solid var(--border)", color: "var(--text-sec)" }}>
+            <Icon name="download" size={12} /> Record
+          </button>
+          {isActive && (
+            <>
+              <button onClick={handlePublicLink} className="text-xs px-3 py-1.5 rounded-lg flex items-center gap-1"
+                style={{ background: "var(--bg)", border: "1px solid var(--border)", color: "var(--text-sec)" }}>
+                <Icon name="link" size={12} /> Share Link
+              </button>
+              <button onClick={handleEscalate} className="text-xs px-3 py-1.5 rounded-lg flex items-center gap-1"
+                style={{ background: "rgba(220,38,38,0.1)", border: "1px solid rgba(220,38,38,0.3)", color: "#DC2626" }}>
+                <Icon name="shield" size={12} /> Escalate
+              </button>
+              <button onClick={handleClose} className="text-xs px-3 py-1.5 rounded-lg flex items-center gap-1"
+                style={{ background: "var(--bg)", border: "1px solid var(--border)", color: "var(--text-sec)" }}>
+                Close
+              </button>
+            </>
+          )}
+        </div>
       </div>
 
       {publicLink && (

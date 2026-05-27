@@ -77,9 +77,9 @@ async function seed() {
 
   // ACTOR SUSPICION LEVELS
   const actorLevelData = [
-    { label: "Person of Interest", color: "#D97706", rank: 1, description: "Linked to suspicious vehicle" },
+    { label: "Under Review",   color: "#D97706", rank: 1, description: "Linked to flagged vehicle" },
     { label: "Known Associate",    color: "#EA580C", rank: 2, description: "Confirmed connection to operations" },
-    { label: "Primary Target",     color: "#DC2626", rank: 3, description: "Key individual in network" },
+    { label: "High Priority",       color: "#DC2626", rank: 3, description: "Key individual under observation" },
   ];
   for (const al of actorLevelData) {
     await opsDb.insert(actorSuspicionLevels).values({ ...al, chapterId }).onConflictDoNothing();
@@ -154,8 +154,8 @@ async function seed() {
 
   // DEMO ACTORS
   const actorLevels = await opsDb.select().from(actorSuspicionLevels);
-  const poiLevel = actorLevels.find((l) => l.label === "Person of Interest");
-  const primaryLevel = actorLevels.find((l) => l.label === "Primary Target");
+  const poiLevel = actorLevels.find((l) => l.label === "Under Review");
+  const primaryLevel = actorLevels.find((l) => l.label === "High Priority");
 
   const actorData = [
     { alias: "GHOST (DEMO)",  desc: "DEMO: Frequently seen driving FAKE-001 and FAKE-003. Male, 30s.",  levelId: primaryLevel?.id },
@@ -355,14 +355,14 @@ async function seed() {
     { context: "sighting", label: "Duplicate Report",      color: "#94A3B8", sortOrder: 2 },
     { context: "sighting", label: "Requires Follow-Up",    color: "#4F46E5", sortOrder: 1 },
     // Vehicle tags
-    { context: "vehicle", label: "Active Threat",   color: "#DC2626", sortOrder: 6 },
+    { context: "vehicle", label: "Active Concern",   color: "#DC2626", sortOrder: 6 },
     { context: "vehicle", label: "Monitoring",      color: "#D97706", sortOrder: 5 },
     { context: "vehicle", label: "Cleared",         color: "#16A34A", sortOrder: 4 },
-    { context: "vehicle", label: "Flagged for LE",  color: "#7C3AED", sortOrder: 3 },
+    { context: "vehicle", label: "Noted for Authorities",  color: "#7C3AED", sortOrder: 3 },
     { context: "vehicle", label: "Known Resident",  color: "#64748B", sortOrder: 2 },
     { context: "vehicle", label: "Rental/Fleet",    color: "#94A3B8", sortOrder: 1 },
     // Harassment tags
-    { context: "harassment", label: "Known Threat",              color: "#DC2626", sortOrder: 6 },
+    { context: "harassment", label: "Known Concern",              color: "#DC2626", sortOrder: 6 },
     { context: "harassment", label: "Spam",                      color: "#94A3B8", sortOrder: 5 },
     { context: "harassment", label: "Under Investigation",       color: "#D97706", sortOrder: 4 },
     { context: "harassment", label: "Cleared",                   color: "#16A34A", sortOrder: 3 },

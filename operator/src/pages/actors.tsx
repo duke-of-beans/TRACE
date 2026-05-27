@@ -1,5 +1,5 @@
 /**
- * TRACE Operator — Actor List + Dossier + CRUD
+ * TRACE Operator — Actor List + Record + CRUD
  *
  * Includes identifier management (tattoos, clothing,
  * build, habits) with confidence levels.
@@ -96,7 +96,7 @@ export function Actors() {
           <CreateActorForm onCreated={handleCreated} onCancel={() => setShowCreate(false)} />
         ) : selected ? (
           <ErrorBoundary fallbackMessage="Failed to render actor profile">
-            <ActorDossier actor={selected} onUpdated={handleUpdated} onDeactivated={handleDeactivated} />
+            <ActorRecord actor={selected} onUpdated={handleUpdated} onDeactivated={handleDeactivated} />
           </ErrorBoundary>
         ) : (
           <div className="flex items-center justify-center h-full">
@@ -124,7 +124,7 @@ function ConfidenceBadge({ level }: { level: string }) {
   );
 }
 
-function ActorDossier({ actor, onUpdated, onDeactivated }: { actor: any; onUpdated: (a: any) => void; onDeactivated: (id: string) => void }) {
+function ActorRecord({ actor, onUpdated, onDeactivated }: { actor: any; onUpdated: (a: any) => void; onDeactivated: (id: string) => void }) {
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState({ alias: "", physicalDescription: "", notes: "" });
   const [uploadingPhoto, setUploadingPhoto] = useState(false);

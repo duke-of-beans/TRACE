@@ -533,8 +533,9 @@ def test_api_contracts():
 
                 # 404 returning 200: c.json({error:...}) without any HTTP status code
                 if re.search(r'c\.json\(\s*\{\s*error:', stripped):
-                    # Check for any 4xx or 5xx status code on the same line
-                    if not re.search(r',\s*[45]\d\d\s*\)', stripped):
+                    # Check for any status code (literal 4xx/5xx OR variable like result.status)
+                    has_status = re.search(r',\s*[45]\d\d\s*\)', stripped) or re.search(r',\s*\w+\.status\s*\)', stripped)
+                    if not has_status:
                         fail("API_CONTRACT", f"{rel}:{i} Error response may be missing HTTP status code")
                         issues += 1
 

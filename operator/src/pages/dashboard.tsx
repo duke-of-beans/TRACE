@@ -36,7 +36,7 @@ export function Dashboard() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <ErrorBoundary fallbackMessage="Failed to load suspicion levels">
+        <ErrorBoundary fallbackMessage="Failed to load concern levels">
           <div className="rounded-lg p-6" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
             <div className="flex items-center gap-2 mb-4">
               <Icon name="zap" size={16} className="text-accent" />

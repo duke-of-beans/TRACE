@@ -692,6 +692,8 @@ export const incidents = ops.table("incidents", {
   closeReason: varchar("close_reason", { length: 64 }),
   // public form support
   publicToken: varchar("public_token", { length: 64 }),                   // shareable link token
+  publicTokenExpiresAt: timestamp("public_token_expires_at", { withTimezone: true }),
+  publicSubmissionCount: integer("public_submission_count").default(0),
   submittedViaPublic: boolean("submitted_via_public").default(false),
   publicContactInfo: text("public_contact_info"),                          // optional contact from public form
   // linked sighting (a sighting can be part of an incident)
@@ -713,7 +715,7 @@ export const incidentActors = ops.table("incident_actors", {
   id: id(),
   incidentId: uuid("incident_id").notNull().references(() => incidents.id),
   actorId: uuid("actor_id").notNull().references(() => actors.id),
-  role: varchar("role", { length: 32 }).default("suspect"),   // suspect, witness, victim, bystander
+  role: varchar("role", { length: 32 }).default("associated"),   // associated, witness, victim, bystander
   notes: text("notes"),
   createdAt: createdAt(),
 }, (t) => [

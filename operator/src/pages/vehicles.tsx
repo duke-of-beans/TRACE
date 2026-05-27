@@ -1,5 +1,5 @@
 /**
- * TRACE Operator — Vehicle List + Dossier + CRUD
+ * TRACE Operator — Vehicle List + Record + CRUD
  */
 import { useState, useEffect, useRef } from "react";
 import { api } from "../lib/api.js";
@@ -106,8 +106,8 @@ export function Vehicles() {
         {adding ? (
           <AddVehicleForm onCreated={handleCreated} onCancel={() => setAdding(false)} />
         ) : selected ? (
-          <ErrorBoundary fallbackMessage="Failed to render vehicle dossier">
-            <VehicleDossier vehicle={selected} onUpdated={handleUpdated} onRetired={handleRetired} />
+          <ErrorBoundary fallbackMessage="Failed to render vehicle record">
+            <VehicleRecord vehicle={selected} onUpdated={handleUpdated} onRetired={handleRetired} />
           </ErrorBoundary>
         ) : (
           <div className="flex items-center justify-center h-full">
@@ -173,7 +173,7 @@ function AddVehicleForm({ onCreated, onCancel }: { onCreated: (v: any) => void; 
   );
 }
 
-function VehicleDossier({ vehicle, onUpdated, onRetired }: { vehicle: any; onUpdated: (v: any) => void; onRetired: (id: string) => void }) {
+function VehicleRecord({ vehicle, onUpdated, onRetired }: { vehicle: any; onUpdated: (v: any) => void; onRetired: (id: string) => void }) {
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState({ plate: "", make: "", model: "", year: "", color: "", description: "" });
   const [sightingMarkers, setSightingMarkers] = useState<any[]>([]);

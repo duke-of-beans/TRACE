@@ -241,7 +241,7 @@ export function Harassment() {
               {/* Tag + Response */}
               <div className="mb-4">
                 <label className="text-xs font-medium block mb-1" style={{ color: "var(--text-sec)" }}>Tag</label>
-                <input value={tag} onChange={(e) => setTag(e.target.value)} placeholder="e.g. Known Threat, Spam"
+                <input value={tag} onChange={(e) => setTag(e.target.value)} placeholder="e.g. Known Concern, Spam"
                   className="w-full rounded px-3 py-2 text-sm" style={{ background: "var(--surface-alt)", border: "1px solid var(--border)", color: "var(--text)" }} />
               </div>
               <div className="mb-4">

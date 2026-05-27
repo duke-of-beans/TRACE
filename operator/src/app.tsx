@@ -28,11 +28,11 @@ type Page = "dashboard" | "triage" | "intel" | "dispatches" | "incidents" | "har
 const NAV: { key: Page; label: string; shortcut: string; icon: string; desc: string }[] = [
   { key: "dashboard",  label: "Dashboard",  shortcut: "1", icon: "grid",           desc: "Overview stats and status" },
   { key: "triage",     label: "Triage",     shortcut: "2", icon: "zap",            desc: "Review incoming sightings" },
-  { key: "intel",      label: "Intel Map",  shortcut: "3", icon: "globe",          desc: "Geospatial intelligence" },
+  { key: "intel",      label: "Activity Map", shortcut: "3", icon: "globe",        desc: "Geospatial activity view" },
   { key: "dispatches", label: "Dispatches", shortcut: "4", icon: "radio",          desc: "Dispatch management" },
   { key: "incidents",  label: "Incidents",  shortcut: "5", icon: "alert-octagon",  desc: "Incident reports and evidence" },
-  { key: "harassment", label: "Harassment", shortcut: "6", icon: "alert-triangle", desc: "Phone number reports and dossiers" },
-  { key: "vehicles",   label: "Vehicles",   shortcut: "7", icon: "car",            desc: "Vehicle dossiers and search" },
+  { key: "harassment", label: "Harassment", shortcut: "6", icon: "alert-triangle", desc: "Phone number reports and records" },
+  { key: "vehicles",   label: "Vehicles",   shortcut: "7", icon: "car",            desc: "Vehicle records and search" },
   { key: "actors",     label: "Actors",     shortcut: "8", icon: "user",           desc: "Person profiles and identifiers" },
   { key: "admin",      label: "Admin",      shortcut: "9", icon: "sliders",        desc: "Chapter configuration" },
   { key: "security",   label: "Security",   shortcut: "",  icon: "shield",         desc: "Device control and kill switches" },
@@ -195,16 +195,16 @@ export function App() {
                   <p className="text-xs mt-1" style={{ color: "var(--text-muted)" }}>Shortcuts: C (confirm), D (dismiss), F (flag), N (next), P (previous)</p>
                 </div>
                 <div>
-                  <h3 className="font-semibold mb-1" style={{ color: "var(--text)" }}>Intel Map</h3>
+                  <h3 className="font-semibold mb-1" style={{ color: "var(--text)" }}>Activity Map</h3>
                   <p>All sightings on a satellite map. Right-click to drop a dispatch pin. Click sighting markers to see details. Time playback shows patterns hour by hour. Add corridor overlays to trace vehicle movements.</p>
                 </div>
                 <div>
                   <h3 className="font-semibold mb-1" style={{ color: "var(--text)" }}>Vehicles & Actors</h3>
-                  <p>Dossier pages for tracked vehicles and persons of interest. Upload photos, set suspicion levels, view sighting history, record physical identifiers.</p>
+                  <p>Record pages for tracked vehicles and observed persons. Upload photos, set concern levels, view sighting history, record physical identifiers.</p>
                 </div>
                 <div>
                   <h3 className="font-semibold mb-1" style={{ color: "var(--text)" }}>Admin</h3>
-                  <p>Configure vehicle types, suspicion ladders, dispatch event types, and actor identifiers. Generate reporter invite codes. Manage operator accounts.</p>
+                  <p>Configure vehicle types, concern levels, dispatch event types, and actor identifiers. Generate reporter invite codes. Manage operator accounts.</p>
                 </div>
                 <div>
                   <h3 className="font-semibold mb-1" style={{ color: "var(--text)" }}>Security</h3>

@@ -186,6 +186,102 @@ incidentsRouter.patch("/:id", async (c) => {
 });
 
 // ============================================================
+// GENERATE OBSERVATION RECORD (structured dossier data)
+// Returns complete incident data formatted for PDF export.
+// Includes disclaimers and provenance metadata per WHETSTONE audit.
+// ============================================================
+incidentsRouter.get("/:id/record", async (c) => {
+  const id = c.req.param("id");
+
+  // Get full incident detail
+  const [incident] = await opsDb.select().from(incidents)
+    .where(eq(incidents.id, id)).limit(1);
+  if (!incident) return c.json({ error: "Not found" }, 404);
+
+  let incidentType = null;
+  if (incident.incidentTypeId) {
+    const [t] = await opsDb.select().from(incidentTypes)
+      .where(eq(incidentTypes.id, incident.incidentTypeId)).limit(1);
+    incidentType = t || null;
+  }
+
+  const linkedActors = await opsDb.select({
+    link: incidentActors, actor: actors,
+  }).from(incidentActors)
+    .innerJoin(actors, eq(incidentActors.actorId, actors.id))
+    .where(eq(incidentActors.incidentId, id));
+
+  const linkedVehicles = await opsDb.select({
+    link: incidentVehicles, vehicle: vehicles,
+  }).from(incidentVehicles)
+    .innerJoin(vehicles, eq(incidentVehicles.vehicleId, vehicles.id))
+    .where(eq(incidentVehicles.incidentId, id));
+
+  const evidence = await opsDb.select().from(incidentEvidence)
+    .where(eq(incidentEvidence.incidentId, id))
+    .orderBy(incidentEvidence.addedAt);
+
+  return c.json({
+    disclaimer: "COMMUNITY OBSERVATION RECORD. This document contains observations reported by civilian community members. Contents have not been verified by law enforcement or legal authorities. Reporter identifiers are pseudonymous. Evidence provenance is tracked but chain of custody is civilian-grade. This record is provided as-is for informational purposes.",
+    generatedAt: new Date().toISOString(),
+    incident: {
+      id: incident.id,
+      type: incidentType?.label || "Unclassified",
+      status: incident.status,
+      severity: incident.severity,
+      title: incident.title,
+      description: incident.description,
+      location: {
+        lat: incident.lat,
+        lng: incident.lng,
+        description: incident.locationDescription,
+      },
+      timing: {
+        occurred: incident.occurredAt,
+        reported: incident.reportedAt,
+        closed: incident.closedAt,
+      },
+      filedOnBehalfOf: incident.filedOnBehalfOf,
+      operatorNotes: incident.operatorNotes,
+    },
+    persons: linkedActors.map(r => ({
+      alias: r.actor.alias,
+      role: r.link.role,
+      physicalDescription: r.actor.physicalDescription,
+      notes: r.link.notes,
+      source: "community_observation",
+    })),
+    vehicles: linkedVehicles.map(r => ({
+      plate: r.vehicle.plate,
+      make: r.vehicle.make,
+      model: r.vehicle.model,
+      year: r.vehicle.year,
+      color: r.vehicle.color,
+      role: r.link.role,
+      notes: r.link.notes,
+      source: "community_observation",
+    })),
+    evidence: evidence.map(ev => ({
+      type: ev.evidenceType,
+      caption: ev.caption,
+      phase: ev.phase,
+      capturedAt: ev.capturedAt,
+      addedAt: ev.addedAt,
+      mimeType: ev.mimeType,
+      fileSize: ev.fileSize,
+      provenance: ev.uploadedBy ? "authenticated_reporter" : "public_form",
+    })),
+    metadata: {
+      totalEvidence: evidence.length,
+      totalPersons: linkedActors.length,
+      totalVehicles: linkedVehicles.length,
+      publicSubmissions: incident.publicSubmissionCount || 0,
+      hasPublicFormEvidence: evidence.some(e => !e.uploadedBy),
+    },
+  });
+});
+
+// ============================================================
 // CLOSE INCIDENT
 // ============================================================
 incidentsRouter.post("/:id/close", async (c) => {
@@ -231,7 +327,7 @@ incidentsRouter.post("/:id/actors", async (c) => {
   const [link] = await opsDb.insert(incidentActors).values({
     incidentId,
     actorId: body.actorId,
-    role: body.role || "suspect",
+    role: body.role || "associated",
     notes: body.notes,
   }).onConflictDoNothing().returning();
 
@@ -332,14 +428,17 @@ incidentsRouter.delete("/:id/evidence/:evidenceId", async (c) => {
 incidentsRouter.post("/:id/public-link", async (c) => {
   const id = c.req.param("id");
   const token = nanoid(24);
+  const expiresAt = new Date(Date.now() + 48 * 60 * 60 * 1000); // 48 hours
 
   const [updated] = await opsDb.update(incidents).set({
     publicToken: token,
+    publicTokenExpiresAt: expiresAt,
+    publicSubmissionCount: 0,
     updatedAt: new Date(),
   }).where(eq(incidents.id, id)).returning();
 
   if (!updated) return c.json({ error: "Not found" }, 404);
-  return c.json({ token, url: `/incident/public/${token}` });
+  return c.json({ token, url: `/incident/public/${token}`, expiresAt: expiresAt.toISOString() });
 });
 
 // ============================================================
@@ -347,14 +446,28 @@ incidentsRouter.post("/:id/public-link", async (c) => {
 // ============================================================
 export const publicIncidentsRouter = new Hono();
 
+const MAX_PUBLIC_SUBMISSIONS = 20;
+
+// Shared token validation helper
+async function validatePublicToken(token: string) {
+  const [parent] = await opsDb.select().from(incidents)
+    .where(eq(incidents.publicToken, token)).limit(1);
+  if (!parent) return { error: "Invalid or expired link", status: 404 as const };
+  if (parent.publicTokenExpiresAt && new Date() > new Date(parent.publicTokenExpiresAt))
+    return { error: "This link has expired. Contact the operator for a new one.", status: 410 as const };
+  if ((parent.publicSubmissionCount || 0) >= MAX_PUBLIC_SUBMISSIONS)
+    return { error: "Submission limit reached for this link.", status: 429 as const };
+  return { parent };
+}
+
 // Public form submission (no auth, token-gated)
 publicIncidentsRouter.post("/:token", async (c) => {
   const token = c.req.param("token");
   const body = await c.req.json();
 
-  const [parent] = await opsDb.select().from(incidents)
-    .where(eq(incidents.publicToken, token)).limit(1);
-  if (!parent) return c.json({ error: "Invalid or expired link" }, 404);
+  const result = await validatePublicToken(token);
+  if ("error" in result) return c.json({ error: result.error }, result.status);
+  const { parent } = result;
 
   const [submitted] = await opsDb.insert(incidents).values({
     chapterId: parent.chapterId,
@@ -370,6 +483,11 @@ publicIncidentsRouter.post("/:token", async (c) => {
     linkedSightingId: parent.linkedSightingId,
   }).returning();
 
+  // Increment submission counter
+  await opsDb.update(incidents).set({
+    publicSubmissionCount: sql`COALESCE(public_submission_count, 0) + 1`,
+  }).where(eq(incidents.id, parent.id));
+
   return c.json({ submitted: true, incidentId: submitted.id }, 201);
 });
 
@@ -378,9 +496,9 @@ publicIncidentsRouter.post("/:token/evidence", async (c) => {
   const token = c.req.param("token");
   const body = await c.req.json();
 
-  const [parent] = await opsDb.select().from(incidents)
-    .where(eq(incidents.publicToken, token)).limit(1);
-  if (!parent) return c.json({ error: "Invalid or expired link" }, 404);
+  const result = await validatePublicToken(token);
+  if ("error" in result) return c.json({ error: result.error }, result.status);
+  const { parent } = result;
 
   const [ev] = await opsDb.insert(incidentEvidence).values({
     incidentId: parent.id,
@@ -394,7 +512,53 @@ publicIncidentsRouter.post("/:token/evidence", async (c) => {
     metadata: body.metadata || {},
   }).returning();
 
+  // Increment submission counter
+  await opsDb.update(incidents).set({
+    publicSubmissionCount: sql`COALESCE(public_submission_count, 0) + 1`,
+  }).where(eq(incidents.id, parent.id));
+
   return c.json(ev, 201);
+});
+
+// ============================================================
+// RAPID CAPTURE (one-tap incident filing from reporter)
+// Minimal input: GPS auto-captured, structure applied later.
+// ============================================================
+incidentsRouter.post("/rapid", async (c) => {
+  const chapterId = c.req.header("x-chapter-id") || "";
+  const reporterId = c.req.header("x-reporter-id") || "";
+  const body = await c.req.json();
+
+  const [incident] = await opsDb.insert(incidents).values({
+    chapterId,
+    reporterId: reporterId || null,
+    lat: body.lat,
+    lng: body.lng,
+    locationDescription: body.locationDescription,
+    occurredAt: new Date(),
+    title: body.title || "Rapid capture",
+    description: body.description || "Filed via rapid capture. Details pending.",
+    severity: "urgent",
+    status: "open",
+  }).returning();
+
+  // If evidence data is included (photo/audio), attach it immediately
+  if (body.evidence) {
+    await opsDb.insert(incidentEvidence).values({
+      incidentId: incident.id,
+      uploadedBy: reporterId || null,
+      evidenceType: body.evidence.type || "photo",
+      caption: body.evidence.caption || "Auto-captured during rapid filing",
+      phase: "during_incident",
+      capturedAt: new Date(),
+      mimeType: body.evidence.mimeType,
+      fileSize: body.evidence.fileSize,
+      storageKey: body.evidence.storageKey,
+      metadata: body.evidence.metadata || {},
+    });
+  }
+
+  return c.json(incident, 201);
 });
 
 // ============================================================

@@ -163,6 +163,14 @@ export const api = {
   phoneLookup: (phoneNumber: string) =>
     request<Record<string, unknown>>("/harassment-reports/phone-lookup", { method: "POST", body: JSON.stringify({ phoneNumber }) }),
 
+  // Incidents
+  rapidCapture: (data: { lat?: number; lng?: number; locationDescription?: string; description?: string; evidence?: Record<string, unknown> }) =>
+    request<Record<string, unknown>>("/incidents/rapid", { method: "POST", body: JSON.stringify(data) }),
+  getMyIncidents: () =>
+    request<Array<Record<string, unknown>>>("/incidents/mine"),
+  addIncidentEvidence: (incidentId: string, data: Record<string, unknown>) =>
+    request<Record<string, unknown>>(`/incidents/${incidentId}/evidence`, { method: "POST", body: JSON.stringify(data) }),
+
   // Queue
   queueSighting,
   getQueuedCount,

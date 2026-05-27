@@ -45,7 +45,7 @@ export function Admin() {
   const GROUPS: { label: string; items: { key: string; label: string }[] }[] = [
     { label: "Configuration", items: [
       { key: "types", label: "Vehicle Types" },
-      { key: "levels", label: "Suspicion Levels" },
+      { key: "levels", label: "Concern Levels" },
       { key: "actorlevels", label: "Actor Levels" },
       { key: "identifiers", label: "Actor Identifiers" },
       { key: "dispatch", label: "Dispatch Types" },
@@ -246,7 +246,7 @@ function VehicleTypesAdmin() {
   );
 }
 
-// ============ Suspicion Levels — full CRUD + predicate rules ============
+// ============ Concern Levels — full CRUD + predicate rules ============
 function SuspicionLevelsAdmin() {
   const [levels, setLevels] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -287,7 +287,7 @@ function SuspicionLevelsAdmin() {
   const handleDelete = async (l: any) => {
     const ok = await confirm({
       title: `Delete "${l.label}"?`,
-      message: "Vehicles at this suspicion level will need to be reassigned. All promotion predicates targeting this level will also be deleted.",
+      message: "Vehicles at this concern level will need to be reassigned. All promotion predicates targeting this level will also be deleted.",
       confirmLabel: "Delete Level",
       danger: true,
     });
@@ -378,7 +378,7 @@ function SuspicionLevelsAdmin() {
 
       {adding && (
         <div className="mt-4 p-4 bg-trace-surface rounded-lg border border-trace-accent/30">
-          <h3 className="text-sm font-semibold mb-3">New Suspicion Level</h3>
+          <h3 className="text-sm font-semibold mb-3">New Concern Level</h3>
           <div className="space-y-3">
             <div className="grid grid-cols-2 gap-3">
               <input value={form.label} onChange={(e) => setForm((f) => ({ ...f, label: e.target.value }))} className={inputCls} placeholder="Label" />
@@ -535,7 +535,7 @@ function formatPredicate(p: any): string {
   }
 }
 
-// ============ Actor Suspicion Levels — same pattern as vehicle ============
+// ============ Actor Concern Levels — same pattern as vehicle ============
 function ActorSuspicionLevelsAdmin() {
   const [levels, setLevels] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);

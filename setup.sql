@@ -665,6 +665,8 @@ CREATE TABLE IF NOT EXISTS "ops"."incidents" (
   "closed_by" uuid,
   "close_reason" varchar(64),
   "public_token" varchar(64),
+  "public_token_expires_at" timestamp with time zone,
+  "public_submission_count" integer DEFAULT 0,
   "submitted_via_public" boolean DEFAULT false,
   "public_contact_info" text,
   "linked_sighting_id" uuid REFERENCES "ops"."sightings"("id"),
@@ -681,7 +683,7 @@ CREATE TABLE IF NOT EXISTS "ops"."incident_actors" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
   "incident_id" uuid NOT NULL REFERENCES "ops"."incidents"("id"),
   "actor_id" uuid NOT NULL REFERENCES "ops"."actors"("id"),
-  "role" varchar(32) DEFAULT 'suspect',
+  "role" varchar(32) DEFAULT 'associated',
   "notes" text,
   "created_at" timestamp with time zone DEFAULT now() NOT NULL,
   UNIQUE("incident_id", "actor_id")

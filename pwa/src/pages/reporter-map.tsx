@@ -2,7 +2,7 @@
  * TRACE PWA — Reporter Map
  *
  * Shows active dispatch pins and own sightings.
- * Does NOT show full intel (heatmaps, corridors, suspicion levels).
+ * Does NOT show full intel (heatmaps, corridors, concern levels).
  * If device is taken, adversary sees only time-limited dispatch pins.
  */
 import { useState, useEffect, useRef } from "preact/hooks";

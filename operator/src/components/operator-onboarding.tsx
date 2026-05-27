@@ -13,8 +13,8 @@ const STEPS = [
   },
   {
     icon: "grid", title: "Your workspace",
-    body: "The sidebar navigates between Triage, Intel Map, Dispatches, Harassment, Vehicles, Actors, Admin, and Security. Number keys 1-9 switch pages. Press ? for all shortcuts.",
-    detail: "Dashboard (1). Triage (2): incoming sightings. Intel Map (3): geospatial view. Dispatches (4). Harassment (5): phone reports. Vehicles (6)/Actors (7): case files. Admin (8). Security (9).",
+    body: "The sidebar navigates between Triage, Activity Map, Dispatches, Harassment, Vehicles, Actors, Admin, and Security. Number keys 1-9 switch pages. Press ? for all shortcuts.",
+    detail: "Dashboard (1). Triage (2): incoming sightings. Activity Map (3): geospatial view. Dispatches (4). Harassment (5): phone reports. Vehicles (6)/Actors (7): case files. Admin (8). Security (9).",
   },
   {
     icon: "zap", title: "Triage incoming sightings",
@@ -23,8 +23,8 @@ const STEPS = [
   },
   {
     icon: "car", title: "Vehicle tracking",
-    body: "Every vehicle starts at the lowest suspicion level. As sightings accumulate, promote through the ladder. Levels and rules are fully configurable in Admin.",
-    detail: "Each vehicle has a dossier: plate, description, sighting history, map of locations, linked actors. Suspicion levels and auto-promotion rules editable in Admin.",
+    body: "Every vehicle starts at the lowest concern level. As sightings accumulate, promote through the ladder. Levels and rules are fully configurable in Admin.",
+    detail: "Each vehicle has a record: plate, description, sighting history, map of locations, linked actors. Concern levels and auto-promotion rules editable in Admin.",
   },
   {
     icon: "user", title: "Invite reporters",
@@ -39,7 +39,7 @@ const STEPS = [
   {
     icon: "alert-triangle", title: "Harassment reports",
     body: "Reporters can submit harassing phone numbers through the app. You review them, investigate, and respond.",
-    detail: "The Harassment page (key 5) shows reported numbers grouped as dossiers. Each number tracks how many reporters flagged it. Tags and responses are visible to reporters when they look up the same number.",
+    detail: "The Harassment page (key 6) shows reported numbers grouped as records. Each number tracks how many reporters flagged it. Tags and responses are visible to reporters when they look up the same number.",
   },
   {
     icon: "sliders", title: "Integrations",
@@ -54,7 +54,7 @@ const STEPS = [
   {
     icon: "compass", title: "Try it out",
     body: "The system has demo data. Vehicles are FAKE-001 through TEST-005, actors are GHOST, SPARKS, and NINE. Explore freely, clear demo data from Admin when ready.",
-    detail: "All demo data is prefixed DEMO, FAKE, or TEST. The Intel Map shows sightings on a satellite view. Try the triage keyboard shortcuts.",
+    detail: "All demo data is prefixed DEMO, FAKE, or TEST. The Activity Map shows sightings on a satellite view. Try the triage keyboard shortcuts.",
   },
 ];
 

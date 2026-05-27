@@ -163,4 +163,7 @@ export const api = {
   generatePublicLink: (incidentId: string) =>
     request<any>(`/incidents/${incidentId}/public-link`, { method: "POST", body: JSON.stringify({}) }),
   getIncidentStats: () => request<any>("/incidents/stats"),
+  getIncidentRecord: (id: string) => request<any>(`/incidents/${id}/record`),
+  rapidCapture: (data: any) =>
+    request("/incidents/rapid", { method: "POST", body: JSON.stringify(data) }),
 };
