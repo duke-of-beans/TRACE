@@ -1,24 +1,32 @@
 # TRACE — Session Handoff
-# Updated: 2026-05-27 (Session 3 closeout)
-# Status: PHASES 1-8 COMPLETE + BUG SWEEP + YUMA GATE
-# Next: P0 Unified Incident System (CRITICAL - client has real incidents)
+# Updated: 2026-05-27 (Session 4 closeout)
+# Status: PHASES 1-8 COMPLETE + P0 INCIDENT SYSTEM CORE SHIPPED
+# Next: P0 sub-features (correlation, dossier export), then P1 Reporter Groups
 
 ---
 
 ## CRITICAL CONTEXT FOR NEXT SESSION
 
-This project has a CLIENT with REAL INCIDENTS happening NOW. Tonight volunteers
-were assaulted, 3 people kidnapped, multiple actors/vehicles involved. The P0
-Unified Incident System is the highest priority feature. See full spec below.
+P0 Unified Incident System CORE is live in production. Schema, API, operator
+console page, migration, seed data all deployed to Neon + Vercel.
+
+**What still needs building for P0 completion:**
+- Conflicting Info Correlation (auto-detect overlapping reports, surface discrepancies)
+- Closed Event Dossier / PDF export (court-ready document generation)
+- Public incident form HTML page (standalone URL, currently API-only)
+- Reporter portal incident filing (PWA submit integration)
+- Operator: actor/vehicle search + link UI (currently displays links, no search picker)
 
 **Read the transcript:** /mnt/transcripts/ has full session history.
 
 **What works in production RIGHT NOW:**
 - Reporter PWA: submit sightings, check plates, report harassment, view map
-- Operator Console: triage, vehicles, actors, Intel Map, dispatches, harassment
-  review, admin (vehicle types, suspicion levels, integrations, import)
+- Operator Console: triage, vehicles, actors, Intel Map, dispatches, incidents,
+  harassment review, admin (vehicle types, suspicion levels, integrations, import)
+- Incident system: file incidents, link actors/vehicles, evidence timeline,
+  close/escalate, generate public witness form links, 8 configurable types
 - All Phase 2-8 features deployed and functional
-- YUMA gate (13 tests, 69 checks) blocks bad deploys
+- YUMA gate (13 tests, 72 checks) blocks bad deploys
 
 **What needs attention:**
 - Intel Map filter bar still gets cut off in narrow split-screen
@@ -91,7 +99,53 @@ Elm St, Kirby Rd). NOT on or near CIA campus.
 
 ---
 
-## WHAT WAS COMPLETED THIS SESSION
+## WHAT WAS COMPLETED THIS SESSION (Session 4)
+
+### P0: Unified Incident System Core (SHIPPED)
+
+**Schema (Drizzle + raw SQL):**
+- 3 new enums in shared.ts: incident_status, incident_severity, evidence_phase
+- 5 new tables in vault-a.ts: incidentTypes, incidents, incidentActors,
+  incidentVehicles, incidentEvidence
+- Migration: migrations/0006_incidents.sql (applied to Neon production)
+- setup.sql updated with all new DDL (idempotent)
+- 8 default incident types seeded: Surveillance, Following, Assault,
+  Kidnapping/Abduction, Property Crime, Harassment, Drug Activity, Trespassing
+- Assault + Kidnapping auto-flag for LE, require evidence, trigger auto-dispatch
+
+**API Router (src/api/incidents/index.ts, 431 lines):**
+- Incident type CRUD (GET/POST/PUT/DELETE /types)
+- List incidents with status/severity filters
+- Get incident detail with joined actors, vehicles, evidence, type
+- Create incident (reporter, operator, or on-behalf-of)
+- Update incident (safe field allowlist)
+- Close incident, escalate to law enforcement
+- Link/unlink actors (M2M) and vehicles (M2M)
+- Evidence upload/list/delete with auto status progression (open -> documenting)
+- Generate public form link (nanoid token)
+- Public form submission + evidence (separate publicIncidentsRouter, no auth)
+- Reporter "my incidents" endpoint
+- Stats by status for dashboard
+
+**Route Mounting (YUMA test 1 compliant, both entry points synced):**
+- src/index.ts: publicIncidentsRouter before auth, incidentsRouter after auth
+- api/index.ts: identical structure
+
+**Operator Console (operator/src/pages/incidents.tsx, 486 lines):**
+- List view with status filters, severity badges, incident type tags
+- Stats row: total, open, documenting, critical
+- Detail view: full incident info, linked actors, linked vehicles, evidence timeline
+- Create form: type selector, title, description, location, filed-on-behalf
+- Action buttons: Share Link (public form), Escalate to LE, Close
+- Public link display with copy-to-clipboard
+- 17 new API methods in operator/src/lib/api.ts
+
+**Sidebar:** Incidents at position 5 (shortcut key 5), between Dispatches and Harassment
+**YUMA:** Updated tests 5 (structure), 8 (nav), 11 (shortcuts). 72 checks pass, 0 warnings.
+
+---
+
+## WHAT WAS COMPLETED IN SESSION 3
 
 ### Phase 1: Schema + API Foundations (COMPLETE)
 
@@ -284,15 +338,21 @@ D:\Projects\TRACE\
   src/api/tags/index.ts          Tag definitions API (new)
   src/api/integrations/index.ts  Integrations API + helpers (new)
   src/api/import/index.ts        Data import API (new)
+  src/api/incidents/index.ts     Incidents API + publicIncidentsRouter (new, Session 4)
   src/services/import/clear-demo.ts  Demo data detection and removal (new)
   shared/design/wordmark.ts      Unified wordmark spec (updated)
   pwa/src/styles.css             Reporter CSS (updated: wordmark classes)
   pwa/src/components/pin-lock.tsx Reporter lock screen (updated: brand lockup)
   pwa/public/guide.html          Setup guide (updated: brand, scroll nav, step numbers)
   operator/src/lib/auth-gate.tsx  Operator login (updated: brand lockup)
-  src/db/schema/vault-a.ts       Drizzle schema (updated: 5 new tables, 3 columns)
-  src/db/seed.ts                 Demo data (updated: tag definitions)
-  src/index.ts                   Server entry (updated: new route mounting)
+  src/db/schema/vault-a.ts       Drizzle schema (updated: 5 new tables, 3 columns + 5 incident tables)
+  src/db/schema/shared.ts        Shared types (updated: 3 incident enums)
+  src/db/seed.ts                 Demo data (updated: tag definitions + incident types)
+  src/index.ts                   Server entry (updated: new route mounting + incidents)
+  operator/src/pages/incidents.tsx Operator incidents page (new, Session 4)
+  operator/src/lib/api.ts        API client (updated: 17 incident methods)
+  operator/src/app.tsx           App root (updated: incidents nav + page render)
+  migrations/0006_incidents.sql  Incident system migration (new, Session 4)
 ```
 
 ---
@@ -331,10 +391,27 @@ npx tsx --env-file=.env.neon src/db/seed.ts
 
 ## BACKLOG — PRIORITIZED
 
-### P0: Unified Incident System (CRITICAL — client-driven, real incident tonight)
-Replaces the current flat sighting model with a full incident lifecycle.
-Driven by real scenario: volunteers assaulted, 3 people kidnapped, multiple
-actors and vehicles involved, evidence needed for court.
+### P0: Unified Incident System (CORE SHIPPED — sub-features remaining)
+Core schema, API, and operator UI shipped in Session 4.
+
+**SHIPPED (Session 4):**
+- All schema: incident_types, incidents, incident_actors, incident_vehicles,
+  incident_evidence tables + 3 enums. Migration applied to Neon.
+- Full API: CRUD, lifecycle (close/escalate), M2M linking, evidence timeline,
+  public form (token-gated, no auth), stats, reporter endpoints.
+- Operator page: list/detail/create views, filters, evidence timeline, actions.
+- 8 default incident types seeded.
+
+**REMAINING (build next):**
+- Public incident form HTML page (standalone, currently API-only)
+- Reporter PWA incident filing (integrate into submit flow or new page)
+- Operator actor/vehicle search picker in incident detail (link UI exists,
+  but no search/select widget yet - must search and pick from existing)
+- Live Capture workflow (camera -> auto-tag to incident)
+- Conflicting Info Correlation (see spec below)
+- Closed Event Dossier / PDF export (see spec below)
+
+Remaining sub-features below.
 
 **Schema: `incident_types` table (chapter-configurable)**
 Same pattern as vehicleTypes/dispatchEventTypes:
