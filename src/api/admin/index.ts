@@ -331,6 +331,17 @@ adminRouter.delete("/actor-identifiers/:id", async (c) => {
 // ============================================================
 // REPORTERS
 // ============================================================
+adminRouter.get("/reporters", async (c) => {
+  const chapterId = c.req.header("x-chapter-id") || "";
+  const results = await opsDb.select({
+    id: reporters.id,
+    callsign: reporters.callsign,
+    chapterId: reporters.chapterId,
+    createdAt: reporters.createdAt,
+  }).from(reporters).where(chapterId ? eq(reporters.chapterId, chapterId) : undefined);
+  return c.json(results);
+});
+
 adminRouter.post("/reporters/invite", async (c) => {
   const { callsign, email, realName, phone } = await c.req.json();
   const chapterId = c.req.header("x-chapter-id") || "";
