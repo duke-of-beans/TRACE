@@ -3,7 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>TRACE  -  Visual Setup Guide</title>
+<title>TRACE - Visual Setup Guide</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:system-ui,-apple-system,sans-serif;background:#0f172a;color:#cbd5e1;line-height:1.7}
@@ -41,7 +42,7 @@ li{margin:4px 0;font-size:14px}
 <div class="step">
 <p><span class="step-num">1</span> Go to <a href="https://neon.tech" target="_blank">neon.tech</a> and sign up</p>
 <p><span class="step-num">2</span> Click <strong>New Project</strong>, name it anything, pick the region closest to your area</p>
-<p><span class="step-num">3</span> Copy the <strong>Connection String</strong>  -  this is your database address. Keep it private.</p>
+<p><span class="step-num">3</span> Copy the <strong>Connection String</strong> - this is your database address. Keep it private.</p>
 </div>
 <div class="note">Neon provides free PostgreSQL databases with encryption at rest and TLS in transit. The free tier covers chapters up to 50 reporters.</div>
 
@@ -52,7 +53,7 @@ li{margin:4px 0;font-size:14px}
 <p><span class="step-num">3</span> Paste your database connection string when asked for <code>DATABASE_URL</code></p>
 <p><span class="step-num">4</span> Click <strong>Deploy</strong>. Build takes about 2 minutes.</p>
 </div>
-<p>After deployment, Vercel gives you a URL like <code>trace-abc123.vercel.app</code>. Bookmark it  -  this is your chapter's home.</p>
+<p>After deployment, Vercel gives you a URL like <code>trace-abc123.vercel.app</code>. Bookmark it - this is your chapter's home.</p>
 
 <h2>Step 3: Create Database Tables</h2>
 <div class="step">
@@ -61,14 +62,14 @@ li{margin:4px 0;font-size:14px}
 <p><span class="step-num">3</span> Open <a href="https://github.com/duke-of-beans/TRACE/blob/main/setup.sql" target="_blank">setup.sql</a> from GitHub, copy the entire file</p>
 <p><span class="step-num">4</span> Paste into the SQL Editor, click <strong>Run</strong></p>
 </div>
-<div class="note">You'll see "CREATE TABLE" confirmations. "Already exists" messages are fine  -  the script is safe to run multiple times.</div>
+<div class="note">You'll see "CREATE TABLE" confirmations. "Already exists" messages are fine - the script is safe to run multiple times.</div>
 
 <h2>Step 4: Create Your Operator Account</h2>
 <div class="step">
 <p><span class="step-num">1</span> Go to <code>your-app.vercel.app/operator/</code></p>
 <p><span class="step-num">2</span> You'll see a <strong>First-Time Setup</strong> screen</p>
 <p><span class="step-num">3</span> Enter your chapter name (e.g., "Westside Watch")</p>
-<p><span class="step-num">4</span> Choose a callsign  -  your operator code name</p>
+<p><span class="step-num">4</span> Choose a callsign - your operator code name</p>
 <p><span class="step-num">5</span> Set an access code (6+ characters)</p>
 </div>
 <div class="note warn">TRACE uses callsigns instead of email addresses to protect operator identity. Even if the database were compromised, attackers would find code names, not real people.</div>
@@ -87,7 +88,7 @@ li{margin:4px 0;font-size:14px}
 <p>Open your TRACE URL in Safari. Tap Share → Add to Home Screen → Add.</p>
 <h3>Android (Chrome)</h3>
 <p>Open your TRACE URL in Chrome. Tap three-dot menu → Add to Home Screen → Add.</p>
-<div class="note">The app installs from the browser  -  no App Store or Google Play required. No review process, no trail in purchase history.</div>
+<div class="note">The app installs from the browser - no App Store or Google Play required. No review process, no trail in purchase history.</div>
 
 <h2>Operator Console Pages</h2>
 <div class="pages">
@@ -106,16 +107,16 @@ li{margin:4px 0;font-size:14px}
 <h2>Production Hardening</h2>
 <p>Before giving anyone access, set these environment variables in your Vercel dashboard:</p>
 <div class="step">
-<p><code>TRACE_DISABLE_DEV_LOGIN=true</code>  -  Disables the development login bypass</p>
-<p><code>TRACE_DISABLE_TEST_CODE=true</code>  -  Disables test invite codes</p>
-<p><code>CORS_ORIGINS=https://your-app.vercel.app</code>  -  Restricts API access to your domain</p>
+<p><code>TRACE_DISABLE_DEV_LOGIN=true</code> - Disables the development login bypass</p>
+<p><code>TRACE_DISABLE_TEST_CODE=true</code> - Disables test invite codes</p>
+<p><code>CORS_ORIGINS=https://your-app.vercel.app</code> - Restricts API access to your domain</p>
 </div>
 
 <h2>Need Help?</h2>
 <p>File an issue on <a href="https://github.com/duke-of-beans/TRACE/issues" target="_blank">GitHub</a> or use the bug report button in the operator console sidebar.</p>
 
 <div style="margin-top:48px;padding-top:16px;border-top:1px solid #1e293b;font-size:11px;color:#475569">
-TRACE  -  Tracking, Reporting, Analysis & Community Evidence
+TRACE - Tracking, Reporting, Analysis & Community Evidence
 </div>
 </div>
 </body>
