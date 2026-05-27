@@ -1,21 +1,27 @@
 # TRACE — Session Handoff
-# Updated: 2026-05-27 (Session 4 final closeout)
-# Status: P0 INCIDENT SYSTEM COMPLETE + TERMINOLOGY CLEANED + YUMA 17-TEST GATE
-# Next: P0 sub-features (correlation, public form HTML page), then P1 Reporter Groups
+# Updated: 2026-05-27 (Session 4 — FINAL)
+# Status: P0 COMPLETE + COMPREHENSIVE SEED + TERMINOLOGY + YUMA 17-TEST GATE
+# Next: Help text/tooltips audit, internal schema rename, PDF rendering
 
 ---
 
 ## CRITICAL CONTEXT FOR NEXT SESSION
 
 P0 Unified Incident System is live and hardened. Terminology audit complete.
-YUMA expanded to 17 tests across 6 tiers.
+YUMA expanded to 17 tests across 6 tiers. Comprehensive seed data with Pexels
+stock photos seeded to production (55 entities across all types and states).
 
-**What still needs building for full P0:**
-- Conflicting Info Correlation (auto-detect overlapping reports, surface discrepancies)
-- Public incident form HTML page (standalone, API endpoints exist with hardening)
-- Reporter PWA incident filing UI (rapid capture API exists, needs PWA page integration)
-- Operator actor/vehicle search picker in incident detail (link UI exists, no search widget)
-- PDF export of observation records (JSON endpoint exists at GET /incidents/:id/record)
+**P0 COMPLETE. What needs building next:**
+- Help text / tooltips / instructional text audit (the "grandma test" — every page, every section)
+- Internal schema rename (suspicion→concern in TypeScript identifiers, DB column names later)
+- PDF rendering from observation record JSON
+- YUMA-D visual regression via Oktyv browser engine
+- GitHub repos public language audit (execute via API, meta backlog P0)
+
+**Comprehensive seed script:** `_seed_comprehensive.ts`
+Run: `npx tsx --env-file=.env.neon _seed_comprehensive.ts`
+Idempotent — nukes all (DEMO) data first, re-fetches Pexels photos, recreates everything.
+Column gotchas documented in brain.db observation.
 
 **Read the transcript:** /mnt/transcripts/ has full session history.
 
