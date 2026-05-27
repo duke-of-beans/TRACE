@@ -4,18 +4,21 @@
  * Design system: Slate + Indigo, dark mode default.
  * SVG icons, no emoji. WCAG AA contrast.
  */
-import { useState, useEffect } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import { Triage } from "./pages/triage.js";
 import { Vehicles } from "./pages/vehicles.js";
-import { Actors } from "./pages/actors.js";
-import { Admin } from "./pages/admin.js";
 import { Dashboard } from "./pages/dashboard.js";
-import { Intelligence } from "./pages/intelligence.js";
-import { Security } from "./pages/security.js";
 import { Dispatches } from "./pages/dispatches.js";
-import { Harassment } from "./pages/harassment.js";
-import { Incidents } from "./pages/incidents.js";
 import { Icon } from "./components/icon.js";
+
+// Lazy-load heavy pages (admin ~900 lines, intelligence ~map, incidents ~600 lines, actors, security, harassment)
+const Admin = lazy(() => import("./pages/admin.js").then(m => ({ default: m.Admin })));
+const Intelligence = lazy(() => import("./pages/intelligence.js").then(m => ({ default: m.Intelligence })));
+const Incidents = lazy(() => import("./pages/incidents.js").then(m => ({ default: m.Incidents })));
+const Actors = lazy(() => import("./pages/actors.js").then(m => ({ default: m.Actors })));
+const Security = lazy(() => import("./pages/security.js").then(m => ({ default: m.Security })));
+const Harassment = lazy(() => import("./pages/harassment.js").then(m => ({ default: m.Harassment })));
+
 import {
   ToastProvider, ConfirmProvider, ErrorBoundary, KeyboardOverlay, Tooltip,
 } from "./components/ux/index.js";
@@ -166,6 +169,7 @@ export function App() {
           {/* Main */}
           <main className="flex-1 overflow-auto p-4 lg:p-6 pt-14 lg:pt-6">
             <ErrorBoundary>
+              <Suspense fallback={<div className="flex items-center justify-center h-full" style={{ color: "var(--text-muted)" }}><Icon name="clock" size={24} /><span className="ml-2 text-sm">Loading...</span></div>}>
               {page === "dashboard" && <Dashboard />}
               {page === "triage"     && <Triage />}
               {page === "intel"      && <Intelligence />}
@@ -176,6 +180,7 @@ export function App() {
               {page === "actors"    && <Actors />}
               {page === "admin"     && <Admin />}
               {page === "security"  && <Security />}
+              </Suspense>
             </ErrorBoundary>
           </main>
         </div>
