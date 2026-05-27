@@ -91,9 +91,9 @@ export function App() {
             ${sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
           `} style={{ background: "var(--surface)", borderRight: "1px solid var(--border)" }}>
             <div className="px-5 py-4 hidden lg:block" style={{ borderBottom: "1px solid var(--border)" }}>
-              <div style={{ display: "inline-block" }}>
-                <span style={{ fontFamily: "'Exo 2', system-ui, sans-serif", fontWeight: 100, fontSize: 18, letterSpacing: "0.22em", color: "var(--accent)" }}>TRACE</span>
-                <span style={{ display: "block", height: 1, background: "var(--accent)", opacity: 0.4, marginTop: 3 }}></span>
+              <div style={{ display: "inline-block", textAlign: "center" as const }}>
+                <span style={{ fontFamily: "'Exo 2', system-ui, sans-serif", fontWeight: 100, fontSize: 18, letterSpacing: "0.22em", color: "var(--accent)", display: "block" }}>TRACE</span>
+                <span style={{ display: "block", height: 1, background: "var(--accent)", opacity: 0.4, margin: "3px auto 0" }}></span>
               </div>
               <div className="text-[9px] mt-1 tracking-widest uppercase" style={{ color: "var(--text-muted)" }}>Operator Console</div>
             </div>
