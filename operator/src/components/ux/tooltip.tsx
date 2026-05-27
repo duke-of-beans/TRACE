@@ -21,7 +21,7 @@ export function Tooltip({ content, children, position = "top", delay = 300 }: { 
       {visible && <span role="tooltip" style={{
         position: "absolute", ...pos[position], padding: "6px 10px", borderRadius: "var(--radius-sm)",
         background: "var(--surface-alt)", color: "var(--text)", fontSize: "var(--text-xs)", lineHeight: 1.4,
-        whiteSpace: "nowrap", boxShadow: "var(--shadow-md)", zIndex: 1000, pointerEvents: "none",
+        whiteSpace: "nowrap", boxShadow: "var(--shadow-md)", zIndex: 9990, pointerEvents: "none",
         border: "1px solid var(--border)",
       }}>{content}</span>}
     </span>

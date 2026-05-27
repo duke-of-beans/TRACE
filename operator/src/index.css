@@ -1,3 +1,11 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Global z-index overrides for tooltips above all panels */
+.leaflet-tooltip-pane { z-index: 9990 !important; }
+.leaflet-popup-pane { z-index: 9989 !important; }
+[title] { position: relative; }
+[title]:hover::after {
+  z-index: 9990;
+}
