@@ -312,69 +312,69 @@ export function Intelligence() {
             />
           </div>
         )}
-
-        {/* ── RIGHT-SIDE DETAIL PANEL ── */}
-        {selectedMarker && (
-          <div style={{
-            position: "absolute", top: 0, right: 0, bottom: 0, width: 340, zIndex: 1000,
-            background: "var(--surface)", borderLeft: "1px solid var(--border)",
-            padding: 20, overflowY: "auto",
-            boxShadow: "-4px 0 20px rgba(0,0,0,0.3)",
-          }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-              <span style={{ fontSize: 10, padding: "2px 8px", borderRadius: 4, fontWeight: 700, background: "#f1c40f", color: "#000" }}>Sighting</span>
-              <button onClick={() => setSelectedMarker(null)} style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", fontSize: 16 }}>✕</button>
-            </div>
-            {selectedMarker.data?.plate && (
-              <div style={{ fontFamily: "var(--font-mono)", fontWeight: 700, letterSpacing: "0.1em", fontSize: 18, marginBottom: 8 }}>{selectedMarker.data.plate}</div>
-            )}
-            {selectedMarker.data?.activityDescription && <p style={{ fontSize: 13, color: "var(--text-sec)", marginBottom: 8, lineHeight: 1.5 }}>{selectedMarker.data.activityDescription}</p>}
-            {selectedMarker.data?.vehicleDescription && <p style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 8 }}>{selectedMarker.data.vehicleDescription}</p>}
-            <div style={{ fontSize: 11, color: "var(--text-muted)", marginBottom: 16, display: "flex", flexDirection: "column", gap: 4 }}>
-              {selectedMarker.data?.observedAt && <span>{new Date(selectedMarker.data.observedAt).toLocaleString()}</span>}
-              {selectedMarker.data?.direction && <span>Heading {selectedMarker.data.direction}</span>}
-              <span>{selectedMarker.lat.toFixed(5)}, {selectedMarker.lng.toFixed(5)}</span>
-            </div>
-            <button onClick={() => { setPlacingPin({ lat: selectedMarker.lat, lng: selectedMarker.lng }); setSelectedMarker(null); }}
-              style={{ width: "100%", background: "var(--accent)", color: "var(--accent-text)", border: "none", borderRadius: 8, padding: "10px 16px", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
-              Dispatch here
-            </button>
-          </div>
-        )}
-
-        {selectedPin && (
-          <div style={{
-            position: "absolute", top: 0, right: 0, bottom: 0, width: 340, zIndex: 1000,
-            background: "var(--surface)", borderLeft: "1px solid var(--border)",
-            padding: 20, overflowY: "auto",
-            boxShadow: "-4px 0 20px rgba(0,0,0,0.3)",
-          }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <span style={{ fontSize: 10, padding: "2px 8px", borderRadius: 4, fontWeight: 700, background: selectedPin.priority === "urgent" ? "#DC2626" : "#D97706", color: "#fff" }}>{selectedPin.priority}</span>
-                <span style={{ fontSize: 14, fontWeight: 600 }}>{selectedPin.eventTypeLabel || "Dispatch"}</span>
-              </div>
-              <button onClick={() => setSelectedPin(null)} style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", fontSize: 16 }}>✕</button>
-            </div>
-            {selectedPin.plate && <div style={{ fontFamily: "var(--font-mono)", fontWeight: 700, letterSpacing: "0.1em", fontSize: 16, marginBottom: 8 }}>{selectedPin.plate}</div>}
-            {selectedPin.notes && <p style={{ fontSize: 13, color: "var(--text-sec)", marginBottom: 8, lineHeight: 1.5 }}>{selectedPin.notes}</p>}
-            <div style={{ fontSize: 11, color: "var(--text-muted)", marginBottom: 16 }}>
-              {(() => { const m = Math.round((Date.now() - new Date(selectedPin.createdAt).getTime()) / 60000); return m < 60 ? `${m}m ago` : `${Math.round(m/60)}h ago`; })()} · {selectedPin.status}
-            </div>
-            {selectedPin.status !== "closed" && selectedPin.status !== "expired" && (
-              <button onClick={async () => { await api.closeDispatch(selectedPin.id, "operator_closed").catch(() => {}); setSelectedPin(null); loadDispatchPins(); }}
-                style={{ width: "100%", background: "var(--surface-alt)", color: "var(--text-sec)", border: "1px solid var(--border)", borderRadius: 8, padding: "10px 16px", fontSize: 13, cursor: "pointer" }}>
-                Close Dispatch
-              </button>
-            )}
-          </div>
-        )}
       </IntelMap>
+
+      {/* ── RIGHT-SIDE DETAIL PANELS (outside IntelMap for z-index) ── */}
+      {selectedMarker && (
+        <div style={{
+          position: "absolute", top: 0, right: 0, bottom: 0, width: 340, zIndex: 10001,
+          background: "var(--surface)", borderLeft: "1px solid var(--border)",
+          padding: 20, overflowY: "auto",
+          boxShadow: "-4px 0 20px rgba(0,0,0,0.3)",
+        }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+            <span style={{ fontSize: 10, padding: "2px 8px", borderRadius: 4, fontWeight: 700, background: "#f1c40f", color: "#000" }}>Sighting</span>
+            <button onClick={() => setSelectedMarker(null)} style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", fontSize: 16 }}>✕</button>
+          </div>
+          {selectedMarker.data?.plate && (
+            <div style={{ fontFamily: "var(--font-mono)", fontWeight: 700, letterSpacing: "0.1em", fontSize: 18, marginBottom: 8 }}>{selectedMarker.data.plate}</div>
+          )}
+          {selectedMarker.data?.activityDescription && <p style={{ fontSize: 13, color: "var(--text-sec)", marginBottom: 8, lineHeight: 1.5 }}>{selectedMarker.data.activityDescription}</p>}
+          {selectedMarker.data?.vehicleDescription && <p style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 8 }}>{selectedMarker.data.vehicleDescription}</p>}
+          <div style={{ fontSize: 11, color: "var(--text-muted)", marginBottom: 16, display: "flex", flexDirection: "column", gap: 4 }}>
+            {selectedMarker.data?.observedAt && <span>{new Date(selectedMarker.data.observedAt).toLocaleString()}</span>}
+            {selectedMarker.data?.direction && <span>Heading {selectedMarker.data.direction}</span>}
+            <span>{selectedMarker.lat.toFixed(5)}, {selectedMarker.lng.toFixed(5)}</span>
+          </div>
+          <button onClick={() => { setPlacingPin({ lat: selectedMarker.lat, lng: selectedMarker.lng }); setSelectedMarker(null); }}
+            style={{ width: "100%", background: "var(--accent)", color: "var(--accent-text)", border: "none", borderRadius: 8, padding: "10px 16px", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
+            Dispatch here
+          </button>
+        </div>
+      )}
+
+      {selectedPin && (
+        <div style={{
+          position: "absolute", top: 0, right: 0, bottom: 0, width: 340, zIndex: 10001,
+          background: "var(--surface)", borderLeft: "1px solid var(--border)",
+          padding: 20, overflowY: "auto",
+          boxShadow: "-4px 0 20px rgba(0,0,0,0.3)",
+        }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <span style={{ fontSize: 10, padding: "2px 8px", borderRadius: 4, fontWeight: 700, background: selectedPin.priority === "urgent" ? "#DC2626" : "#D97706", color: "#fff" }}>{selectedPin.priority}</span>
+              <span style={{ fontSize: 14, fontWeight: 600 }}>{selectedPin.eventTypeLabel || "Dispatch"}</span>
+            </div>
+            <button onClick={() => setSelectedPin(null)} style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", fontSize: 16 }}>✕</button>
+          </div>
+          {selectedPin.plate && <div style={{ fontFamily: "var(--font-mono)", fontWeight: 700, letterSpacing: "0.1em", fontSize: 16, marginBottom: 8 }}>{selectedPin.plate}</div>}
+          {selectedPin.notes && <p style={{ fontSize: 13, color: "var(--text-sec)", marginBottom: 8, lineHeight: 1.5 }}>{selectedPin.notes}</p>}
+          <div style={{ fontSize: 11, color: "var(--text-muted)", marginBottom: 16 }}>
+            {(() => { const m = Math.round((Date.now() - new Date(selectedPin.createdAt).getTime()) / 60000); return m < 60 ? `${m}m ago` : `${Math.round(m/60)}h ago`; })()} - {selectedPin.status}
+          </div>
+          {selectedPin.status !== "closed" && selectedPin.status !== "expired" && (
+            <button onClick={async () => { await api.closeDispatch(selectedPin.id, "operator_closed").catch(() => {}); setSelectedPin(null); loadDispatchPins(); }}
+              style={{ width: "100%", background: "var(--surface-alt)", color: "var(--text-sec)", border: "1px solid var(--border)", borderRadius: 8, padding: "10px 16px", fontSize: 13, cursor: "pointer" }}>
+              Close Dispatch
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Pin creation form (modal overlay) */}
       {placingPin && (
         <div style={{
-          position: "absolute", top: 0, right: 0, bottom: 0, width: 380, zIndex: 1001,
+          position: "absolute", top: 0, right: 0, bottom: 0, width: 380, zIndex: 10001,
           background: "var(--surface)", borderLeft: "1px solid var(--border)",
           padding: 20, overflowY: "auto",
           boxShadow: "-4px 0 20px rgba(0,0,0,0.3)",
