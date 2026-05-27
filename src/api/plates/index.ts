@@ -71,11 +71,11 @@ platesRouter.get("/lookup", async (c) => {
     let suspicionLabel: string | null = null;
     let suspicionColor: string | null = null;
     if (match.suspicionLevelId) {
-      const { suspicionLevels } = await import("../../db/schema/vault-a.js");
+      const { concernLevels } = await import("../../db/schema/vault-a.js");
       const [level] = await opsDb
         .select()
-        .from(suspicionLevels)
-        .where(eq(suspicionLevels.id, match.suspicionLevelId))
+        .from(concernLevels)
+        .where(eq(concernLevels.id, match.suspicionLevelId))
         .limit(1);
       if (level) {
         suspicionLabel = level.label;

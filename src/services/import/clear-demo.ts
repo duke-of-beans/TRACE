@@ -14,7 +14,7 @@ import { opsDb } from "../../db/connection.js";
 import {
   vehicles, sightings, actors, actorVehicles,
   actorIdentifiers, actorPhotos, vehicleTypeAssignments,
-  vehicleSuspicionHistory, actorSuspicionHistory,
+  vehicleConcernHistory, actorConcernHistory,
   sightingPhotos, sightingFeedback,
   dispatchEvents, dispatchAssignments, dispatchOutcomes,
 } from "../../db/schema/vault-a.js";
@@ -122,7 +122,7 @@ export async function clearDemoData(chapterId: string): Promise<ClearResult> {
     await opsDb.delete(actorIdentifiers).where(eq(actorIdentifiers.actorId, aid));
     await opsDb.delete(actorVehicles).where(eq(actorVehicles.actorId, aid));
     await opsDb.delete(actorPhotos).where(eq(actorPhotos.actorId, aid));
-    await opsDb.delete(actorSuspicionHistory).where(eq(actorSuspicionHistory.actorId, aid));
+    await opsDb.delete(actorConcernHistory).where(eq(actorConcernHistory.actorId, aid));
     await opsDb.delete(actors).where(eq(actors.id, aid));
     result.actorsCleared++;
   }
@@ -130,7 +130,7 @@ export async function clearDemoData(chapterId: string): Promise<ClearResult> {
   // 5. Clear vehicles
   for (const vid of vehicleIds) {
     await opsDb.delete(vehicleTypeAssignments).where(eq(vehicleTypeAssignments.vehicleId, vid));
-    await opsDb.delete(vehicleSuspicionHistory).where(eq(vehicleSuspicionHistory.vehicleId, vid));
+    await opsDb.delete(vehicleConcernHistory).where(eq(vehicleConcernHistory.vehicleId, vid));
     await opsDb.delete(actorVehicles).where(eq(actorVehicles.vehicleId, vid));
     await opsDb.delete(vehicles).where(eq(vehicles.id, vid));
     result.vehiclesCleared++;

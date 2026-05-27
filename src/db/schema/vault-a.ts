@@ -64,7 +64,7 @@ export const vehicleTypes = ops.table("vehicle_types", {
 // ============================================================
 // SUSPICION LEVELS (chapter-editable ladder)
 // ============================================================
-export const suspicionLevels = ops.table("suspicion_levels", {
+export const concernLevels = ops.table("suspicion_levels", {
   id: id(),
   chapterId: uuid("chapter_id").notNull().references(() => chapters.id),
   label: varchar("label", { length: 64 }).notNull(),
@@ -79,10 +79,10 @@ export const suspicionLevels = ops.table("suspicion_levels", {
 // ============================================================
 // SUSPICION PREDICATES (promotion criteria)
 // ============================================================
-export const suspicionPredicates = ops.table("suspicion_predicates", {
+export const concernPredicates = ops.table("suspicion_predicates", {
   id: id(),
   chapterId: uuid("chapter_id").notNull().references(() => chapters.id),
-  targetLevelId: uuid("target_level_id").notNull().references(() => suspicionLevels.id),
+  targetLevelId: uuid("target_level_id").notNull().references(() => concernLevels.id),
   label: varchar("label", { length: 128 }).notNull(),
   // predicate type: count_based, time_based, flag_based, manual
   predicateType: varchar("predicate_type", { length: 32 }).notNull(),
@@ -109,7 +109,7 @@ export const vehicles = ops.table("vehicles", {
   description: text("description"),
   photoUrl: text("photo_url"),                             // base64 data URI or external URL
   status: vehicleStatusEnum("status").default("active").notNull(),
-  suspicionLevelId: uuid("suspicion_level_id").references(() => suspicionLevels.id),
+  suspicionLevelId: uuid("suspicion_level_id").references(() => concernLevels.id),
   lastSeenAt: timestamp("last_seen_at", { withTimezone: true }),
   lastSeenLat: real("last_seen_lat"),
   lastSeenLng: real("last_seen_lng"),
@@ -139,11 +139,11 @@ export const vehicleTypeAssignments = ops.table("vehicle_type_assignments", {
 // ============================================================
 // SUSPICION HISTORY (immutable audit of level changes)
 // ============================================================
-export const vehicleSuspicionHistory = ops.table("vehicle_suspicion_history", {
+export const vehicleConcernHistory = ops.table("vehicle_suspicion_history", {
   id: id(),
   vehicleId: uuid("vehicle_id").notNull().references(() => vehicles.id),
-  fromLevelId: uuid("from_level_id").references(() => suspicionLevels.id),
-  toLevelId: uuid("to_level_id").notNull().references(() => suspicionLevels.id),
+  fromLevelId: uuid("from_level_id").references(() => concernLevels.id),
+  toLevelId: uuid("to_level_id").notNull().references(() => concernLevels.id),
   reason: text("reason").notNull(),                       // justification
   changedBy: uuid("changed_by").notNull(),                // reporter or operator ID
   changedByRole: varchar("changed_by_role", { length: 16 }).notNull(),
@@ -174,7 +174,7 @@ export const actors = ops.table("actors", {
 // ============================================================
 // ACTOR SUSPICION LEVELS (parallel to vehicle levels, own criteria)
 // ============================================================
-export const actorSuspicionLevels = ops.table("actor_suspicion_levels", {
+export const actorConcernLevels = ops.table("actor_suspicion_levels", {
   id: id(),
   chapterId: uuid("chapter_id").notNull().references(() => chapters.id),
   label: varchar("label", { length: 64 }).notNull(),
@@ -189,10 +189,10 @@ export const actorSuspicionLevels = ops.table("actor_suspicion_levels", {
 // ============================================================
 // ACTOR SUSPICION PREDICATES (behavioral promotion criteria)
 // ============================================================
-export const actorSuspicionPredicates = ops.table("actor_suspicion_predicates", {
+export const actorConcernPredicates = ops.table("actor_suspicion_predicates", {
   id: id(),
   chapterId: uuid("chapter_id").notNull().references(() => chapters.id),
-  targetLevelId: uuid("target_level_id").notNull().references(() => actorSuspicionLevels.id),
+  targetLevelId: uuid("target_level_id").notNull().references(() => actorConcernLevels.id),
   label: varchar("label", { length: 128 }).notNull(),
   predicateType: varchar("predicate_type", { length: 32 }).notNull(),
   config: jsonb("config").notNull(),
@@ -203,11 +203,11 @@ export const actorSuspicionPredicates = ops.table("actor_suspicion_predicates", 
 // ============================================================
 // ACTOR SUSPICION HISTORY (immutable audit)
 // ============================================================
-export const actorSuspicionHistory = ops.table("actor_suspicion_history", {
+export const actorConcernHistory = ops.table("actor_suspicion_history", {
   id: id(),
   actorId: uuid("actor_id").notNull().references(() => actors.id),
-  fromLevelId: uuid("from_level_id").references(() => actorSuspicionLevels.id),
-  toLevelId: uuid("to_level_id").notNull().references(() => actorSuspicionLevels.id),
+  fromLevelId: uuid("from_level_id").references(() => actorConcernLevels.id),
+  toLevelId: uuid("to_level_id").notNull().references(() => actorConcernLevels.id),
   reason: text("reason").notNull(),
   changedBy: uuid("changed_by").notNull(),
   changedByRole: varchar("changed_by_role", { length: 16 }).notNull(),

@@ -9,8 +9,8 @@
  */
 import { opsDb } from "../db/connection.js";
 import {
-  vehicles, sightings, suspicionLevels, suspicionPredicates,
-  vehicleSuspicionHistory, vehicleTypeAssignments, actorVehicles,
+  vehicles, sightings, concernLevels, concernPredicates,
+  vehicleConcernHistory, vehicleTypeAssignments, actorVehicles,
 } from "../db/schema/vault-a.js";
 import { eq, and, gte, count, sql } from "drizzle-orm";
 
@@ -121,11 +121,11 @@ export async function evaluatePredicates(
 ): Promise<{ qualifies: boolean; met: string[]; unmet: string[] }> {
   const predicates = await opsDb
     .select()
-    .from(suspicionPredicates)
+    .from(concernPredicates)
     .where(
       and(
-        eq(suspicionPredicates.chapterId, chapterId),
-        eq(suspicionPredicates.targetLevelId, targetLevelId)
+        eq(concernPredicates.chapterId, chapterId),
+        eq(concernPredicates.targetLevelId, targetLevelId)
       )
     );
 
@@ -207,7 +207,7 @@ export async function promoteVehicle(opts: {
     .where(eq(vehicles.id, vehicleId));
 
   // log to immutable history
-  await opsDb.insert(vehicleSuspicionHistory).values({
+  await opsDb.insert(vehicleConcernHistory).values({
     vehicleId,
     fromLevelId: vehicle.suspicionLevelId,
     toLevelId,

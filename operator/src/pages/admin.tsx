@@ -106,8 +106,8 @@ export function Admin() {
         {/* Content */}
         <div className="flex-1 min-w-0">
       {tab === "types"       && <VehicleTypesAdmin />}
-      {tab === "levels"      && <SuspicionLevelsAdmin />}
-      {tab === "actorlevels" && <ActorSuspicionLevelsAdmin />}
+      {tab === "levels"      && <ConcernLevelsAdmin />}
+      {tab === "actorlevels" && <ActorConcernLevelsAdmin />}
       {tab === "identifiers" && <ActorIdentifierTypesAdmin />}
       {tab === "dispatch"    && <DispatchTypesAdmin />}
       {tab === "integrations" && <IntegrationsAdmin />}
@@ -249,7 +249,7 @@ function VehicleTypesAdmin() {
 }
 
 // ============ Concern Levels — full CRUD + predicate rules ============
-function SuspicionLevelsAdmin() {
+function ConcernLevelsAdmin() {
   const [levels, setLevels] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<string | null>(null);
@@ -540,7 +540,7 @@ function formatPredicate(p: any): string {
 }
 
 // ============ Actor Concern Levels — same pattern as vehicle ============
-function ActorSuspicionLevelsAdmin() {
+function ActorConcernLevelsAdmin() {
   const [levels, setLevels] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<string | null>(null);

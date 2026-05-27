@@ -9,7 +9,7 @@ import { z } from "zod";
 import { opsDb } from "../../db/connection.js";
 import {
   vehicles, vehicleTypes, vehicleTypeAssignments,
-  vehicleSuspicionHistory, sightings,
+  vehicleConcernHistory, sightings,
 } from "../../db/schema/vault-a.js";
 import { eq, desc, ilike, or, and } from "drizzle-orm";
 
@@ -113,7 +113,7 @@ vehiclesRouter.post("/:id/promote", async (c) => {
   const changedBy = c.req.header("x-reporter-id") || "";
 
   // TODO: validate predicates, check authorization
-  // TODO: log to vehicleSuspicionHistory
+  // TODO: log to vehicleConcernHistory
   // TODO: update vehicles.suspicionLevelId
 
   return c.json({ status: "promoted", vehicleId, toLevelId }, 200);

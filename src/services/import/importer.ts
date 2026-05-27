@@ -10,7 +10,7 @@ import "dotenv/config";
 import { opsDb } from "../../db/connection.js";
 import {
   vehicles, sightings, actors, actorVehicles,
-  suspicionLevels, reporters,
+  concernLevels, reporters,
 } from "../../db/schema/vault-a.js";
 import { eq, and } from "drizzle-orm";
 import type { ImportRow } from "./types.js";
@@ -47,8 +47,8 @@ export async function importRows(
   // get default suspicion level (rank 1 = "Noticed")
   const [defaultLevel] = await opsDb
     .select()
-    .from(suspicionLevels)
-    .where(and(eq(suspicionLevels.chapterId, chapterId), eq(suspicionLevels.rank, 1)))
+    .from(concernLevels)
+    .where(and(eq(concernLevels.chapterId, chapterId), eq(concernLevels.rank, 1)))
     .limit(1);
 
   for (const row of rows) {

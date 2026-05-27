@@ -8,7 +8,7 @@
  */
 import { opsDb } from "../db/connection.js";
 import {
-  vehicles, chapters, sightings, vehicleSuspicionHistory, suspicionLevels,
+  vehicles, chapters, sightings, vehicleConcernHistory, concernLevels,
 } from "../db/schema/vault-a.js";
 import { eq, and, lt, isNull, sql, or } from "drizzle-orm";
 
@@ -48,11 +48,11 @@ export async function runSunsetCheck(): Promise<{
     // find the "Retired" suspicion level for this chapter
     const [retiredLevel] = await opsDb
       .select()
-      .from(suspicionLevels)
+      .from(concernLevels)
       .where(
         and(
-          eq(suspicionLevels.chapterId, chapter.id),
-          eq(suspicionLevels.rank, 0) // retired = rank 0
+          eq(concernLevels.chapterId, chapter.id),
+          eq(concernLevels.rank, 0) // retired = rank 0
         )
       )
       .limit(1);
@@ -69,7 +69,7 @@ export async function runSunsetCheck(): Promise<{
         .where(eq(vehicles.id, v.id));
 
       // log retirement to suspicion history
-      await opsDb.insert(vehicleSuspicionHistory).values({
+      await opsDb.insert(vehicleConcernHistory).values({
         vehicleId: v.id,
         fromLevelId: null,
         toLevelId: retiredLevel?.id || v.id, // fallback
@@ -101,7 +101,7 @@ export async function reactivateVehicle(
     })
     .where(eq(vehicles.id, vehicleId));
 
-  await opsDb.insert(vehicleSuspicionHistory).values({
+  await opsDb.insert(vehicleConcernHistory).values({
     vehicleId,
     fromLevelId: null,
     toLevelId: vehicleId, // placeholder - should resolve to "Noticed" level

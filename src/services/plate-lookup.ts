@@ -6,7 +6,7 @@
  * The result is stored on the sighting for instant triage display.
  */
 import { opsDb } from "../db/connection.js";
-import { vehicles, suspicionLevels } from "../db/schema/vault-a.js";
+import { vehicles, concernLevels } from "../db/schema/vault-a.js";
 import { eq, and, ilike } from "drizzle-orm";
 
 export type PlateMatch = {
@@ -72,8 +72,8 @@ export async function lookupPlate(plate: string, chapterId: string): Promise<Pla
   if (match.suspicionLevelId) {
     const [level] = await opsDb
       .select()
-      .from(suspicionLevels)
-      .where(eq(suspicionLevels.id, match.suspicionLevelId))
+      .from(concernLevels)
+      .where(eq(concernLevels.id, match.suspicionLevelId))
       .limit(1);
 
     if (level) {

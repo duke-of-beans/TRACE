@@ -6,7 +6,7 @@
  */
 import { Hono } from "hono";
 import { opsDb } from "../../db/connection.js";
-import { actors, actorVehicles, actorSuspicionLevels } from "../../db/schema/vault-a.js";
+import { actors, actorVehicles, actorConcernLevels } from "../../db/schema/vault-a.js";
 import { eq, desc, and } from "drizzle-orm";
 
 export const actorsRouter = new Hono();

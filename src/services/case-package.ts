@@ -14,8 +14,8 @@ import { join } from "node:path";
 import { opsDb, evidenceDb } from "../db/connection.js";
 import {
   vehicles, sightings, actors, actorVehicles,
-  vehicleSuspicionHistory, vehicleTypeAssignments, vehicleTypes,
-  suspicionLevels, auditLog,
+  vehicleConcernHistory, vehicleTypeAssignments, vehicleTypes,
+  concernLevels, auditLog,
 } from "../db/schema/vault-a.js";
 import {
   evidenceRecords, casePackages, casePackageEvidence,
@@ -55,9 +55,9 @@ async function gatherIntelligence(opts: CasePackageOpts) {
 
     vehicleHistory = await opsDb
       .select()
-      .from(vehicleSuspicionHistory)
-      .where(eq(vehicleSuspicionHistory.vehicleId, vehicleId))
-      .orderBy(vehicleSuspicionHistory.createdAt);
+      .from(vehicleConcernHistory)
+      .where(eq(vehicleConcernHistory.vehicleId, vehicleId))
+      .orderBy(vehicleConcernHistory.createdAt);
 
     // get type labels
     const typeAssignments = await opsDb
@@ -88,8 +88,8 @@ async function gatherIntelligence(opts: CasePackageOpts) {
   // suspicion level labels
   const levels = await opsDb
     .select()
-    .from(suspicionLevels)
-    .where(eq(suspicionLevels.chapterId, chapterId));
+    .from(concernLevels)
+    .where(eq(concernLevels.chapterId, chapterId));
 
   const levelMap = new Map(levels.map((l) => [l.id, l.label]));
 

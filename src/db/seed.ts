@@ -7,8 +7,8 @@
 import "dotenv/config";
 import { opsDb, identDb } from "./connection.js";
 import {
-  chapters, vehicleTypes, suspicionLevels, suspicionPredicates,
-  actorSuspicionLevels, actorIdentifierTypes, actorIdentifiers,
+  chapters, vehicleTypes, concernLevels, concernPredicates,
+  actorConcernLevels, actorIdentifierTypes, actorIdentifiers,
   reporters, vehicles, vehicleTypeAssignments, actors, actorVehicles, sightings,
   dispatchEventTypes, tagDefinitions, incidentTypes,
 } from "./schema/vault-a.js";
@@ -49,16 +49,16 @@ async function seed() {
     { label: "Priority",   color: "#7C3AED", rank: 5, description: "Highest priority, active and dangerous" },
   ];
   for (const l of levelData) {
-    await opsDb.insert(suspicionLevels).values({ ...l, chapterId }).onConflictDoNothing();
+    await opsDb.insert(concernLevels).values({ ...l, chapterId }).onConflictDoNothing();
   }
-  const levels = await opsDb.select().from(suspicionLevels);
+  const levels = await opsDb.select().from(concernLevels);
   console.log(`+ Suspicion levels: ${levels.length}`);
 
   // SUSPICION PREDICATES
   const watchingLevel = levels.find((l) => l.label === "Watching");
   const suspiciousLevel = levels.find((l) => l.label === "Suspicious");
   if (watchingLevel) {
-    await opsDb.insert(suspicionPredicates).values({
+    await opsDb.insert(concernPredicates).values({
       chapterId, targetLevelId: watchingLevel.id,
       label: "3+ sightings across 2+ days",
       predicateType: "count_based",
@@ -66,7 +66,7 @@ async function seed() {
     }).onConflictDoNothing();
   }
   if (suspiciousLevel) {
-    await opsDb.insert(suspicionPredicates).values({
+    await opsDb.insert(concernPredicates).values({
       chapterId, targetLevelId: suspiciousLevel.id,
       label: "6+ sightings across 3+ locations",
       predicateType: "count_based",
@@ -82,7 +82,7 @@ async function seed() {
     { label: "High Priority",       color: "#DC2626", rank: 3, description: "Key individual under observation" },
   ];
   for (const al of actorLevelData) {
-    await opsDb.insert(actorSuspicionLevels).values({ ...al, chapterId }).onConflictDoNothing();
+    await opsDb.insert(actorConcernLevels).values({ ...al, chapterId }).onConflictDoNothing();
   }
   console.log(`+ Actor suspicion levels seeded`);
 
@@ -153,7 +153,7 @@ async function seed() {
   console.log(`+ Demo vehicles: ${vehicleIds.length}`);
 
   // DEMO ACTORS
-  const actorLevels = await opsDb.select().from(actorSuspicionLevels);
+  const actorLevels = await opsDb.select().from(actorConcernLevels);
   const poiLevel = actorLevels.find((l) => l.label === "Under Review");
   const primaryLevel = actorLevels.find((l) => l.label === "High Priority");
 
