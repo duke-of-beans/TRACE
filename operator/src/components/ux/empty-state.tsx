@@ -26,5 +26,10 @@ export const EMPTY_STATES = {
   vehicles: { icon: "car", title: "No vehicles tracked yet", description: "Vehicles are created when sightings are submitted and triaged. Import existing data or wait for field reports." },
   actors: { icon: "user", title: "No actors registered", description: "Actor profiles are created when a driver is identified and linked to a vehicle." },
   search: { icon: "eye", title: "No results", description: "Try a different search term. You can search by plate number, vehicle description, or color." },
-  intel: { icon: "globe", title: "No intelligence data yet", description: "The map populates as sightings are submitted." },
+  intel: { icon: "globe", title: "No sighting data yet", description: "The map populates as sightings are submitted by field reporters." },
+  dashboard: { icon: "grid", title: "Welcome to TRACE", description: "Your dashboard will populate as reporters submit sightings and you begin tracking vehicles." },
+  dispatches: { icon: "radio", title: "No dispatches", description: "Create dispatches from triage or the Activity Map. Right-click the map to drop a dispatch pin." },
+  incidents: { icon: "alert-octagon", title: "No incidents filed", description: "Use the Create Incident button to file a new incident report. Link actors and vehicles as evidence is gathered." },
+  harassment: { icon: "alert-triangle", title: "No harassment reports", description: "Reports appear here when field reporters submit harassing phone numbers through the app." },
+  security: { icon: "shield", title: "No devices connected", description: "Reporters will appear here after they register using an invite code from Admin." },
 };

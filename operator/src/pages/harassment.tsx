@@ -7,7 +7,7 @@
  */
 import { useState, useEffect } from "react";
 import { Icon } from "../components/icon.js";
-import { useToast, useConfirm } from "../components/ux/index.js";
+import { useToast, useConfirm, EmptyState } from "../components/ux/index.js";
 
 const API = import.meta.env.VITE_API_URL || "/api/v1";
 const token = () => localStorage.getItem("trace_op_token") || "";
@@ -142,13 +142,11 @@ export function Harassment() {
       </div>
 
       {/* Empty state */}
-      {filtered.length === 0 && (
-        <div className="rounded-lg p-8 text-center" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
-          <div className="mb-2" style={{ color: "var(--text-muted)" }}><Icon name="alert-triangle" size={32} /></div>
-          <p className="text-sm" style={{ color: "var(--text-sec)" }}>
-            {numbers.length === 0 ? "No harassment reports yet. Reports from reporters appear here." : "No numbers match this filter."}
-          </p>
-        </div>
+      {filtered.length === 0 && numbers.length === 0 && (
+        <EmptyState icon="alert-triangle" title="No harassment reports" description="Reports appear here when field reporters submit harassing phone numbers through the app." />
+      )}
+      {filtered.length === 0 && numbers.length > 0 && (
+        <EmptyState icon="eye" title="No results" description="No numbers match this filter. Try a different filter or view all." />
       )}
 
       {/* List + Detail */}
