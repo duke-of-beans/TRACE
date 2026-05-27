@@ -7,7 +7,7 @@ import { Icon } from "../components/icon.js";
 import { SkeletonStats, HelpTip, ErrorBoundary } from "../components/ux/index.js";
 
 export function Dashboard() {
-  const [stats, setStats] = useState({ vehicles: 0, pending: 0, actors: 0 });
+  const [stats, setStats] = useState({ vehicles: 0, pending: 0, actors: 0, dispatches: 0, incidents: 0 });
   const [levels, setLevels] = useState<any[]>([]);
   const [types, setTypes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -42,7 +42,7 @@ export function Dashboard() {
           <div className="rounded-lg p-6" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
             <div className="flex items-center gap-2 mb-4">
               <Icon name="zap" size={16} className="text-accent" />
-              <h2 className="text-sm font-semibold uppercase tracking-wider" style={{ color: "var(--text-sec)" }}>Suspicion Ladder</h2>
+              <h2 className="text-sm font-semibold uppercase tracking-wider" style={{ color: "var(--text-sec)" }}>Concern Levels</h2>
               <HelpTip text="Graduated levels assigned to vehicles based on evidence." />
             </div>
             {levels.length === 0 ? (
