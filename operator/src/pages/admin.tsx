@@ -1594,6 +1594,17 @@ function ImportAdmin() {
             style={{ background: "#D97706", color: "#fff" }}>
             {clearing ? "Clearing..." : "Clear Demo Data"}
           </button>
+          <button onClick={async () => {
+            try {
+              const res = await fetch(`${API_BASE}/import/refresh-demo`, { method: "POST", headers: authHeaders() });
+              const data = await res.json();
+              toast.success(`Refreshed ${data.refreshed} sightings to recent timestamps`);
+            } catch { toast.error("Refresh failed"); }
+          }}
+            className="px-3 py-1.5 rounded text-xs font-medium ml-2"
+            style={{ background: "var(--accent)", color: "var(--accent-text)" }}>
+            Refresh Timestamps
+          </button>
         </div>
       )}
 

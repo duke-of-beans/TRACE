@@ -138,3 +138,35 @@ export async function clearDemoData(chapterId: string): Promise<ClearResult> {
 
   return result;
 }
+
+
+/**
+ * Refresh demo sighting timestamps to be recent.
+ * Distributes them across the last 72 hours so they appear
+ * in the Intel Map default 7d view.
+ */
+export async function refreshDemoTimestamps(chapterId: string): Promise<number> {
+  const demoSightings = await opsDb
+    .select({ id: sightings.id })
+    .from(sightings)
+    .where(
+      sql`${sightings.chapterId} = ${chapterId} AND (${sightings.plate} ILIKE 'FAKE%' OR ${sightings.plate} ILIKE 'TEST%' OR ${sightings.plate} ILIKE 'DEMO%')`
+    );
+
+  const now = Date.now();
+  let updated = 0;
+
+  for (let i = 0; i < demoSightings.length; i++) {
+    const hoursAgo = Math.floor(Math.random() * 72);
+    const minutesAgo = Math.floor(Math.random() * 60);
+    const ts = new Date(now - (hoursAgo * 3600000 + minutesAgo * 60000));
+
+    await opsDb.update(sightings).set({
+      observedAt: ts,
+      submittedAt: new Date(ts.getTime() + 60000),
+    }).where(eq(sightings.id, demoSightings[i].id));
+    updated++;
+  }
+
+  return updated;
+}

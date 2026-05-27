@@ -7,7 +7,7 @@
  */
 import { Hono } from "hono";
 import { preview, runImport } from "../../services/import/index.js";
-import { hasDemoData, clearDemoData } from "../../services/import/clear-demo.js";
+import { hasDemoData, clearDemoData, refreshDemoTimestamps } from "../../services/import/clear-demo.js";
 import { writeFileSync, mkdirSync, unlinkSync, existsSync } from "node:fs";
 import { join } from "node:path";
 import { randomBytes } from "node:crypto";
@@ -35,6 +35,15 @@ importRouter.post("/clear-demo", async (c) => {
 
   const result = await clearDemoData(chapterId);
   return c.json(result);
+});
+
+// POST /import/refresh-demo — update demo sighting timestamps to recent
+importRouter.post("/refresh-demo", async (c) => {
+  const chapterId = c.req.header("x-chapter-id");
+  if (!chapterId) return c.json({ error: "Missing chapter" }, 400);
+
+  const updated = await refreshDemoTimestamps(chapterId);
+  return c.json({ refreshed: updated });
 });
 
 // POST /import/preview — upload file, get mapping preview

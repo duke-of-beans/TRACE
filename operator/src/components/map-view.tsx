@@ -422,9 +422,10 @@ export function IntelMap({
       {children}
       {/* Tile mode toggle */}
       <div style={{
-        position: "absolute", bottom: 8, left: 8, zIndex: 1000,
-        display: "flex", gap: 2, background: "rgba(26,26,46,0.9)",
-        borderRadius: 6, padding: 2,
+        position: "absolute", bottom: 54, left: 8, zIndex: 1000,
+        display: "flex", gap: 2, background: "rgba(15,23,42,0.9)",
+        borderRadius: 6, padding: 2, backdropFilter: "blur(8px)",
+        border: "1px solid rgba(255,255,255,0.06)",
       }}>
         {(["light", "dark", "satellite"] as TileMode[]).map((m) => (
           <button key={m} onClick={() => switchTiles(m)}
