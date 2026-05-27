@@ -816,6 +816,21 @@ applyTheme(getTheme());
     <summary style="font-size:13px;font-weight:600;color:var(--text-sec);">Cost</summary>
     <p style="font-size:12px;color:var(--text-muted);margin-top:6px;line-height:1.7;">All three services (Neon, Vercel, GitHub) have free tiers. A chapter with up to 50 reporters and thousands of sightings stays within free limits. No credit card required. Each service warns before any charges.</p>
   </details>
+
+  <details style="margin-bottom:10px;border:1px solid var(--border);border-radius:6px;padding:10px 14px;">
+    <summary style="font-size:13px;font-weight:600;color:var(--text-sec);">What are integrations?</summary>
+    <p style="font-size:12px;color:var(--text-muted);margin-top:6px;line-height:1.7;">TRACE works without external services. Optional integrations add vehicle identification (CarAPI) and caller ID (Spokeo). Each requires an API key from the respective provider. Keys are encrypted and stored server-side. Configure them in the operator console under Admin, Integrations.</p>
+  </details>
+
+  <details style="margin-bottom:10px;border:1px solid var(--border);border-radius:6px;padding:10px 14px;">
+    <summary style="font-size:13px;font-weight:600;color:var(--text-sec);">Do I need API keys?</summary>
+    <p style="font-size:12px;color:var(--text-muted);margin-top:6px;line-height:1.7;">No. All core features work without API keys. Plate lookups check your chapter's database for free. Harassment reports work without caller ID. API keys add automatic vehicle enrichment and phone number identification for operators who want that capability.</p>
+  </details>
+
+  <details style="margin-bottom:10px;border:1px solid var(--border);border-radius:6px;padding:10px 14px;">
+    <summary style="font-size:13px;font-weight:600;color:var(--text-sec);">How do harassment reports work?</summary>
+    <p style="font-size:12px;color:var(--text-muted);margin-top:6px;line-height:1.7;">Reporters submit harassing phone numbers through the Alert tab. Numbers become entities that track how many reporters flagged them. Operators review reports in the Harassment section, tag numbers, and send responses that reporters see when they look up the same number. If Spokeo is configured, operators can identify callers directly.</p>
+  </details>
 </div>
 
 </div>

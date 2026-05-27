@@ -287,9 +287,10 @@ function SettingsPage({ authed, ttlHours, theme, onShowSecurity, onShowJoin, onS
           <div class="card" style={{ padding: "var(--sp-3)" }}>
             <div style={{ fontSize: "var(--text-xs)", color: "var(--text-sec)", lineHeight: "var(--leading-relaxed)" }}>
               <p style={{ marginBottom: "var(--sp-2)" }}><b style={{ color: "var(--text)" }}>Report tab.</b> Enter a plate, describe the activity, set location, submit. Takes 15 seconds.</p>
-              <p style={{ marginBottom: "var(--sp-2)" }}><b style={{ color: "var(--text)" }}>Check Plate.</b> Toggle to Check Plate mode. Type a plate to see if it is in the database.</p>
+              <p style={{ marginBottom: "var(--sp-2)" }}><b style={{ color: "var(--text)" }}>Check Plate.</b> Toggle to Check Plate mode. Type a plate and state to look it up.</p>
+              <p style={{ marginBottom: "var(--sp-2)" }}><b style={{ color: "var(--text)" }}>Alert tab.</b> Report harassing phone numbers. Your operator reviews them and may identify the caller.</p>
               <p style={{ marginBottom: "var(--sp-2)" }}><b style={{ color: "var(--text)" }}>Map tab.</b> Shows dispatch pins from your operator. Tap to respond or mark on scene.</p>
-              <p style={{ marginBottom: "0" }}><b style={{ color: "var(--text)" }}>History tab.</b> Your submitted sightings and their current status.</p>
+              <p style={{ marginBottom: "0" }}><b style={{ color: "var(--text)" }}>History tab.</b> Your submitted sightings and alerts with operator responses.</p>
             </div>
           </div>
         </div>

@@ -36,6 +36,11 @@ const STEPS = [
     detail: "Wipe destroys the encryption key first (making stored data unreadable), then clears all storage, caches, and service workers. Cannot be undone.",
   },
   {
+    icon: "radio", title: "Report harassment",
+    body: "Getting harassing calls or texts? Report the number to your operator. They can investigate and let you know what they find.",
+    detail: "The Alert tab lets you submit phone numbers and descriptions. Your operator reviews reports and may be able to identify the caller.",
+  },
+  {
     icon: "clock", title: "Automatic check-in",
     body: "The app contacts the server in the background. If it cannot connect for 3 days, it clears itself as a precaution.",
     detail: "Background sync contacts the server periodically. If contact fails for 72 hours, auto-wipe triggers. Grace period warnings appear before the deadline.",

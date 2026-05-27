@@ -13,8 +13,8 @@ const STEPS = [
   },
   {
     icon: "grid", title: "Your workspace",
-    body: "The sidebar navigates between Triage, Intel Map, Vehicles, Actors, Admin, and Security. Number keys 1-7 switch pages. Press ? for all shortcuts.",
-    detail: "Dashboard: stats at a glance. Triage: incoming sightings. Intel Map: geospatial view. Vehicles/Actors: case files. Admin: configuration. Security: device management.",
+    body: "The sidebar navigates between Triage, Intel Map, Dispatches, Harassment, Vehicles, Actors, Admin, and Security. Number keys 1-9 switch pages. Press ? for all shortcuts.",
+    detail: "Dashboard (1). Triage (2): incoming sightings. Intel Map (3): geospatial view. Dispatches (4). Harassment (5): phone reports. Vehicles (6)/Actors (7): case files. Admin (8). Security (9).",
   },
   {
     icon: "zap", title: "Triage incoming sightings",
@@ -35,6 +35,16 @@ const STEPS = [
     icon: "shield", title: "Remote device controls",
     body: "Lost phone? Compromised reporter? Suspend blocks access (reversible). Kill erases TRACE data from the device. Both take effect on next check-in.",
     detail: "Nuke All: wipe every device in the chapter (double-confirmed). Auto-wipe: devices that go offline for 72 hours erase themselves automatically.",
+  },
+  {
+    icon: "alert-triangle", title: "Harassment reports",
+    body: "Reporters can submit harassing phone numbers through the app. You review them, investigate, and respond.",
+    detail: "The Harassment page (key 5) shows reported numbers grouped as dossiers. Each number tracks how many reporters flagged it. Tags and responses are visible to reporters when they look up the same number.",
+  },
+  {
+    icon: "sliders", title: "Integrations",
+    body: "TRACE works without external services. Optional API keys for CarAPI (vehicle lookups) and Spokeo (caller ID) are configured in Admin.",
+    detail: "CarAPI resolves plates to make, model, year, and color. Spokeo identifies phone numbers. Keys are encrypted server-side. Each lookup is metered and visible in Admin.",
   },
   {
     icon: "info", title: "Report issues",
