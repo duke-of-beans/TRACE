@@ -93,7 +93,7 @@ export function App() {
             <div className="px-5 py-4 hidden lg:block" style={{ borderBottom: "1px solid var(--border)" }}>
               <div style={{ display: "inline-block", textAlign: "center" as const }}>
                 <span style={{ fontFamily: "'Exo 2', system-ui, sans-serif", fontWeight: 100, fontSize: 18, letterSpacing: "0.22em", color: "var(--accent)", display: "block" }}>TRACE</span>
-                <span style={{ display: "block", height: 1, background: "var(--accent)", opacity: 0.4, margin: "3px auto 0" }}></span>
+                <span style={{ display: "block", height: 1, background: "var(--accent)", opacity: 0.4, margin: "4px auto 0", width: 80 }}></span>
               </div>
               <div className="text-[9px] mt-1 tracking-widest uppercase" style={{ color: "var(--text-muted)" }}>Operator Console</div>
             </div>
