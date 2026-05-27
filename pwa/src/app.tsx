@@ -8,6 +8,7 @@ import { useState, useEffect } from "preact/hooks";
 import { Submit } from "./pages/submit.js";
 import { History } from "./pages/history.js";
 import { ReporterMap } from "./pages/reporter-map.js";
+import { Alert } from "./pages/alert.js";
 import { Onboarding } from "./components/onboarding.js";
 import { PinSetup } from "./components/pin-setup.js";
 import { PinLock } from "./components/pin-lock.js";
@@ -23,7 +24,7 @@ import { startDeadManSwitch, startHeartbeat, hoursUntilExpiry, checkTTLStatus, g
 import { toggleTheme, getTheme, autoNightMode } from "../../shared/design/theme.js";
 import { registerPush } from "./lib/push.js";
 
-type Page = "submit" | "map" | "history" | "settings" | "security";
+type Page = "submit" | "alert" | "map" | "history" | "settings" | "security";
 
 function isBriefed(): boolean { return localStorage.getItem("trace_reporter_briefed") === "true"; }
 function markBriefed(): void { localStorage.setItem("trace_reporter_briefed", "true"); }
@@ -94,6 +95,7 @@ export function App() {
       <a href="#main-content" class="skip-nav">Skip to content</a>
       <main id="main-content" class="app-main">
         {page === "submit" && <SubmitGate authed={authed} onJoin={() => { setAuthed(true); }} />}
+        {page === "alert" && <Alert />}
         {page === "map" && <ReporterMap />}
         {page === "history" && <History />}
         {page === "security" && <SecurityInfo ttlHours={ttlHours} onBack={() => setPage("settings")} />}
@@ -116,6 +118,10 @@ export function App() {
           <Icon name="send" size={20} />
           <span>Report</span>
           {queueCount > 0 && <span class="badge">{queueCount}</span>}
+        </button>
+        <button class={`nav-btn ${page === "alert" ? "active" : ""}`} onClick={() => setPage("alert")} aria-label="Report harassment">
+          <Icon name="alert-triangle" size={20} />
+          <span>Alert</span>
         </button>
         <button class={`nav-btn ${page === "map" ? "active" : ""}`} onClick={() => setPage("map")} aria-label="Dispatch map">
           <Icon name="map-pin" size={20} />

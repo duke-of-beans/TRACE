@@ -155,6 +155,14 @@ export const api = {
   searchVehicles: (q: string) =>
     request<Array<Record<string, unknown>>>(`/vehicles/search?q=${encodeURIComponent(q)}`),
 
+  // Harassment reports
+  submitHarassmentReport: (data: Record<string, unknown>) =>
+    request("/harassment-reports", { method: "POST", body: JSON.stringify(data) }),
+  getMyHarassmentReports: () =>
+    request<Array<Record<string, unknown>>>("/harassment-reports/mine"),
+  phoneLookup: (phoneNumber: string) =>
+    request<Record<string, unknown>>("/harassment-reports/phone-lookup", { method: "POST", body: JSON.stringify({ phoneNumber }) }),
+
   // Queue
   queueSighting,
   getQueuedCount,
