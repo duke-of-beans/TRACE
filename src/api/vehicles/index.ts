@@ -1,7 +1,7 @@
 /**
  * TRACE API — Vehicles
  *
- * Vehicle dossier CRUD, type assignment, suspicion level management.
+ * Vehicle record CRUD, type assignment, concern level management.
  * Includes lightweight search for reporter-side plate lookup.
  */
 import { Hono } from "hono";
@@ -9,7 +9,7 @@ import { z } from "zod";
 import { opsDb } from "../../db/connection.js";
 import {
   vehicles, vehicleTypes, vehicleTypeAssignments,
-  vehicleConcernHistory, sightings,
+  vehicleConcernHistory, concernLevels, sightings,
 } from "../../db/schema/vault-a.js";
 import { eq, desc, ilike, or, and } from "drizzle-orm";
 
@@ -106,17 +106,39 @@ vehiclesRouter.delete("/:id", async (c) => {
   return c.json(retired);
 });
 
-// --- POST /vehicles/:id/promote — change suspicion level ---
+// --- POST /vehicles/:id/promote — change concern level ---
 vehiclesRouter.post("/:id/promote", async (c) => {
   const vehicleId = c.req.param("id");
   const { toLevelId, reason } = await c.req.json();
   const changedBy = c.req.header("x-reporter-id") || "";
 
-  // TODO: validate predicates, check authorization
-  // TODO: log to vehicleConcernHistory
-  // TODO: update vehicles.suspicionLevelId
+  if (!toLevelId || !reason) {
+    return c.json({ error: "toLevelId and reason required" }, 400);
+  }
 
-  return c.json({ status: "promoted", vehicleId, toLevelId }, 200);
+  // Get current vehicle to record the fromLevelId
+  const [vehicle] = await opsDb.select().from(vehicles).where(eq(vehicles.id, vehicleId)).limit(1);
+  if (!vehicle) return c.json({ error: "Vehicle not found" }, 404);
+
+  // Verify target level exists
+  const [targetLevel] = await opsDb.select().from(concernLevels).where(eq(concernLevels.id, toLevelId)).limit(1);
+  if (!targetLevel) return c.json({ error: "Target level not found" }, 404);
+
+  // Update the vehicle's concern level
+  await opsDb.update(vehicles).set({ suspicionLevelId: toLevelId }).where(eq(vehicles.id, vehicleId));
+
+  // Log to concern history
+  await opsDb.insert(vehicleConcernHistory).values({
+    vehicleId,
+    fromLevelId: vehicle.suspicionLevelId || null,
+    toLevelId,
+    reason,
+    changedBy: changedBy || "operator",
+    changedByRole: "operator",
+    predicatesMet: [],
+  });
+
+  return c.json({ status: "promoted", vehicleId, toLevelId, from: vehicle.suspicionLevelId }, 200);
 });
 
 // --- GET /vehicles/search-plates — auto-suggest as reporter types ---

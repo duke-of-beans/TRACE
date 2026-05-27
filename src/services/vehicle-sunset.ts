@@ -101,10 +101,16 @@ export async function reactivateVehicle(
     })
     .where(eq(vehicles.id, vehicleId));
 
+  // Look up the lowest-rank concern level for this vehicle's chapter
+  const [vehicle] = await opsDb.select({ chapterId: vehicles.chapterId }).from(vehicles).where(eq(vehicles.id, vehicleId)).limit(1);
+  const [lowestLevel] = vehicle ? await opsDb.select({ id: concernLevels.id }).from(concernLevels)
+    .where(eq(concernLevels.chapterId, vehicle.chapterId))
+    .orderBy(concernLevels.rank).limit(1) : [null];
+
   await opsDb.insert(vehicleConcernHistory).values({
     vehicleId,
     fromLevelId: null,
-    toLevelId: vehicleId, // placeholder - should resolve to "Noticed" level
+    toLevelId: lowestLevel?.id || vehicleId, // fallback to vehicleId only if no levels configured
     reason: "Reactivated by operator",
     changedBy: operatorId,
     changedByRole: "operator",
