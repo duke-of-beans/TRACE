@@ -357,6 +357,34 @@ Same data, different entry point. Operator can also add evidence.
 - Public URL: standalone, no auth required
 - All three write to the same `incidents` table
 
+**Workflow: Conflicting Info Correlation (from client 2026-05-27)**
+Multiple reporters document the same event with different observations.
+Reporter A saw 3 vehicles. Reporter B saw those 3 plus 2 additional prior.
+The operator needs to see WHERE reports agree and WHERE they diverge.
+System should:
+- Auto-detect overlapping reports (same time/location/event)
+- Surface discrepancies: "Reporter A: 3 vehicles. Reporter B: 5 vehicles."
+- Highlight unique observations each reporter adds
+- Let operator merge/reconcile into the canonical event record
+- Build the MOST COMPLETE picture from all partial observations
+This is intelligence fusion -- not just collecting reports, but correlating them.
+
+**Workflow: Closed Event Dossier / Final Report (from client 2026-05-27)**
+When an event is closed, generate a formal court-ready document:
+- Complete timeline of all incidents, evidence, observations
+- All actors involved with identifiers and descriptions
+- All vehicles with plates, descriptions, movement patterns
+- All evidence (photos, video, audio, documents) organized chronologically
+- Reporter observations correlated (agreements + discrepancies noted)
+- Chain of custody for evidence items
+- Formatted as a LEGAL DOSSIER (inspired by tranche confirmation style:
+  structured, numbered sections, formal language, executive summary)
+- Sharing options: internal only | law enforcement | media | public
+- Before closing: operator can flag "needs more evidence" and request
+  specific items from specific reporters
+- PDF export: professional formatting, numbered pages, TOC, evidence index
+- This is the deliverable that goes to court, to media, to oversight
+
 **Migration path: sightings → incidents**
 Sightings remain as-is for vehicle tracking (the core loop).
 Incidents are a PARALLEL system for documenting harm.
