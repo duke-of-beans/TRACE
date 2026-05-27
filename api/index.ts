@@ -16,6 +16,11 @@ import { adminRouter } from "../src/api/admin/index.js";
 import { geoRouter } from "../src/api/geo/index.js";
 import { dispatchRouter } from "../src/api/dispatch/index.js";
 import { setupRouter } from "../src/api/setup/index.js";
+import { tagRouter } from "../src/api/tags/index.js";
+import { integrationsRouter } from "../src/api/integrations/index.js";
+import { importRouter } from "../src/api/import/index.js";
+import { platesRouter } from "../src/api/plates/index.js";
+import { harassmentRouter } from "../src/api/harassment/index.js";
 import { authMiddleware, operatorOnly } from "../src/middleware/auth.js";
 import { auditMiddleware } from "../src/middleware/audit.js";
 
@@ -41,6 +46,9 @@ app.route("/vehicles", vehiclesRouter);
 app.route("/actors", actorsRouter);
 app.route("/geo", geoRouter);
 app.route("/dispatch", dispatchRouter);
+app.route("/tag-definitions", tagRouter);
+app.route("/plates", platesRouter);
+app.route("/harassment-reports", harassmentRouter);
 
 // Feedback
 app.post("/feedback", async (c) => {
@@ -62,9 +70,13 @@ app.post("/feedback", async (c) => {
   return c.json(item, 201);
 });
 
-// Admin
+// Admin + operator-only routes
 app.use("/admin/*", operatorOnly);
+app.use("/integrations/*", operatorOnly);
+app.use("/import/*", operatorOnly);
 app.route("/admin", adminRouter);
+app.route("/integrations", integrationsRouter);
+app.route("/import", importRouter);
 
 export const GET = handle(app);
 export const POST = handle(app);

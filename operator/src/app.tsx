@@ -74,7 +74,7 @@ export function App() {
         <>
         <div className="flex h-screen" style={{ background: "var(--bg)", color: "var(--text)" }}>
           {/* Mobile top bar */}
-          <div className="lg:hidden fixed top-0 left-0 right-0 z-40 flex items-center justify-between px-4 py-2" style={{ background: "var(--surface)", borderBottom: "1px solid var(--border)" }}>
+          <div className="lg:hidden fixed top-0 left-0 right-0 flex items-center justify-between px-4 py-2" style={{ background: "var(--surface)", borderBottom: "1px solid var(--border)", zIndex: 10070 }}>
             <button onClick={() => setSidebarOpen(!sidebarOpen)} className="p-2 rounded" aria-label="Toggle navigation">
               <Icon name="grid" size={20} />
             </button>
@@ -84,15 +84,15 @@ export function App() {
 
           {/* Sidebar overlay (mobile) */}
           {sidebarOpen && (
-            <div className="lg:hidden fixed inset-0 z-30" style={{ background: "rgba(0,0,0,0.5)" }} onClick={() => setSidebarOpen(false)} />
+            <div className="lg:hidden fixed inset-0" style={{ background: "rgba(0,0,0,0.5)", zIndex: 10050 }} onClick={() => setSidebarOpen(false)} />
           )}
 
           {/* Sidebar */}
           <aside className={`
-            fixed lg:static z-40 h-full flex flex-col transition-transform duration-200
+            fixed lg:static h-full flex flex-col transition-transform duration-200
             w-56 lg:translate-x-0
             ${sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
-          `} style={{ background: "var(--surface)", borderRight: "1px solid var(--border)" }}>
+          `} style={{ background: "var(--surface)", borderRight: "1px solid var(--border)", zIndex: 10060 }}>
             <div className="px-5 py-4 hidden lg:block" style={{ borderBottom: "1px solid var(--border)" }}>
               <div style={{ display: "inline-block", textAlign: "center" as const }}>
                 <span style={{ fontFamily: "'Exo 2', system-ui, sans-serif", fontWeight: 100, fontSize: 18, letterSpacing: "0.22em", color: "var(--accent)", display: "block" }}>TRACE</span>
