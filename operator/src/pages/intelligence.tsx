@@ -226,26 +226,28 @@ export function Intelligence() {
         onMarkerClick={(marker) => { setSelectedMarker(marker); setSelectedPin(null); setPlacingPin(null); }}
         height="100%"
       >
-        {/* ── FLOATING FILTER BAR (top-left) ── */}
+        {/* ── FLOATING FILTER BAR (responsive) ── */}
         <div style={{
-          position: "absolute", top: 12, left: 50, zIndex: 1000,
+          position: "absolute", top: 12, left: 50, right: 12, zIndex: 1000,
           background: "rgba(15,23,42,0.85)", backdropFilter: "blur(8px)",
           border: "1px solid var(--border)", borderRadius: 10,
-          padding: "8px 12px", display: "flex", alignItems: "center", gap: 8,
+          padding: "6px 10px", display: "flex", alignItems: "center", gap: 6,
+          flexWrap: "wrap", maxWidth: "calc(100% - 62px)",
         }}>
           {presets.map((p) => (
             <button key={p.key} onClick={() => { setRangePreset(p.key); }}
               style={{
-                padding: "4px 10px", borderRadius: 6, fontSize: 11, fontWeight: 600, cursor: "pointer",
+                padding: "4px 8px", borderRadius: 6, fontSize: 11, fontWeight: 600, cursor: "pointer",
                 background: rangePreset === p.key ? "var(--accent)" : "transparent",
                 color: rangePreset === p.key ? "var(--accent-text)" : "var(--text-muted)",
                 border: rangePreset === p.key ? "1px solid var(--accent)" : "1px solid transparent",
+                whiteSpace: "nowrap",
               }}>
               {p.label}
             </button>
           ))}
           <select value={vehicleFilter} onChange={(e) => setVehicleFilter(e.target.value)}
-            style={{ background: "transparent", border: "1px solid var(--border)", borderRadius: 6, padding: "4px 8px", fontSize: 11, color: "var(--text-sec)", minWidth: 120, colorScheme: "dark" }}>
+            style={{ background: "transparent", border: "1px solid var(--border)", borderRadius: 6, padding: "4px 6px", fontSize: 11, color: "var(--text-sec)", minWidth: 90, maxWidth: 140, colorScheme: "dark" }}>
             <option value="">All vehicles</option>
             {vehicles.map((v) => (
               <option key={v.id} value={v.id}>{v.plate || v.id.slice(0, 8)}</option>
