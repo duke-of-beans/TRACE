@@ -40,36 +40,124 @@ EDGE CASES:
 - Reporter submits a plate with typos → operator corrects in triage, re-runs enrichment.
 
 
-### 2.2 Reporter: Report Harassment (NEW)
+### 2.2 Reporter: Report Harassment (NEW — mirrors plate lookup workflow)
 
 WHY: Reporters get harassing calls, texts, and voicemails from people who don't want
 to be watched. Currently there is no way to log this evidence or get operator support.
+Multiple reporters often get calls from the SAME numbers. Patterns and consistency
+across reporters is intelligence. The system must track numbers as ENTITIES
+(like vehicles), not just individual reports.
 
-FLOW:
-1. Reporter taps new "Report" tab (bottom nav, icon: alert-triangle).
-   This tab is ALWAYS visible, even without API keys. It's a TRACE-native feature.
-2. Form appears:
-   - Phone number (formatted input with country code, validated)
+FLOW — TWO-TIER LOOKUP (mirrors plate workflow):
+1. Reporter taps "Alert" tab → enters a phone number.
+2. System checks TWO tiers, in order:
+
+TIER 1 — TRACE DATABASE (always, zero API cost):
+- Query ops.known_numbers for a matching phone number.
+- IF MATCH (number already reported by someone in the chapter):
+  → "⚠️ KNOWN NUMBER"
+  → Operator's tag (e.g., "Known Threat", "Under Investigation")
+  → How many reporters have reported this number ("Reported by 4 others")
+  → Last report date
+  → Operator's response/notes (if any)
+  → Reporter immediately knows: they're not alone, others are getting these calls too.
+  → If Spokeo was previously run: show cached identification (name only, truncated)
+
+- IF NO MATCH → proceed to Tier 2.
+
+TIER 2 — SPOKEO (if configured):
+- Query Spokeo Phone Search: phone → name, carrier, line type, spam risk.
+- IF FOUND:
+  → "Caller info: John Smith, Mobile, AT&T, Low spam risk" (TRUNCATED for reporter)
+  → Reporter sees: name + carrier + line type. NOT address. NOT social profiles.
+  → Full Spokeo result cached in ops.known_numbers for operator.
+
+- IF NOT FOUND:
+  → "No caller information found for this number."
+
+- IF SPOKEO NOT CONFIGURED:
+  → Tier 2 doesn't fire. Reporter only sees Tier 1 results.
+  → If Tier 1 is also no match: "Number not in chapter database."
+
+3. After lookup, reporter can FILE A REPORT with additional detail:
    - Type selector: Call | Text | Voicemail | In-Person | Other
    - When it happened (date/time picker, defaults to now)
    - What happened (free text, 500 char max)
    - Attach evidence (camera for screenshot, mic for audio, file picker)
-3. Reporter taps "Submit Report"
-4. Confirmation: "Report sent to your operator."
-5. Reporter can view their reports in History → Harassment tab.
-   Each report shows: phone number, type, date, status indicator.
-   - "Pending" (gray) — operator hasn't reviewed
-   - "Reviewed" (indigo) — operator tagged it
-   - Operator's tag label visible (e.g., "Known Threat")
-   - Operator's response text visible if provided
+   - "Submit Report" → linked to the phone number entity
+
+WHAT THE REPORTER SEES (truncated, liability-safe):
+- Tier 1 match: operator tag + report count + operator response + cached name (if available)
+- Tier 2 match: name + carrier + line type (one line, no address, no social, no raw JSON)
+- No match: "Not in chapter database" / "No caller info found"
+
+WHAT THE OPERATOR SEES (full data):
+- Everything the reporter sees, PLUS:
+- Full Spokeo response (address, age, social profiles, work history, spam risk detail)
+- ALL reports from ALL reporters for this number (cross-reporter timeline)
+- Lookup history (who looked it up, when)
+- Pattern analysis: frequency, time-of-day clustering, which reporters targeted
+
+### Phone Number as Entity (parallel to Vehicle dossier)
+
+Phone numbers become first-class entities in TRACE, like vehicles:
+
+ops.known_numbers table:
+- phone_number (unique per chapter, the entity key)
+- operator_tag (from tag_definitions where context='harassment')
+- operator_notes (free text, operator's analysis)
+- spokeo_result (full cached JSON, nullable)
+- spokeo_lookup_at (when last queried)
+- report_count (denormalized count of linked harassment_reports)
+- first_reported_at, last_reported_at
+- reporters_affected (count of distinct reporters who reported this number)
+- status: active | resolved | escalated | reported_to_le
+
+ops.harassment_reports links to known_numbers:
+- Each report references a known_number_id
+- Multiple reports can reference the same number
+- Cross-reporter: "555-0123 reported by SCOUT-1, SCOUT-3, SCOUT-7"
+
+OPERATOR WORKFLOW:
+1. Operator opens Harassment section → sees numbers ranked by report count / recency
+2. Clicks a number → sees the NUMBER DOSSIER:
+   - Phone number (large, mono)
+   - Tag + status
+   - Spokeo identification (if available): full name, address, social profiles
+   - "Identify" button (if Spokeo configured and not yet looked up)
+   - Timeline: ALL reports from ALL reporters, chronological
+   - Each report: reporter callsign, type, date, description, evidence
+   - Pattern summary: "7 reports from 4 reporters over 2 weeks, mostly evenings"
+3. Operator tags the NUMBER (not individual reports):
+   - Tag applies to the number entity, visible to ALL reporters who look it up
+4. Operator can write a response visible to reporters:
+   - "This number has been identified and reported to authorities."
+
+CROSS-REPORTER INTELLIGENCE:
+- When Reporter A looks up a number that Reporter B already reported:
+  → "Reported by 1 other" (count only, not callsigns — protects reporter identity)
+- When the same number targets 5+ reporters:
+  → Operator sees automatic escalation flag: "⚠️ COORDINATED HARASSMENT"
+- Operator can see which reporters are targeted but reporters CANNOT see each other
+
+GRACEFUL DEGRADATION:
+| Scenario                        | Tier 1 (TRACE DB) | Tier 2 (Spokeo) | Reporter sees              |
+|---------------------------------|-------------------|-----------------|----------------------------|
+| No API, number unknown          | No match          | Skipped         | "Not in chapter database"  |
+| No API, number known            | Match             | Skipped         | Tag + count + response     |
+| API key, number unknown+found   | No match          | Match           | Name + carrier + type      |
+| API key, number unknown+miss    | No match          | No match        | "No caller info found"     |
+| API key, number known           | Match             | Cached/refresh  | Tag + count + name         |
 
 EDGE CASES:
-- Reporter enters an invalid phone number → inline validation, submit blocked.
-- Reporter uploads a 50MB voicemail → max file size 10MB, compress or reject with message.
-- Reporter submits the same number 5 times → each is a separate incident. Correct behavior.
-  Operator sees the pattern (5 reports about the same number = escalation signal).
-- Reporter has no harassment to report → tab exists but is inert. No pressure to use it.
-- Audio recording: use the same camera-stream approach as photos (no file saved to device).
+- Reporter enters invalid phone number → inline validation, submit blocked.
+- Reporter uploads a 50MB voicemail → max 10MB, compress or reject with message.
+- Reporter submits same number 5 times → 5 reports, all linked to same number entity.
+  Operator sees the pattern. Report count increments.
+- Reporter has no harassment to report → tab exists but is inert. No pressure.
+- Audio recording: same camera-stream approach as photos (no file saved to device).
+- Number reported by Reporter A, then Reporter B looks it up →
+  B sees "Known Number" + tag + "Reported by 1 other." B can add their own report.
 
 
 ### 2.3 Reporter: View Feedback on Submissions (NEW)
@@ -128,52 +216,46 @@ EDGE CASES:
   not global. Each sighting gets its own tag/response.
 
 
-### 2.5 Operator: Investigate Harassment Reports (NEW)
+### 2.5 Operator: Investigate Harassment Reports (NEW — number dossier model)
 
 FLOW:
-1. Operator opens "Harassment" in the sidebar (new section, between Dispatches and Vehicles).
-   Icon: alert-triangle. Badge shows unreviewed count.
-2. List view: all harassment reports from all reporters.
-   Each row: reporter callsign, phone number, type, date, status.
-   Sortable by date (default: newest first).
-   Filterable by status (All | Pending | Reviewed).
-3. Operator clicks a report → detail panel (right side or overlay):
-   - Reporter callsign (not real name)
-   - Phone number (full, not masked — operator needs it)
-   - Type, date, description
-   - Attached evidence (playable audio, viewable screenshots)
-   - If Spokeo configured: "Identify" button
-4. Operator clicks "Identify":
-   - Spokeo Phone Search fires
-   - Results appear inline in the detail panel:
-     Name, age, address, carrier, line type, spam risk level,
-     social profiles (linked), work history
-   - Results are cached in the database (no re-query on revisit)
-5. Operator selects a tag from dropdown:
-   - Known Threat, Spam / Robocall, Under Investigation,
-     Cleared - No Threat, Reported to Authorities, Unknown Caller
-6. Operator writes optional response (280 chars):
-   "We've identified this number. It's associated with [X]. We're handling it."
-7. Operator clicks "Save" → report status changes to "Reviewed."
-8. Reporter sees the tag and response in their History → Harassment tab.
+1. Operator opens "Harassment" in the sidebar.
+   Icon: alert-triangle. Badge shows count of numbers with unreviewed reports.
+2. LIST VIEW: shows NUMBERS (entities), not individual reports.
+   Each row: phone number, tag, report count, reporters affected, last report date.
+   Sorted by: most recent report (default), or report count, or reporters affected.
+   Filterable by status (All | Active | Resolved | Escalated | Reported to LE).
+3. Operator clicks a number → NUMBER DOSSIER (right panel or full page):
+   - Phone number (large, mono font)
+   - Status badge + operator tag
+   - If Spokeo configured and not yet looked up: "Identify Caller" button
+   - If Spokeo previously run: full results displayed (name, address, social, carrier)
+   - Operator notes field (free text, internal)
+   - Operator response field (280 chars, visible to reporters)
+   - TIMELINE: all reports from all reporters, chronological, newest first.
+     Each report: reporter callsign, type icon, date, description, evidence.
+   - PATTERN SUMMARY (auto-generated):
+     "7 reports from 4 reporters over 2 weeks. Peak: evenings (6-9pm)."
+   - If 5+ reporters affected: "⚠️ COORDINATED HARASSMENT" auto-flag.
+4. Operator tags the NUMBER entity (not individual reports).
+   Tag is visible to all reporters who look up this number.
+5. Operator writes response visible to reporters.
+6. Operator sets status: active → resolved / escalated / reported_to_le.
 
-WITHOUT API: No "Identify" button. Operator can still:
-- View the report and evidence
-- Copy the number and look it up externally
-- Tag it manually
-- Respond to the reporter
-The feature is fully functional without Spokeo. Spokeo adds convenience, not capability.
+WITHOUT API: No "Identify Caller" button. Operator sees reports, tags manually,
+responds to reporters. Full functionality minus the Spokeo lookup.
+
+QUICK LOOKUP: Header has a phone number input field (if Spokeo configured).
+Operator can look up any number without a report existing.
+Creates a known_numbers entity even without a linked report.
 
 EDGE CASES:
-- Spokeo returns zero results → "No records found for this number." Operator tags manually.
-- Spokeo returns multiple people → show all results. Operator determines which is relevant.
-- API key invalid → "Lookup failed. Check your Spokeo API key in Admin → Integrations."
-- Operator sees the same number in multiple reports → group by number? Or just show the
-  pattern in the list (number appears 5 times = obvious cluster). V1: no grouping.
-  The repeat pattern is visible in the sorted list.
-- Operator wants to look up a number NOT from a report → standalone lookup in the
-  Harassment section header: "Quick Lookup" field. If Spokeo configured, fire search.
-  If not, field doesn't appear.
+- Spokeo returns zero results → "No records found." Operator tags manually.
+- Spokeo returns multiple people → show all. Operator picks the relevant one.
+- API key invalid → "Lookup failed. Check your Spokeo key in Admin → Integrations."
+- Operator wants to merge two number entries (same caller, different numbers) →
+  V1: not supported. V2: merge tool.
+- Number has 50+ reports → paginate timeline. Show summary stats at top.
 
 
 ### 2.6 Operator: Vehicle Enrichment and Tagging (enhanced)
@@ -247,12 +329,40 @@ EDGE CASES:
 
 ## 3. DATABASE SCHEMA ADDITIONS
 
-### 3.1 ops.harassment_reports
+### 3.1 ops.known_numbers (phone number entities — parallel to vehicles)
+
+```sql
+CREATE TABLE IF NOT EXISTS ops.known_numbers (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  chapter_id UUID NOT NULL REFERENCES ops.chapters(id),
+  phone_number VARCHAR(20) NOT NULL,
+  operator_tag VARCHAR(60),
+  operator_notes TEXT,
+  operator_response VARCHAR(280),       -- visible to reporters
+  spokeo_result JSONB,                  -- full cached API response
+  spokeo_lookup_at TIMESTAMPTZ,
+  report_count INTEGER NOT NULL DEFAULT 0,
+  reporters_affected INTEGER NOT NULL DEFAULT 0,
+  first_reported_at TIMESTAMPTZ,
+  last_reported_at TIMESTAMPTZ,
+  status VARCHAR(20) NOT NULL DEFAULT 'active'
+    CHECK (status IN ('active','resolved','escalated','reported_to_le')),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE(chapter_id, phone_number)
+);
+
+CREATE INDEX IF NOT EXISTS idx_known_numbers_chapter ON ops.known_numbers(chapter_id);
+CREATE INDEX IF NOT EXISTS idx_known_numbers_phone ON ops.known_numbers(phone_number);
+```
+
+### 3.2 ops.harassment_reports (individual incidents — linked to known_numbers)
 
 ```sql
 CREATE TABLE IF NOT EXISTS ops.harassment_reports (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   chapter_id UUID NOT NULL REFERENCES ops.chapters(id),
+  known_number_id UUID REFERENCES ops.known_numbers(id),  -- links to number entity
   reporter_id UUID NOT NULL,
   phone_number VARCHAR(20) NOT NULL,
   incident_type VARCHAR(20) NOT NULL CHECK (incident_type IN ('call','text','voicemail','in_person','other')),
@@ -692,13 +802,15 @@ TIER 1 — TRACE DATABASE (always, zero API cost):
 - Query ops.vehicles for a matching plate.
 - IF MATCH:
   → "⚠️ TRACKED VEHICLE"
-  → Vehicle photo (from dossier, if uploaded)
+  → Vehicle photo(s) (most recent confirmed photo from dossier, if uploaded)
   → Make/model/year/color (from dossier or prior enrichment)
   → Vehicle tag (e.g., "Active Threat", "Monitoring")
   → Suspicion level badge
   → Reporter immediately knows: this plate is known to the chapter.
   → They can compare what they see in front of them vs what the dossier says.
   → Mismatch = critical intelligence. Same = confirmation.
+  → PHOTO IS KEY: reporter sees the dossier photo and compares to the car
+    in front of them. Different car on the same plate = stolen/swapped plate.
 
 - IF NO MATCH → proceed to Tier 2.
 
@@ -720,7 +832,9 @@ TIER 2 — CarAPI (if configured, costs ~$0.30/lookup):
   → If Tier 1 is also no match: "Plate not in chapter database."
 
 WHAT THE REPORTER SEES (truncated, no raw API data):
-- Tier 1 match: vehicle photo + make/model + tag + suspicion level
+- Tier 1 match: vehicle photo(s) + make/model + tag + suspicion level
+  Photos: most recent confirmed photo(s) from the vehicle dossier, displayed as
+  thumbnails. Reporter can tap to enlarge. If no photos uploaded, show make/model text only.
 - Tier 2 match: make/model/year/color (one line, no VIN, no raw JSON)
 - No match: "Not in database" / "No vehicle record found"
 
