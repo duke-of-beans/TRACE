@@ -10,6 +10,7 @@ import { opsDb } from "../../db/connection.js";
 import {
   vehicles, vehicleTypes, vehicleTypeAssignments,
   vehicleConcernHistory, concernLevels, sightings,
+  actorVehicles, actors,
 } from "../../db/schema/vault-a.js";
 import { eq, desc, ilike, or, and } from "drizzle-orm";
 
@@ -52,7 +53,7 @@ vehiclesRouter.get("/search", async (c) => {
   return c.json(results);
 });
 
-// --- POST /vehicles — create vehicle dossier ---
+// --- POST /vehicles — create vehicle record ---
 vehiclesRouter.post("/", async (c) => {
   const body = await c.req.json();
   const chapterId = c.req.header("x-chapter-id") || "";
@@ -65,19 +66,29 @@ vehiclesRouter.post("/", async (c) => {
   return c.json(vehicle, 201);
 });
 
-// --- GET /vehicles/:id — full dossier ---
+// --- GET /vehicles/:id — full record ---
 vehiclesRouter.get("/:id", async (c) => {
   const id = c.req.param("id");
-  const [vehicle] = await opsDb
-    .select()
-    .from(vehicles)
-    .where(eq(vehicles.id, id))
-    .limit(1);
-
+  const [vehicle] = await opsDb.select().from(vehicles).where(eq(vehicles.id, id)).limit(1);
   if (!vehicle) return c.json({ error: "Not found" }, 404);
 
-  // TODO: join vehicle types, suspicion history, recent sightings, linked actors
-  return c.json(vehicle);
+  // Enrich with types, concern history, recent sightings, linked actors
+  const typeAssignments = await opsDb.select({ typeId: vehicleTypeAssignments.vehicleTypeId, label: vehicleTypes.label, color: vehicleTypes.color })
+    .from(vehicleTypeAssignments).innerJoin(vehicleTypes, eq(vehicleTypeAssignments.vehicleTypeId, vehicleTypes.id))
+    .where(eq(vehicleTypeAssignments.vehicleId, id));
+  const history = await opsDb.select({ toLevelId: vehicleConcernHistory.toLevelId, fromLevelId: vehicleConcernHistory.fromLevelId,
+    reason: vehicleConcernHistory.reason, createdAt: vehicleConcernHistory.createdAt })
+    .from(vehicleConcernHistory).where(eq(vehicleConcernHistory.vehicleId, id))
+    .orderBy(desc(vehicleConcernHistory.createdAt)).limit(10);
+  const recentSightings = await opsDb.select({ id: sightings.id, observedAt: sightings.observedAt, lat: sightings.lat, lng: sightings.lng,
+    activityDescription: sightings.activityDescription, locationDescription: sightings.locationDescription })
+    .from(sightings).where(eq(sightings.vehicleId, id))
+    .orderBy(desc(sightings.observedAt)).limit(20);
+  const linkedActors = await opsDb.select({ actorId: actorVehicles.actorId, alias: actors.alias })
+    .from(actorVehicles).innerJoin(actors, eq(actorVehicles.actorId, actors.id))
+    .where(eq(actorVehicles.vehicleId, id));
+
+  return c.json({ ...vehicle, typeAssignments, concernHistory: history, recentSightings, linkedActors });
 });
 
 // --- PUT /vehicles/:id — update vehicle ---

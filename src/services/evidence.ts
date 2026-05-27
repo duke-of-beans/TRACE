@@ -83,7 +83,7 @@ export async function storeEvidence(opts: {
   const storagePath = join(EVIDENCE_PATH, chapterId, dateDir, contentHash);
   await mkdir(dirname(storagePath), { recursive: true });
 
-  // TODO: encrypt data with EVIDENCE_ENCRYPTION_KEY before writing
+  // Encrypt if EVIDENCE_ENCRYPTION_KEY is configured (AES-256-GCM)
   const shouldEncrypt = !!process.env.EVIDENCE_ENCRYPTION_KEY;
   const writeData = shouldEncrypt ? encryptEvidence(data) : data;
   await writeFile(storagePath, writeData);

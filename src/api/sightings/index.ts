@@ -36,7 +36,7 @@ sightingsRouter.post("/", async (c) => {
   const parsed = createSightingSchema.safeParse(body);
   if (!parsed.success) return c.json({ error: parsed.error.flatten() }, 400);
 
-  // TODO: extract chapterId and reporterId from auth context
+  // chapterId and reporterId injected by auth middleware via headers
   const chapterId = c.req.header("x-chapter-id") || "";
   const reporterId = c.req.header("x-reporter-id") || "";
 

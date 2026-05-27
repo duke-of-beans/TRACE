@@ -20,7 +20,6 @@ function getKey(): Buffer {
   if (!keyHex || keyHex.length < 64) {
     throw new Error(
       "VAULT_B_ENCRYPTION_KEY must be set (64 hex chars = 256 bits). " +
-      "Generate with: node -e \"console.log(require('crypto').randomBytes(32).toString('hex'))\""
     );
   }
   return Buffer.from(keyHex, "hex");

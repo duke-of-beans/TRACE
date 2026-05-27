@@ -87,7 +87,8 @@ export async function drainQueue(): Promise<{ sent: number; failed: number }> {
         method: "POST",
         body: JSON.stringify(item.payload),
       });
-      // TODO: upload photos to evidence endpoint
+      // Photos: currently submitted inline with sighting. Offline photo upload
+      // would need IndexedDB blob storage + multipart upload on reconnect.
       await del(key);
       sent++;
     } catch {

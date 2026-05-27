@@ -1,7 +1,7 @@
 /**
  * TRACE Operator — Harassment Reports
  *
- * Number dossier model: list view shows phone number entities,
+ * Number record model: list view shows phone number entities,
  * detail view shows all reports from all reporters for that number.
  * Cross-reporter correlation is the intelligence value.
  */

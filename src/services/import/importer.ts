@@ -2,7 +2,7 @@
  * TRACE — Database Importer
  *
  * Takes normalized, validated import rows and writes them
- * to the TRACE database. Creates vehicle dossiers from unique
+ * to the TRACE database. Creates vehicle records from unique
  * plate+make+model combos, sighting records from each row,
  * and actor profiles from driver data.
  */

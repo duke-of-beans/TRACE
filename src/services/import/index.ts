@@ -25,22 +25,16 @@ export async function preview(
 ): Promise<ImportReport> {
   // 1. Ingest
   const raw = await ingest(filePath, sheet);
-  console.log(`Ingested ${raw.totalRows} rows from "${filePath}"`);
-  console.log(`Sheets: ${raw.sheetNames.join(", ")}`);
-  console.log(`Headers: ${raw.headers.join(", ")}`);
 
   // 2. Auto-map columns (or use overrides)
   const { mappings, unmapped, confidence } = mappingOverrides
     ? { mappings: mappingOverrides, unmapped: [], confidence: {} }
     : autoMap(raw.headers);
 
-  console.log("\nColumn mappings:");
   for (const m of mappings) {
     const conf = confidence[m.sourceColumn];
-    console.log(`  "${m.sourceColumn}" -> ${m.targetField}${conf ? ` (${(conf * 100).toFixed(0)}%)` : ""}`);
   }
   if (unmapped.length > 0) {
-    console.log(`\nUnmapped: ${unmapped.join(", ")}`);
   }
 
   // 3. Normalize each row
@@ -88,11 +82,6 @@ export async function preview(
     sample: rows.slice(0, 5),
   };
 
-  console.log(`\n--- Import Preview ---`);
-  console.log(`Total: ${report.totalRows}`);
-  console.log(`Valid: ${report.validRows}`);
-  console.log(`Errors: ${report.errorRows}`);
-  console.log(`Duplicates: ${report.duplicates}`);
 
   return report;
 }
@@ -110,12 +99,10 @@ export async function runImport(
   const report = await preview(filePath, sheet, mappingOverrides);
 
   if (!chapterId || !operatorId) {
-    console.log("\nchapterId and operatorId required for database import.");
     return report;
   }
 
   if (report.errorRows > 0) {
-    console.log(`\n${report.errorRows} rows have errors. Importing valid rows only.`);
   }
 
   // get valid rows from the full pipeline run
@@ -138,14 +125,7 @@ export async function runImport(
   rows = detectDuplicates(rows);
 
   const result = await importRows(rows, chapterId, operatorId);
-  console.log(`\n--- Import Complete ---`);
-  console.log(`Vehicles created: ${result.vehiclesCreated}`);
-  console.log(`Sightings created: ${result.sightingsCreated}`);
-  console.log(`Actors created: ${result.actorsCreated}`);
-  console.log(`Skipped: ${result.skipped}`);
   if (result.errors.length > 0) {
-    console.log(`Errors: ${result.errors.length}`);
-    result.errors.forEach((e) => console.log(`  ${e}`));
   }
 
   return report;
@@ -162,7 +142,6 @@ if (command && filePath) {
     case "map": {
       ingest(filePath, sheet).then((raw) => {
         const result = autoMap(raw.headers);
-        console.log(JSON.stringify(result, null, 2));
       }).catch(console.error);
       break;
     }
@@ -170,6 +149,5 @@ if (command && filePath) {
       runImport(filePath, sheet).catch(console.error);
       break;
     default:
-      console.log("Usage: npx tsx src/services/import/index.ts [preview|map|import] <file> [sheet]");
   }
 }

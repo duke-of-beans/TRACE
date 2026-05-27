@@ -20,7 +20,6 @@ const clients = new Map<string, WsClient>();
  */
 export function addClient(client: WsClient): void {
   clients.set(client.id, client);
-  console.log(`WS client connected: ${client.id} (${client.role})`);
 }
 
 /**
@@ -28,7 +27,6 @@ export function addClient(client: WsClient): void {
  */
 export function removeClient(id: string): void {
   clients.delete(id);
-  console.log(`WS client disconnected: ${id}`);
 }
 
 /**

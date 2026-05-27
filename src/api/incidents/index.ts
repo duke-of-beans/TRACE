@@ -186,7 +186,7 @@ incidentsRouter.patch("/:id", async (c) => {
 });
 
 // ============================================================
-// GENERATE OBSERVATION RECORD (structured dossier data)
+// GENERATE OBSERVATION RECORD (structured record data)
 // Returns complete incident data formatted for PDF export.
 // Includes disclaimers and provenance metadata per WHETSTONE audit.
 // ============================================================

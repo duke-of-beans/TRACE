@@ -3,7 +3,7 @@
  *
  * Generates legal-grade evidence bundles as PDF.
  * Includes: evidence index, timeline, map of sightings,
- * vehicle dossier, actor profiles, plate history,
+ * vehicle record, actor profiles, plate history,
  * and integrity verification page (hash manifest).
  *
  * Designed as if it will be submitted to a court.
@@ -37,7 +37,7 @@ export type CasePackageOpts = {
 async function gatherIntelligence(opts: CasePackageOpts) {
   const { chapterId, vehicleId, actorId } = opts;
 
-  // vehicle dossier
+  // vehicle record
   let vehicle = null;
   let vehicleSightings: any[] = [];
   let vehicleHistory: any[] = [];
@@ -79,7 +79,7 @@ async function gatherIntelligence(opts: CasePackageOpts) {
     }
   }
 
-  // actor dossier (if specified directly)
+  // actor record (if specified directly)
   let actor = null;
   if (actorId && !linkedActors.find((a) => a.id === actorId)) {
     [actor] = await opsDb.select().from(actors).where(eq(actors.id, actorId)).limit(1);
@@ -128,7 +128,7 @@ function renderCasePackageHTML(opts: CasePackageOpts, intel: Awaited<ReturnType<
   h(`<p class="meta">Generated: ${new Date().toISOString()} | Package ID: ${opts.generatedBy.slice(0, 8)}</p>`);
   h(`<hr>`);
 
-  // vehicle dossier
+  // vehicle record
   if (vehicle) {
     h(`<h2>VEHICLE DOSSIER</h2>`);
     h(`<table>`);
@@ -256,6 +256,5 @@ export async function generateCasePackage(opts: CasePackageOpts): Promise<{
     }
   }
 
-  console.log(`Case package generated: ${exportPath}`);
   return { packageId: pkg.id, exportPath, manifestHash };
 }

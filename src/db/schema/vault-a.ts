@@ -540,7 +540,7 @@ export const tagDefinitions = ops.table("tag_definitions", {
 
 // ============================================================
 // KNOWN NUMBERS (phone number entities — parallel to vehicles)
-// Each number is a first-class entity with its own dossier.
+// Each number is a first-class entity with its own record.
 // Multiple reporters can report the same number.
 // ============================================================
 export const knownNumbers = ops.table("known_numbers", {

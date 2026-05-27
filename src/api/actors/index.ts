@@ -1,12 +1,12 @@
 /**
- * TRACE API — Actors (criminal profiles)
+ * TRACE API — Actors
  *
- * Persistent across vehicle retirements.
+ * Person profiles persistent across vehicle retirements.
  * A driver outlives their vehicles.
  */
 import { Hono } from "hono";
 import { opsDb } from "../../db/connection.js";
-import { actors, actorVehicles, actorConcernLevels } from "../../db/schema/vault-a.js";
+import { actors, actorVehicles, actorConcernLevels, actorPhotos, actorIdentifiers, actorIdentifierTypes, vehicles } from "../../db/schema/vault-a.js";
 import { eq, desc, and } from "drizzle-orm";
 
 export const actorsRouter = new Hono();
@@ -39,8 +39,17 @@ actorsRouter.get("/:id", async (c) => {
   const id = c.req.param("id");
   const [actor] = await opsDb.select().from(actors).where(eq(actors.id, id)).limit(1);
   if (!actor) return c.json({ error: "Not found" }, 404);
-  // TODO: join vehicles, photos, risk level detail
-  return c.json(actor);
+
+  // Enrich with linked vehicles, photos, identifiers
+  const linkedVehicles = await opsDb.select({ vehicleId: actorVehicles.vehicleId, plate: vehicles.plate, make: vehicles.make, model: vehicles.model, color: vehicles.color })
+    .from(actorVehicles).innerJoin(vehicles, eq(actorVehicles.vehicleId, vehicles.id))
+    .where(eq(actorVehicles.actorId, id));
+  const photos = await opsDb.select().from(actorPhotos).where(eq(actorPhotos.actorId, id)).orderBy(desc(actorPhotos.createdAt));
+  const identifiers = await opsDb.select({ id: actorIdentifiers.id, value: actorIdentifiers.value, typeLabel: actorIdentifierTypes.label })
+    .from(actorIdentifiers).leftJoin(actorIdentifierTypes, eq(actorIdentifiers.typeId, actorIdentifierTypes.id))
+    .where(eq(actorIdentifiers.actorId, id));
+
+  return c.json({ ...actor, linkedVehicles, photos, identifiers });
 });
 
 // --- PUT /actors/:id ---
