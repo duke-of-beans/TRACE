@@ -18,6 +18,8 @@ import { adminRouter } from "./api/admin/index.js";
 import { geoRouter } from "./api/geo/index.js";
 import { dispatchRouter } from "./api/dispatch/index.js";
 import { setupRouter } from "./api/setup/index.js";
+import { tagRouter } from "./api/tags/index.js";
+import { integrationsRouter } from "./api/integrations/index.js";
 import { closeAll } from "./db/connection.js";
 import { authMiddleware, operatorOnly, adminOnly } from "./middleware/auth.js";
 import { auditMiddleware } from "./middleware/audit.js";
@@ -87,6 +89,7 @@ api.route("/vehicles", vehiclesRouter);
 api.route("/actors", actorsRouter);
 api.route("/geo", geoRouter);
 api.route("/dispatch", dispatchRouter);
+api.route("/tag-definitions", tagRouter);
 
 // Feedback — any authenticated user can submit
 api.post("/feedback", async (c) => {
@@ -110,7 +113,9 @@ api.post("/feedback", async (c) => {
 
 // Admin routes require operator or admin role
 api.use("/admin/*", operatorOnly);
+api.use("/integrations/*", operatorOnly);
 api.route("/admin", adminRouter);
+api.route("/integrations", integrationsRouter);
 
 app.route("/api/v1", api);
 

@@ -503,6 +503,112 @@ CREATE TABLE IF NOT EXISTS "ops"."feedback" (
 );
 
 -- ============================================================
+-- TAG DEFINITIONS, HARASSMENT, INTEGRATIONS, ENRICHMENTS
+-- ============================================================
+
+-- Sighting operator feedback columns
+ALTER TABLE "ops"."sightings" ADD COLUMN IF NOT EXISTS "operator_tag" varchar(60);
+ALTER TABLE "ops"."sightings" ADD COLUMN IF NOT EXISTS "operator_response" varchar(280);
+ALTER TABLE "ops"."sightings" ADD COLUMN IF NOT EXISTS "operator_responded_at" timestamp with time zone;
+
+-- Tag definitions (chapter-configurable, context-scoped)
+CREATE TABLE IF NOT EXISTS "ops"."tag_definitions" (
+  "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+  "chapter_id" uuid NOT NULL REFERENCES "ops"."chapters"("id"),
+  "context" varchar(20) NOT NULL CHECK ("context" IN ('sighting','vehicle','harassment')),
+  "label" varchar(60) NOT NULL,
+  "color" varchar(7) NOT NULL DEFAULT '#818CF8',
+  "sort_order" integer NOT NULL DEFAULT 0,
+  "created_at" timestamp with time zone DEFAULT now() NOT NULL,
+  UNIQUE("chapter_id", "context", "label")
+);
+
+-- Known numbers (phone number entities, parallel to vehicles)
+CREATE TABLE IF NOT EXISTS "ops"."known_numbers" (
+  "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+  "chapter_id" uuid NOT NULL REFERENCES "ops"."chapters"("id"),
+  "phone_number" varchar(20) NOT NULL,
+  "operator_tag" varchar(60),
+  "operator_notes" text,
+  "operator_response" varchar(280),
+  "spokeo_result" jsonb,
+  "spokeo_lookup_at" timestamp with time zone,
+  "report_count" integer NOT NULL DEFAULT 0,
+  "reporters_affected" integer NOT NULL DEFAULT 0,
+  "first_reported_at" timestamp with time zone,
+  "last_reported_at" timestamp with time zone,
+  "status" varchar(20) NOT NULL DEFAULT 'active'
+    CHECK ("status" IN ('active','resolved','escalated','reported_to_le')),
+  "created_at" timestamp with time zone DEFAULT now() NOT NULL,
+  "updated_at" timestamp with time zone DEFAULT now() NOT NULL,
+  UNIQUE("chapter_id", "phone_number")
+);
+CREATE INDEX IF NOT EXISTS "idx_known_numbers_chapter" ON "ops"."known_numbers"("chapter_id");
+CREATE INDEX IF NOT EXISTS "idx_known_numbers_phone" ON "ops"."known_numbers"("phone_number");
+
+-- Harassment reports (individual incidents linked to known_numbers)
+CREATE TABLE IF NOT EXISTS "ops"."harassment_reports" (
+  "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+  "chapter_id" uuid NOT NULL REFERENCES "ops"."chapters"("id"),
+  "known_number_id" uuid REFERENCES "ops"."known_numbers"("id"),
+  "reporter_id" uuid NOT NULL,
+  "phone_number" varchar(20) NOT NULL,
+  "incident_type" varchar(20) NOT NULL
+    CHECK ("incident_type" IN ('call','text','voicemail','in_person','other')),
+  "description" text,
+  "occurred_at" timestamp with time zone NOT NULL DEFAULT now(),
+  "evidence_refs" jsonb DEFAULT '[]'::jsonb,
+  "operator_tag" varchar(60),
+  "operator_response" varchar(280),
+  "operator_responded_at" timestamp with time zone,
+  "lookup_result" jsonb,
+  "lookup_at" timestamp with time zone,
+  "status" varchar(20) NOT NULL DEFAULT 'pending'
+    CHECK ("status" IN ('pending','reviewed','escalated')),
+  "created_at" timestamp with time zone DEFAULT now() NOT NULL,
+  "updated_at" timestamp with time zone DEFAULT now() NOT NULL
+);
+CREATE INDEX IF NOT EXISTS "idx_harassment_chapter" ON "ops"."harassment_reports"("chapter_id");
+CREATE INDEX IF NOT EXISTS "idx_harassment_reporter" ON "ops"."harassment_reports"("reporter_id");
+CREATE INDEX IF NOT EXISTS "idx_harassment_phone" ON "ops"."harassment_reports"("phone_number");
+CREATE INDEX IF NOT EXISTS "idx_harassment_status" ON "ops"."harassment_reports"("status");
+CREATE INDEX IF NOT EXISTS "idx_harassment_known_number" ON "ops"."harassment_reports"("known_number_id");
+
+-- Integration config (API key storage for external services)
+CREATE TABLE IF NOT EXISTS "ops"."integration_config" (
+  "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+  "chapter_id" uuid NOT NULL REFERENCES "ops"."chapters"("id"),
+  "service_name" varchar(40) NOT NULL,
+  "api_key_encrypted" text NOT NULL,
+  "enabled" boolean NOT NULL DEFAULT false,
+  "last_tested_at" timestamp with time zone,
+  "last_test_result" varchar(20),
+  "lookups_this_month" integer NOT NULL DEFAULT 0,
+  "month_reset_at" timestamp with time zone NOT NULL DEFAULT date_trunc('month', now()),
+  "created_at" timestamp with time zone DEFAULT now() NOT NULL,
+  "updated_at" timestamp with time zone DEFAULT now() NOT NULL,
+  UNIQUE("chapter_id", "service_name")
+);
+
+-- Vehicle enrichments (cached API responses)
+CREATE TABLE IF NOT EXISTS "ops"."vehicle_enrichments" (
+  "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+  "vehicle_id" uuid NOT NULL REFERENCES "ops"."vehicles"("id"),
+  "source" varchar(20) NOT NULL,
+  "vin" varchar(17),
+  "year" integer,
+  "make" varchar(60),
+  "model" varchar(60),
+  "trim" varchar(60),
+  "color" varchar(30),
+  "body_type" varchar(30),
+  "raw_response" jsonb,
+  "enriched_at" timestamp with time zone DEFAULT now() NOT NULL,
+  "expires_at" timestamp with time zone NOT NULL DEFAULT (now() + interval '30 days')
+);
+CREATE INDEX IF NOT EXISTS "idx_enrichment_vehicle" ON "ops"."vehicle_enrichments"("vehicle_id");
+
+-- ============================================================
 -- DONE! Your database is ready.
 -- Now go to your TRACE URL /operator/ to create your first account.
 -- ============================================================

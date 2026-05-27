@@ -7,7 +7,7 @@
 import { Hono } from "hono";
 import { z } from "zod";
 import { opsDb } from "../../db/connection.js";
-import { sightings, sightingPhotos } from "../../db/schema/vault-a.js";
+import { sightings, sightingPhotos, sightingFeedback } from "../../db/schema/vault-a.js";
 import { eq, desc, and } from "drizzle-orm";
 import { emitNewSighting } from "../../services/realtime.js";
 import { dispatch } from "../../services/notification.js";
@@ -211,4 +211,68 @@ sightingsRouter.get("/:id/photos", async (c) => {
     .from(sightingPhotos)
     .where(eq(sightingPhotos.sightingId, sightingId));
   return c.json(photos);
+});
+
+
+// --- PATCH /sightings/:id/respond — operator adds tag and/or response ---
+sightingsRouter.patch("/:id/respond", async (c) => {
+  const sightingId = c.req.param("id");
+  const body = await c.req.json();
+  const { operatorTag, operatorResponse } = body;
+
+  if (!operatorTag && !operatorResponse) {
+    return c.json({ error: "operatorTag or operatorResponse required" }, 400);
+  }
+
+  const updates: Record<string, any> = { updatedAt: new Date() };
+  if (operatorTag !== undefined) updates.operatorTag = operatorTag;
+  if (operatorResponse !== undefined) updates.operatorResponse = operatorResponse;
+  if (operatorTag || operatorResponse) updates.operatorRespondedAt = new Date();
+
+  const [updated] = await opsDb
+    .update(sightings)
+    .set(updates)
+    .where(eq(sightings.id, sightingId))
+    .returning();
+
+  if (!updated) return c.json({ error: "Sighting not found" }, 404);
+
+  return c.json({
+    id: updated.id,
+    operatorTag: updated.operatorTag,
+    operatorResponse: updated.operatorResponse,
+    operatorRespondedAt: updated.operatorRespondedAt,
+  });
+});
+
+// --- GET /sightings/mine — reporter's own sightings with tags/responses ---
+sightingsRouter.get("/mine", async (c) => {
+  const reporterId = c.req.header("x-reporter-id");
+  const chapterId = c.req.header("x-chapter-id");
+  if (!reporterId || !chapterId) return c.json({ error: "Missing reporter or chapter" }, 400);
+
+  const results = await opsDb
+    .select({
+      id: sightings.id,
+      plate: sightings.plate,
+      vehicleDescription: sightings.vehicleDescription,
+      activityDescription: sightings.activityDescription,
+      direction: sightings.direction,
+      lat: sightings.lat,
+      lng: sightings.lng,
+      observedAt: sightings.observedAt,
+      submittedAt: sightings.submittedAt,
+      operatorTag: sightings.operatorTag,
+      operatorResponse: sightings.operatorResponse,
+      operatorRespondedAt: sightings.operatorRespondedAt,
+    })
+    .from(sightings)
+    .where(and(
+      eq(sightings.reporterId, reporterId),
+      eq(sightings.chapterId, chapterId),
+    ))
+    .orderBy(desc(sightings.submittedAt))
+    .limit(100);
+
+  return c.json(results);
 });

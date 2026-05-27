@@ -313,6 +313,10 @@ export const sightings = ops.table("sightings", {
   // auto plate lookup result
   plateMatched: boolean("plate_matched"),                       // null=not checked, true=matched, false=no match
   matchedVehicleId: uuid("matched_vehicle_id").references(() => vehicles.id),
+  // operator feedback (tag + response pushed back to reporter)
+  operatorTag: varchar("operator_tag", { length: 60 }),
+  operatorResponse: varchar("operator_response", { length: 280 }),
+  operatorRespondedAt: timestamp("operator_responded_at", { withTimezone: true }),
   // metadata
   createdAt: createdAt(),
   updatedAt: updatedAt(),
@@ -515,4 +519,120 @@ export const sightingFeedback = ops.table("sighting_feedback", {
 }, (t) => [
   index("sf_sighting").on(t.sightingId),
   index("sf_reporter").on(t.reporterId),
+]);
+
+// ============================================================
+// TAG DEFINITIONS (chapter-configurable, context-scoped)
+// Contexts: sighting, vehicle, harassment
+// ============================================================
+export const tagDefinitions = ops.table("tag_definitions", {
+  id: id(),
+  chapterId: uuid("chapter_id").notNull().references(() => chapters.id),
+  context: varchar("context", { length: 20 }).notNull(),   // sighting | vehicle | harassment
+  label: varchar("label", { length: 60 }).notNull(),
+  color: varchar("color", { length: 7 }).notNull().default("#818CF8"),
+  sortOrder: integer("sort_order").notNull().default(0),
+  createdAt: createdAt(),
+}, (t) => [
+  uniqueIndex("tag_defs_chapter_context_label").on(t.chapterId, t.context, t.label),
+]);
+
+// ============================================================
+// KNOWN NUMBERS (phone number entities — parallel to vehicles)
+// Each number is a first-class entity with its own dossier.
+// Multiple reporters can report the same number.
+// ============================================================
+export const knownNumbers = ops.table("known_numbers", {
+  id: id(),
+  chapterId: uuid("chapter_id").notNull().references(() => chapters.id),
+  phoneNumber: varchar("phone_number", { length: 20 }).notNull(),
+  operatorTag: varchar("operator_tag", { length: 60 }),
+  operatorNotes: text("operator_notes"),
+  operatorResponse: varchar("operator_response", { length: 280 }),  // visible to reporters
+  spokeoResult: jsonb("spokeo_result"),                              // full cached API response
+  spokeoLookupAt: timestamp("spokeo_lookup_at", { withTimezone: true }),
+  reportCount: integer("report_count").notNull().default(0),
+  reportersAffected: integer("reporters_affected").notNull().default(0),
+  firstReportedAt: timestamp("first_reported_at", { withTimezone: true }),
+  lastReportedAt: timestamp("last_reported_at", { withTimezone: true }),
+  status: varchar("status", { length: 20 }).notNull().default("active"), // active | resolved | escalated | reported_to_le
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+}, (t) => [
+  uniqueIndex("known_numbers_chapter_phone").on(t.chapterId, t.phoneNumber),
+  index("known_numbers_chapter").on(t.chapterId),
+  index("known_numbers_phone").on(t.phoneNumber),
+]);
+
+// ============================================================
+// HARASSMENT REPORTS (individual incidents linked to known_numbers)
+// Each report references a phone number entity.
+// Cross-reporter correlation is the key intelligence value.
+// ============================================================
+export const harassmentReports = ops.table("harassment_reports", {
+  id: id(),
+  chapterId: uuid("chapter_id").notNull().references(() => chapters.id),
+  knownNumberId: uuid("known_number_id").references(() => knownNumbers.id),
+  reporterId: uuid("reporter_id").notNull(),
+  phoneNumber: varchar("phone_number", { length: 20 }).notNull(),
+  incidentType: varchar("incident_type", { length: 20 }).notNull(), // call | text | voicemail | in_person | other
+  description: text("description"),
+  occurredAt: timestamp("occurred_at", { withTimezone: true }).notNull().defaultNow(),
+  evidenceRefs: jsonb("evidence_refs").default([]),   // [{type, key, size}]
+  operatorTag: varchar("operator_tag", { length: 60 }),
+  operatorResponse: varchar("operator_response", { length: 280 }),
+  operatorRespondedAt: timestamp("operator_responded_at", { withTimezone: true }),
+  lookupResult: jsonb("lookup_result"),               // cached Spokeo response
+  lookupAt: timestamp("lookup_at", { withTimezone: true }),
+  status: varchar("status", { length: 20 }).notNull().default("pending"), // pending | reviewed | escalated
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+}, (t) => [
+  index("harassment_chapter").on(t.chapterId),
+  index("harassment_reporter").on(t.reporterId),
+  index("harassment_phone").on(t.phoneNumber),
+  index("harassment_status").on(t.status),
+  index("harassment_known_number").on(t.knownNumberId),
+]);
+
+// ============================================================
+// INTEGRATION CONFIG (API key storage for external services)
+// Keys encrypted at rest. Never sent to client.
+// ============================================================
+export const integrationConfig = ops.table("integration_config", {
+  id: id(),
+  chapterId: uuid("chapter_id").notNull().references(() => chapters.id),
+  serviceName: varchar("service_name", { length: 40 }).notNull(), // carapi | spokeo | bumper
+  apiKeyEncrypted: text("api_key_encrypted").notNull(),
+  enabled: boolean("enabled").notNull().default(false),
+  lastTestedAt: timestamp("last_tested_at", { withTimezone: true }),
+  lastTestResult: varchar("last_test_result", { length: 20 }), // success | auth_failed | error
+  lookupsThisMonth: integer("lookups_this_month").notNull().default(0),
+  monthResetAt: timestamp("month_reset_at", { withTimezone: true }).notNull().defaultNow(),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+}, (t) => [
+  uniqueIndex("integration_chapter_service").on(t.chapterId, t.serviceName),
+]);
+
+// ============================================================
+// VEHICLE ENRICHMENTS (cached API responses for plate lookups)
+// CarAPI, Bumper, or manual entry. Expires after 30 days.
+// ============================================================
+export const vehicleEnrichments = ops.table("vehicle_enrichments", {
+  id: id(),
+  vehicleId: uuid("vehicle_id").notNull().references(() => vehicles.id),
+  source: varchar("source", { length: 20 }).notNull(),  // carapi | bumper | manual
+  vin: varchar("vin", { length: 17 }),
+  year: integer("year"),
+  make: varchar("make", { length: 60 }),
+  model: varchar("model", { length: 60 }),
+  trim: varchar("trim", { length: 60 }),
+  color: varchar("color", { length: 30 }),
+  bodyType: varchar("body_type", { length: 30 }),
+  rawResponse: jsonb("raw_response"),
+  enrichedAt: timestamp("enriched_at", { withTimezone: true }).notNull().defaultNow(),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+}, (t) => [
+  index("enrichment_vehicle").on(t.vehicleId),
 ]);

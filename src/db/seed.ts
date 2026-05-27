@@ -10,7 +10,7 @@ import {
   chapters, vehicleTypes, suspicionLevels, suspicionPredicates,
   actorSuspicionLevels, actorIdentifierTypes, actorIdentifiers,
   reporters, vehicles, vehicleTypeAssignments, actors, sightings,
-  dispatchEventTypes,
+  dispatchEventTypes, tagDefinitions,
 } from "./schema/vault-a.js";
 import { reporterIdentities } from "./schema/vault-b.js";
 
@@ -237,6 +237,35 @@ async function seed() {
     await opsDb.insert(dispatchEventTypes).values({ ...dt, chapterId }).onConflictDoNothing();
   }
   console.log(`+ Dispatch event types: ${dispatchTypes.length}`);
+
+  // TAG DEFINITIONS (default set per context)
+  const tagData: { context: string; label: string; color: string; sortOrder: number }[] = [
+    // Sighting tags
+    { context: "sighting", label: "Confirmed Suspicious", color: "#DC2626", sortOrder: 6 },
+    { context: "sighting", label: "Cleared - Resident",   color: "#16A34A", sortOrder: 5 },
+    { context: "sighting", label: "Known Delivery Vehicle",color: "#64748B", sortOrder: 4 },
+    { context: "sighting", label: "Under Active Tracking", color: "#D97706", sortOrder: 3 },
+    { context: "sighting", label: "Duplicate Report",      color: "#94A3B8", sortOrder: 2 },
+    { context: "sighting", label: "Requires Follow-Up",    color: "#4F46E5", sortOrder: 1 },
+    // Vehicle tags
+    { context: "vehicle", label: "Active Threat",   color: "#DC2626", sortOrder: 6 },
+    { context: "vehicle", label: "Monitoring",      color: "#D97706", sortOrder: 5 },
+    { context: "vehicle", label: "Cleared",         color: "#16A34A", sortOrder: 4 },
+    { context: "vehicle", label: "Flagged for LE",  color: "#7C3AED", sortOrder: 3 },
+    { context: "vehicle", label: "Known Resident",  color: "#64748B", sortOrder: 2 },
+    { context: "vehicle", label: "Rental/Fleet",    color: "#94A3B8", sortOrder: 1 },
+    // Harassment tags
+    { context: "harassment", label: "Known Threat",              color: "#DC2626", sortOrder: 6 },
+    { context: "harassment", label: "Spam",                      color: "#94A3B8", sortOrder: 5 },
+    { context: "harassment", label: "Under Investigation",       color: "#D97706", sortOrder: 4 },
+    { context: "harassment", label: "Cleared",                   color: "#16A34A", sortOrder: 3 },
+    { context: "harassment", label: "Reported to Authorities",   color: "#7C3AED", sortOrder: 2 },
+    { context: "harassment", label: "Unknown",                   color: "#64748B", sortOrder: 1 },
+  ];
+  for (const t of tagData) {
+    await opsDb.insert(tagDefinitions).values({ ...t, chapterId }).onConflictDoNothing();
+  }
+  console.log(`+ Tag definitions: ${tagData.length}`);
 
   console.log("\nSeed complete. All demo data prefixed with DEMO/FAKE/TEST.");
   process.exit(0);
