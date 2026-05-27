@@ -13,6 +13,13 @@ import { scrubPhoto } from "../lib/photo-scrub.js";
 import { Icon } from "../components/icon.js";
 import { panic } from "../lib/panic.js";
 
+const US_STATES = [
+  "AL","AK","AZ","AR","CA","CO","CT","DE","FL","GA","HI","ID","IL","IN","IA",
+  "KS","KY","LA","ME","MD","MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ",
+  "NM","NY","NC","ND","OH","OK","OR","PA","RI","SC","SD","TN","TX","UT","VT",
+  "VA","WA","WV","WI","WY","DC",
+];
+
 type SightingDraft = {
   photos: File[];
   photoUrls: string[];
@@ -54,8 +61,11 @@ export function Submit() {
   const [wipeConfirm, setWipeConfirm] = useState(false);
   const [mode, setMode] = useState<"report" | "check">("report");
   const [checkPlate, setCheckPlate] = useState("");
+  const [checkState, setCheckState] = useState("CA");
   const [checkResult, setCheckResult] = useState<any>(null);
   const [checking, setChecking] = useState(false);
+  const [lookupResult, setLookupResult] = useState<any>(null);
+  const [hasCarApi, setHasCarApi] = useState(false);
   const [plateSuggestions, setPlateSuggestions] = useState<any[]>([]);
   const suggestTimer = useRef<any>(null);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -166,10 +176,24 @@ export function Submit() {
     setChecking(true);
     setCheckResult(null);
     try {
-      const result = await api.checkPlate(checkPlate.trim());
+      const result = await api.plateLookup(checkPlate.trim(), checkState);
       setCheckResult(result);
-    } catch { setCheckResult({ found: false, error: true }); }
+    } catch { setCheckResult({ status: "not_found", message: "Lookup failed. Try again." }); }
     setChecking(false);
+  };
+
+  // Auto-lookup when plate is entered in report mode (Tier 1 only, no API cost)
+  const autoLookupTimer = useRef<any>(null);
+  const handleReportPlateBlur = () => {
+    if (draft.plate.length >= 3) {
+      if (autoLookupTimer.current) clearTimeout(autoLookupTimer.current);
+      autoLookupTimer.current = setTimeout(async () => {
+        try {
+          const result = await api.plateLookup(draft.plate);
+          setLookupResult(result);
+        } catch { setLookupResult(null); }
+      }, 500);
+    }
   };
 
   if (submitted) {
@@ -277,8 +301,8 @@ export function Submit() {
         </div>
         <p style={{ fontSize: "var(--text-xs)", color: "var(--text-muted)" }}>
           {mode === "report"
-            ? "Submit a sighting with location, plate, and details. Your GPS is captured automatically."
-            : "Quick lookup — check if a plate is in the database without submitting a full report."
+            ? "Submit a sighting with location, plate, and details."
+            : "Look up a plate before deciding whether to report."
           }
         </p>
       </div>
@@ -286,61 +310,100 @@ export function Submit() {
       {/* PLATE CHECK MODE */}
       {mode === "check" && (
         <div>
-          <div style={{ marginBottom: "var(--sp-4)" }}>
-            <label class="section-label" for="check-plate">Enter Plate</label>
-            <input id="check-plate" placeholder="ABC 1234" value={checkPlate}
-              onInput={(e) => setCheckPlate((e.target as HTMLInputElement).value.toUpperCase())}
-              onKeyDown={(e) => { if ((e as KeyboardEvent).key === "Enter") handlePlateCheck(); }}
-              class="input input-plate"
-              autoFocus
-            />
+          <div style={{ display: "flex", gap: "var(--sp-2)", marginBottom: "var(--sp-4)" }}>
+            <div style={{ flex: 1 }}>
+              <label class="section-label" for="check-plate">Plate</label>
+              <input id="check-plate" placeholder="ABC 1234" value={checkPlate}
+                onInput={(e) => setCheckPlate((e.target as HTMLInputElement).value.toUpperCase())}
+                onKeyDown={(e) => { if ((e as KeyboardEvent).key === "Enter") handlePlateCheck(); }}
+                class="input input-plate"
+                autoFocus
+              />
+            </div>
+            <div style={{ width: 80 }}>
+              <label class="section-label" for="check-state">State</label>
+              <select id="check-state" value={checkState}
+                onChange={(e) => setCheckState((e.target as HTMLSelectElement).value)}
+                class="input" style={{ padding: "10px 6px", textAlign: "center" }}>
+                {US_STATES.map((s) => <option key={s} value={s}>{s}</option>)}
+              </select>
+            </div>
           </div>
           <button onClick={handlePlateCheck} disabled={checking || checkPlate.length < 2}
             class="btn btn-primary btn-full" style={{ marginBottom: "var(--sp-4)" }}>
-            {checking ? "Checking..." : "Check Plate"}
+            {checking ? "Checking..." : "Look Up Plate"}
           </button>
 
-          {/* Result */}
-          {checkResult && checkResult.found && (
+          {/* Result: TRACKED (Tier 1 match) */}
+          {checkResult && checkResult.status === "tracked" && (
             <div class="card" style={{
               padding: "var(--sp-4)",
-              border: "1px solid rgba(220,38,38,0.3)",
-              background: "rgba(220,38,38,0.05)",
+              border: "1px solid rgba(217,119,6,0.4)",
+              background: "rgba(217,119,6,0.06)",
             }}>
               <div style={{ display: "flex", alignItems: "center", gap: "var(--sp-2)", marginBottom: "var(--sp-2)" }}>
                 <span style={{
                   fontSize: "10px", fontWeight: 700, padding: "2px 8px", borderRadius: 4,
-                  background: "rgba(220,38,38,0.15)", color: "#DC2626",
-                }}>MATCH</span>
-                <span style={{ fontFamily: "monospace", fontWeight: 700, letterSpacing: "0.1em" }}>{checkResult.plate}</span>
+                  background: "rgba(217,119,6,0.15)", color: "#D97706",
+                }}>TRACKED</span>
+                <span style={{ fontFamily: "var(--font-mono)", fontWeight: 700, letterSpacing: "0.1em" }}>{checkResult.plate}</span>
               </div>
               {checkResult.description && (
-                <p style={{ fontSize: "var(--text-sm)", color: "var(--text-sec)" }}>{checkResult.description}</p>
+                <p style={{ fontSize: "var(--text-sm)", color: "var(--text)", fontWeight: 500 }}>{checkResult.description}</p>
+              )}
+              {checkResult.tag && (
+                <span style={{
+                  display: "inline-block", fontSize: "10px", fontWeight: 600, padding: "2px 8px",
+                  borderRadius: 4, background: "var(--accent-soft)", color: "var(--accent)",
+                  marginTop: "var(--sp-1)",
+                }}>{checkResult.tag}</span>
               )}
               {checkResult.suspicionLevel && (
-                <p style={{ fontSize: "var(--text-xs)", color: "var(--text-muted)", marginTop: "var(--sp-1)" }}>
-                  Suspicion: {checkResult.suspicionLevel}
+                <p style={{ fontSize: "var(--text-xs)", color: checkResult.suspicionColor || "var(--text-muted)", marginTop: "var(--sp-1)" }}>
+                  {checkResult.suspicionLevel}
                 </p>
               )}
               <button onClick={() => {
                 setDraft((d) => ({ ...d, plate: checkResult.plate || checkPlate }));
-                setMode("report");
-                setCheckResult(null);
+                setMode("report"); setCheckResult(null);
               }} class="btn btn-primary btn-full" style={{ marginTop: "var(--sp-3)" }}>
-                Submit Full Report →
+                Submit Full Report
               </button>
             </div>
           )}
 
-          {checkResult && !checkResult.found && (
+          {/* Result: FOUND (Tier 2 CarAPI match) */}
+          {checkResult && checkResult.status === "found" && (
+            <div class="card" style={{ padding: "var(--sp-4)" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "var(--sp-2)", marginBottom: "var(--sp-2)" }}>
+                <span style={{
+                  fontSize: "10px", fontWeight: 700, padding: "2px 8px", borderRadius: 4,
+                  background: "var(--accent-soft)", color: "var(--accent)",
+                }}>ON RECORD</span>
+                <span style={{ fontFamily: "var(--font-mono)", fontWeight: 700, letterSpacing: "0.1em" }}>{checkResult.plate}</span>
+              </div>
+              <p style={{ fontSize: "var(--text-sm)", color: "var(--text)" }}>{checkResult.description}</p>
+              {checkResult.bodyType && (
+                <p style={{ fontSize: "var(--text-xs)", color: "var(--text-muted)", marginTop: "var(--sp-1)" }}>{checkResult.bodyType}</p>
+              )}
+              <button onClick={() => {
+                setDraft((d) => ({ ...d, plate: checkResult.plate || checkPlate }));
+                setMode("report"); setCheckResult(null);
+              }} class="btn btn-secondary btn-full" style={{ marginTop: "var(--sp-3)" }}>
+                Report this vehicle
+              </button>
+            </div>
+          )}
+
+          {/* Result: NOT FOUND */}
+          {checkResult && checkResult.status === "not_found" && (
             <div class="card" style={{ padding: "var(--sp-4)", textAlign: "center" }}>
               <p style={{ fontSize: "var(--text-sm)", color: "var(--text-muted)" }}>
-                Not in the database.
+                {checkResult.message || "No record found."}
               </p>
               <button onClick={() => {
                 setDraft((d) => ({ ...d, plate: checkPlate }));
-                setMode("report");
-                setCheckResult(null);
+                setMode("report"); setCheckResult(null);
               }} class="btn btn-secondary" style={{ marginTop: "var(--sp-3)", fontSize: "var(--text-xs)" }}>
                 Report anyway
               </button>
@@ -389,11 +452,45 @@ export function Submit() {
         </div>
       )}
 
-      {/* License Plate */}
+      {/* License Plate with auto-lookup */}
+      {lookupResult && lookupResult.status === "tracked" && (
+        <div class="card" style={{
+          padding: "var(--sp-3)", marginBottom: "var(--sp-3)",
+          border: "1px solid rgba(217,119,6,0.4)",
+          background: "rgba(217,119,6,0.06)",
+          fontSize: "var(--text-xs)",
+        }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "var(--sp-2)" }}>
+            <span style={{
+              fontSize: "9px", fontWeight: 700, padding: "1px 6px", borderRadius: 3,
+              background: "rgba(217,119,6,0.15)", color: "#D97706",
+            }}>TRACKED</span>
+            <span style={{ fontWeight: 500 }}>{lookupResult.description || lookupResult.plate}</span>
+            {lookupResult.tag && (
+              <span style={{ fontSize: "9px", padding: "1px 6px", borderRadius: 3, background: "var(--accent-soft)", color: "var(--accent)" }}>{lookupResult.tag}</span>
+            )}
+          </div>
+        </div>
+      )}
+      {lookupResult && lookupResult.status === "found" && (
+        <div class="card" style={{
+          padding: "var(--sp-3)", marginBottom: "var(--sp-3)",
+          fontSize: "var(--text-xs)",
+        }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "var(--sp-2)" }}>
+            <span style={{
+              fontSize: "9px", fontWeight: 700, padding: "1px 6px", borderRadius: 3,
+              background: "var(--accent-soft)", color: "var(--accent)",
+            }}>ON RECORD</span>
+            <span style={{ fontWeight: 500 }}>{lookupResult.description || lookupResult.plate}</span>
+          </div>
+        </div>
+      )}
       <div style={{ marginBottom: "var(--sp-4)", position: "relative" }}>
         <label class="section-label" for="plate">License Plate</label>
         <input id="plate" placeholder="ABC 1234" value={draft.plate}
           onInput={(e) => handlePlateInput((e.target as HTMLInputElement).value)}
+          onBlur={handleReportPlateBlur}
           onFocus={() => { if (draft.plate.length >= 3) handlePlateInput(draft.plate); }}
           class="input input-plate"
         />

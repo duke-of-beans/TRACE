@@ -117,11 +117,25 @@ export const api = {
   getMySightings: () =>
     request<Array<Record<string, unknown>>>("/sightings"),
 
-  // Plate check
+  // Plate check (legacy — Tier 1 only)
   checkPlate: (plate: string) =>
     request<{ found: boolean; plate?: string; description?: string; suspicionLevel?: string }>(
       `/sightings/plate-check?plate=${encodeURIComponent(plate)}`
     ),
+
+  // Plate lookup (two-tier: TRACE DB + CarAPI)
+  plateLookup: (plate: string, state?: string) =>
+    request<{
+      tier: number; status: string; plate: string;
+      make?: string; model?: string; year?: number; color?: string;
+      bodyType?: string; tag?: string; photo?: string; photoAvailable?: boolean;
+      suspicionLevel?: string; suspicionColor?: string;
+      description?: string; message?: string; apiAvailable?: boolean;
+    }>(`/plates/lookup?plate=${encodeURIComponent(plate)}${state ? `&state=${encodeURIComponent(state)}` : ""}`),
+
+  // Check if CarAPI is available for this chapter
+  checkCarApi: () =>
+    request<{ carapi: boolean }>("/plates/check-integration"),
 
   // Dispatch (reporter actions)
   getActiveDispatches: () =>

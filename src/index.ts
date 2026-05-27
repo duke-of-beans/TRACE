@@ -21,6 +21,7 @@ import { setupRouter } from "./api/setup/index.js";
 import { tagRouter } from "./api/tags/index.js";
 import { integrationsRouter } from "./api/integrations/index.js";
 import { importRouter } from "./api/import/index.js";
+import { platesRouter } from "./api/plates/index.js";
 import { closeAll } from "./db/connection.js";
 import { authMiddleware, operatorOnly, adminOnly } from "./middleware/auth.js";
 import { auditMiddleware } from "./middleware/audit.js";
@@ -91,6 +92,7 @@ api.route("/actors", actorsRouter);
 api.route("/geo", geoRouter);
 api.route("/dispatch", dispatchRouter);
 api.route("/tag-definitions", tagRouter);
+api.route("/plates", platesRouter);
 
 // Feedback — any authenticated user can submit
 api.post("/feedback", async (c) => {
