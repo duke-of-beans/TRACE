@@ -127,7 +127,7 @@ function DeviceControl() {
     const ok2 = await confirm({
       title: "Are you absolutely sure?",
       message: "This cannot be easily undone. Every reporter will need to be re-onboarded.",
-      confirmLabel: "YES — NUKE ALL",
+      confirmLabel: "YES - NUKE ALL",
       danger: true,
     });
     if (!ok2) return;

@@ -642,7 +642,7 @@ function ActorPredicatePanel({ levelId, levelLabel }: { levelId: string; levelLa
   return (
     <div className="border-t border-trace-border bg-trace-bg/50 p-4">
       <div className="flex items-center justify-between mb-3">
-        <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Promotion Rules — {levelLabel}</span>
+        <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Promotion Rules - {levelLabel}</span>
         <button onClick={() => setAdding(true)} className="text-xs text-trace-accent">+ Add Rule</button>
       </div>
       {loading ? <div className="text-xs text-gray-600">Loading...</div> : predicates.length === 0 ? (

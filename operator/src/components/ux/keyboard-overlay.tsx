@@ -6,7 +6,7 @@ import { useState, useEffect } from "react";
 type Shortcut = { key: string; label: string; context?: string };
 const SHORTCUTS: Shortcut[] = [
   { key: "?", label: "Show this help overlay" },
-  { key: "1–7", label: "Switch dashboard sections" },
+  { key: "1-9", label: "Switch dashboard sections" },
   { key: "A", label: "Approve sighting", context: "Triage" },
   { key: "F", label: "Flag for follow-up", context: "Triage" },
   { key: "D", label: "Dismiss sighting", context: "Triage" },

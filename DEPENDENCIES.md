@@ -1,4 +1,4 @@
-# TRACE — Dependency Graph
+# TRACE - Dependency Graph
 
 All documents, portals, and artifacts that must update when upstream sources change.
 When you modify any SOURCE, check its DEPENDENTS and create backlog items for each.

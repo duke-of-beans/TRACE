@@ -9,9 +9,9 @@ The confidence of a well-made notebook. The clarity of a clean form.
 The calm of a tool that knows what it's doing so the user doesn't have to think about it.
 
 ### Design References (spirit, not copy)
-- **Signal** — security-first but doesn't look paranoid. Clean, human, trustworthy.
-- **Linear** — professional tool with restrained color. Good type hierarchy. Spacious.
-- **Apple Notes** — unremarkable on screen. Nobody looks twice. Just a form.
+- **Signal** - security-first but doesn't look paranoid. Clean, human, trustworthy.
+- **Linear** - professional tool with restrained color. Good type hierarchy. Spacious.
+- **Apple Notes** - unremarkable on screen. Nobody looks twice. Just a form.
 
 ### Anti-References
 - Palantir (too military)

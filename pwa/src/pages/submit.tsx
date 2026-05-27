@@ -210,10 +210,10 @@ export function Submit() {
 
           {/* Live status */}
           <div style={{ textAlign: "left", fontSize: "var(--text-sm)" }}>
-            <StatusRow done label="Submitted — dispatch received your report" />
+            <StatusRow done label="Submitted - dispatch received your report" />
             <StatusRow done={feedback !== null} pending={feedback === null} label={feedback ? "Plate checked" : "Waiting for dispatch to review..."} />
             {feedback?.feedbackType === "confirmed" && (
-              <StatusRow done label="Confirmed — patrollers dispatched to the location" color="var(--success)" />
+              <StatusRow done label="Confirmed - patrollers dispatched to the location" color="var(--success)" />
             )}
             {feedback?.feedbackType === "dismissed" && (
               <StatusRow done label={feedback.message || "Not in the database. No action needed."} color="var(--text-muted)" />

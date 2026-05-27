@@ -422,7 +422,7 @@ function PinCreationForm({ lat, lng, eventTypes, reporters, onSave, onCancel }: 
   return (
     <div className="mt-4 bg-trace-surface rounded-lg p-5 border border-trace-border">
       <div className="flex justify-between items-center mb-3">
-        <h3 className="text-sm font-semibold">Pin dropped — add details</h3>
+        <h3 className="text-sm font-semibold">Pin dropped - add details</h3>
         <button onClick={onCancel} style={{ color: "var(--text-muted)", background: "none", border: "none", cursor: "pointer" }}>✕</button>
       </div>
       <p className="text-xs mb-3" style={{ color: "var(--text-muted)" }}>

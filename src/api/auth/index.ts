@@ -98,7 +98,7 @@ authRouter.post("/invite-code", async (c) => {
     const sessionHash = createHash("sha256").update(sessionToken).digest("hex");
     await identDb.insert(sessions).values({ identityId: identity.id, tokenHash: sessionHash, expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) });
 
-    console.log(`[DEV] Test code accepted. Reporter: ${callsign}`);
+    // Auth accepted
     return c.json({ status: "authenticated", sessionToken, reporterId: reporter.id, role: "reporter" });
   }
   const codeHash = createHash("sha256").update(normalized).digest("hex");
@@ -172,7 +172,10 @@ authRouter.post("/magic-link", async (c) => {
   });
 
   // TODO: send email via SMTP/Resend with link containing rawToken
-  console.log(`Magic link token for ${email}: ${rawToken}`);
+  // Token logged server-side only in development
+  if (process.env.NODE_ENV !== "production") {
+    console.log(`Magic link token for ${email}: ${rawToken}`);
+  }
 
   return c.json({ status: "sent" });
 });
@@ -284,8 +287,6 @@ authRouter.post("/dev-login", async (c) => {
       .insert(reporterIdentities)
       .values({ reporterId: reporter.id, role: "reporter" })
       .returning();
-
-    console.log(`[DEV] Auto-created reporter "${normalizedCallsign}"`);
   }
 
   const sessionToken = randomBytes(32).toString("hex");
