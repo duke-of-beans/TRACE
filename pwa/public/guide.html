@@ -1,924 +1,122 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TRACE: Chapter Setup Guide</title>
-<link rel="icon" type="image/svg+xml" href="/favicon.svg">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@100;300;400;600;700&display=swap" rel="stylesheet">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TRACE — Visual Setup Guide</title>
 <style>
-  :root {
-    --bg: #0F172A;
-    --surface: #1E293B;
-    --surface-alt: #334155;
-    --border: #334155;
-    --accent: #818CF8;
-    --accent-hover: #6366F1;
-    --accent-soft: rgba(129,140,248,0.1);
-    --accent-text: #FFFFFF;
-    --text: #F1F5F9;
-    --text-sec: #94A3B8;
-    --text-muted: #7C8BA4;
-    --success: #16A34A;
-    --warning: #D97706;
-    --danger: #DC2626;
-    --font: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
-    --font-mono: "SF Mono", "Cascadia Code", "Fira Code", ui-monospace, monospace;
-  }
-
-  @media (prefers-color-scheme: light) {
-    :root:not([data-theme="dark"]) {
-      --bg: #F8FAFC;
-      --surface: #FFFFFF;
-      --surface-alt: #F1F5F9;
-      --border: #E2E8F0;
-      --accent: #4F46E5;
-      --accent-hover: #4338CA;
-      --accent-soft: rgba(79,70,229,0.06);
-      --accent-text: #FFFFFF;
-      --text: #1E293B;
-      --text-sec: #64748B;
-      --text-muted: #94A3B8;
-    }
-  }
-
-  :root[data-theme="light"] {
-    --bg: #F8FAFC;
-    --surface: #FFFFFF;
-    --surface-alt: #F1F5F9;
-    --border: #E2E8F0;
-    --accent: #4F46E5;
-    --accent-hover: #4338CA;
-    --accent-soft: rgba(79,70,229,0.06);
-    --accent-text: #FFFFFF;
-    --text: #1E293B;
-    --text-sec: #64748B;
-    --text-muted: #94A3B8;
-  }
-
-  :root[data-theme="dark"] {
-    --bg: #0F172A;
-    --surface: #1E293B;
-    --surface-alt: #334155;
-    --border: #334155;
-    --accent: #818CF8;
-    --accent-hover: #6366F1;
-    --accent-soft: rgba(129,140,248,0.1);
-    --accent-text: #FFFFFF;
-    --text: #F1F5F9;
-    --text-sec: #94A3B8;
-    --text-muted: #7C8BA4;
-  }
-
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-
-  body {
-    font-family: var(--font);
-    background: var(--bg);
-    color: var(--text);
-    line-height: 1.7;
-    -webkit-font-smoothing: antialiased;
-  }
-
-  a { color: var(--accent); text-decoration: none; }
-  a:hover { text-decoration: underline; }
-  code { font-family: var(--font-mono); font-size: 0.9em; }
-
-  .container { max-width: 660px; margin: 0 auto; padding: 0 24px; }
-
-  .hero {
-    text-align: center;
-    padding: 80px 24px 60px;
-    position: relative;
-  }
-  .hero-brand {
-    font-family: 'Exo 2', system-ui, sans-serif;
-    font-weight: 100;
-    font-size: 40px;
-    letter-spacing: 0.22em;
-    color: var(--accent);
-    margin-bottom: 0;
-    line-height: 1;
-  }
-  .hero-rule {
-    height: 1px;
-    background: var(--accent);
-    opacity: 0.5;
-    width: 200px;
-    margin: 8px auto 0;
-  }
-  .hero-sub {
-    font-size: 8px;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--text-muted);
-    margin-top: 8px;
-    margin-bottom: 6px;
-    white-space: nowrap;
-  }
-  .hero-label {
-    font-size: 10px;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    color: var(--text-muted);
-    margin-bottom: 24px;
-  }
-  .hero-time {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    background: var(--accent-soft);
-    border: 1px solid var(--border);
-    border-radius: 100px;
-    padding: 8px 20px;
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--accent);
-  }
-
-  .step { margin-bottom: 56px; }
-  .step-header {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    margin-bottom: 16px;
-  }
-  .step-number {
-    font-family: 'Exo 2', system-ui, sans-serif;
-    font-size: 22px;
-    font-weight: 300;
-    color: var(--accent);
-    flex-shrink: 0;
-    letter-spacing: 0.05em;
-  }
-  .step-rule {
-    flex: 1;
-    height: 1px;
-    background: var(--border);
-  }
-  .step h2 { font-size: 20px; font-weight: 700; margin-bottom: 10px; }
-  .step p { font-size: 14px; color: var(--text-sec); margin-bottom: 14px; line-height: 1.7; }
-  .step strong { color: var(--text); }
-
-  /* Scroll progress rail — fixed right side */
-  .scroll-nav {
-    position: fixed;
-    right: 16px;
-    top: 50%;
-    transform: translateY(-50%);
-    z-index: 100;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 0;
-  }
-  .scroll-nav-dot {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 6px 0;
-    cursor: pointer;
-    text-decoration: none;
-  }
-  .scroll-nav-label {
-    font-size: 10px;
-    letter-spacing: 0.05em;
-    color: var(--text-muted);
-    opacity: 0;
-    transform: translateX(4px);
-    transition: opacity 0.2s, transform 0.2s;
-    white-space: nowrap;
-    pointer-events: none;
-  }
-  .scroll-nav-dot:hover .scroll-nav-label,
-  .scroll-nav-dot.active .scroll-nav-label {
-    opacity: 1;
-    transform: translateX(0);
-  }
-  .scroll-nav-pip {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: var(--border);
-    transition: background 0.2s, transform 0.2s;
-    flex-shrink: 0;
-  }
-  .scroll-nav-dot.active .scroll-nav-pip {
-    background: var(--accent);
-    transform: scale(1.5);
-  }
-  .scroll-nav-dot:hover .scroll-nav-pip {
-    background: var(--accent);
-  }
-  /* Progress line connecting dots */
-  .scroll-nav-track {
-    position: absolute;
-    right: 2px;
-    top: 6px;
-    bottom: 6px;
-    width: 2px;
-    background: var(--border);
-    border-radius: 1px;
-    z-index: -1;
-  }
-  .scroll-nav-fill {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    background: var(--accent);
-    border-radius: 1px;
-    transition: height 0.15s;
-  }
-  @media (max-width: 900px) {
-    .scroll-nav { display: none; }
-  }
-
-  .mockup {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 20px;
-    margin: 16px 0;
-  }
-  .mockup-header {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    margin-bottom: 14px;
-    padding-bottom: 10px;
-    border-bottom: 1px solid var(--border);
-  }
-  .mockup-dot { width: 8px; height: 8px; border-radius: 50%; }
-  .mockup-url {
-    flex: 1;
-    background: var(--surface-alt);
-    border-radius: 4px;
-    padding: 3px 10px;
-    font-size: 10px;
-    color: var(--text-muted);
-    font-family: var(--font-mono);
-    margin-left: 8px;
-  }
-  .mockup-label {
-    font-size: 9px;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--text-muted);
-    margin-bottom: 10px;
-    font-weight: 600;
-  }
-
-  .instructions { list-style: none; counter-reset: inst; }
-  .instructions li {
-    counter-increment: inst;
-    padding: 10px 0 10px 36px;
-    position: relative;
-    font-size: 14px;
-    color: var(--text-sec);
-    border-bottom: 1px solid var(--accent-soft);
-  }
-  .instructions li::before {
-    content: counter(inst);
-    position: absolute;
-    left: 0; top: 12px;
-    width: 22px; height: 22px;
-    border-radius: 50%;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 10px;
-    font-weight: 700;
-    color: var(--accent);
-  }
-  .instructions li:last-child { border-bottom: none; }
-
-  .callout {
-    background: var(--accent-soft);
-    border-left: 3px solid var(--accent);
-    border-radius: 0 8px 8px 0;
-    padding: 14px 18px;
-    margin: 14px 0;
-    font-size: 13px;
-    color: var(--text-sec);
-    line-height: 1.7;
-  }
-  .callout strong { color: var(--accent); }
-  .callout-warn { background: rgba(217,119,6,0.06); border-left-color: var(--warning); }
-  .callout-warn strong { color: var(--warning); }
-
-  .mock-input {
-    background: var(--surface-alt);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 8px 12px;
-    width: 100%;
-    font-size: 12px;
-    color: var(--text-muted);
-    margin-bottom: 8px;
-    font-family: var(--font-mono);
-  }
-  .mock-btn {
-    display: inline-block;
-    background: var(--accent);
-    color: var(--accent-text);
-    padding: 10px 24px;
-    border-radius: 6px;
-    font-size: 13px;
-    font-weight: 600;
-    text-align: center;
-    width: 100%;
-    margin-top: 4px;
-  }
-  .mock-label {
-    font-size: 9px;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--text-muted);
-    margin-bottom: 4px;
-    font-weight: 600;
-  }
-
-  .phone-frame {
-    width: 200px;
-    margin: 16px auto;
-    background: var(--surface);
-    border: 2px solid var(--border);
-    border-radius: 20px;
-    padding: 10px;
-  }
-  .phone-notch {
-    width: 60px; height: 5px;
-    background: var(--border);
-    border-radius: 3px;
-    margin: 0 auto 10px;
-  }
-  .phone-screen {
-    background: var(--bg);
-    border-radius: 10px;
-    padding: 14px;
-    min-height: 180px;
-  }
-
-  details { cursor: pointer; }
-  details summary { user-select: none; }
-
-  .footer {
-    text-align: center;
-    padding: 48px 24px;
-    border-top: 1px solid var(--border);
-    margin-top: 32px;
-  }
-  .footer p { font-size: 12px; color: var(--text-muted); }
-
-  .theme-toggle {
-    position: fixed;
-    top: 16px;
-    right: 16px;
-    width: 36px; height: 36px;
-    border-radius: 50%;
-    border: 1px solid var(--border);
-    background: var(--surface);
-    color: var(--text-muted);
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 16px;
-    z-index: 100;
-    transition: background 0.2s, color 0.2s;
-  }
-  .theme-toggle:hover { color: var(--text); background: var(--surface-alt); }
-
-  @media (max-width: 600px) {
-    .hero { padding: 48px 16px 36px; }
-    .hero-brand { font-size: 32px; }
-    .container { padding: 0 16px; }
-    .step h2 { font-size: 17px; }
-    .mockup { padding: 14px; }
-    .phone-frame { width: 180px; }
-  }
-  /* Scrollbar */
-  ::-webkit-scrollbar { width: 6px; height: 6px; }
-  ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
-  ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
-  * { scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:system-ui,-apple-system,sans-serif;background:#0f172a;color:#cbd5e1;line-height:1.7}
+.container{max-width:760px;margin:0 auto;padding:32px 24px}
+h1{font-family:'Exo 2',system-ui;font-weight:100;letter-spacing:0.2em;text-transform:uppercase;color:#818cf8;font-size:28px;margin-bottom:4px}
+h2{font-size:20px;font-weight:600;color:#e2e8f0;margin:48px 0 16px;padding-bottom:8px;border-bottom:1px solid #1e293b}
+h3{font-size:15px;font-weight:600;color:#94a3b8;margin:24px 0 8px}
+p{margin:0 0 12px;font-size:14px}
+.subtitle{font-size:12px;color:#64748b;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:32px}
+.step{background:#1e293b;border:1px solid #334155;border-radius:12px;padding:24px;margin:16px 0}
+.step-num{display:inline-block;width:28px;height:28px;line-height:28px;text-align:center;border-radius:50%;background:#818cf8;color:#0f172a;font-weight:700;font-size:13px;margin-right:8px}
+code{background:#1e293b;padding:2px 6px;border-radius:4px;font-size:13px;color:#a5b4fc}
+a{color:#818cf8;text-decoration:none}a:hover{text-decoration:underline}
+.note{background:#1e293b;border-left:3px solid #818cf8;padding:12px 16px;margin:16px 0;font-size:13px}
+.warn{border-left-color:#f59e0b}
+ol{padding-left:24px;margin:8px 0 16px}
+li{margin:4px 0;font-size:14px}
+.pages{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;margin:16px 0}
+.page-card{background:#1e293b;border:1px solid #334155;border-radius:8px;padding:16px;text-align:center}
+.page-card h4{font-size:13px;color:#e2e8f0;margin-bottom:4px}
+.page-card p{font-size:11px;color:#64748b;margin:0}
+.icon{font-size:24px;margin-bottom:8px;display:block}
 </style>
 </head>
 <body>
-
-<button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle light/dark mode" id="themeBtn">&#9790;</button>
-
-<script>
-function getTheme() {
-  var stored = localStorage.getItem('trace_guide_theme');
-  if (stored === 'light' || stored === 'dark') return stored;
-  return window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
-}
-function applyTheme(t) {
-  document.documentElement.setAttribute('data-theme', t);
-  document.getElementById('themeBtn').innerHTML = t === 'dark' ? '&#9790;' : '&#9728;';
-}
-function toggleTheme() {
-  var next = getTheme() === 'dark' ? 'light' : 'dark';
-  localStorage.setItem('trace_guide_theme', next);
-  applyTheme(next);
-}
-applyTheme(getTheme());
-</script>
-
-<!-- Scroll progress navigation -->
-<nav class="scroll-nav" id="scrollNav" aria-label="Guide progress">
-  <div class="scroll-nav-track"><div class="scroll-nav-fill" id="scrollFill"></div></div>
-  <a class="scroll-nav-dot" href="#step-1"><span class="scroll-nav-label">Database</span><span class="scroll-nav-pip"></span></a>
-  <a class="scroll-nav-dot" href="#step-2"><span class="scroll-nav-label">Deploy</span><span class="scroll-nav-pip"></span></a>
-  <a class="scroll-nav-dot" href="#step-3"><span class="scroll-nav-label">Tables</span><span class="scroll-nav-pip"></span></a>
-  <a class="scroll-nav-dot" href="#step-4"><span class="scroll-nav-label">Operator</span><span class="scroll-nav-pip"></span></a>
-  <a class="scroll-nav-dot" href="#step-5"><span class="scroll-nav-label">Reporters</span><span class="scroll-nav-pip"></span></a>
-  <a class="scroll-nav-dot" href="#step-6"><span class="scroll-nav-label">Install</span><span class="scroll-nav-pip"></span></a>
-  <a class="scroll-nav-dot" href="#step-7"><span class="scroll-nav-label">Integrations</span><span class="scroll-nav-pip"></span></a>
-  <a class="scroll-nav-dot" href="#complete"><span class="scroll-nav-label">Done</span><span class="scroll-nav-pip"></span></a>
-</nav>
-
-<div class="hero">
-  <div class="hero-brand">TRACE</div>
-  <div class="hero-rule"></div>
-  <div class="hero-sub">Tracking · Reporting · Analysis · Community Evidence</div>
-  <div class="hero-label">Chapter Setup Guide</div>
-  <div class="hero-time">About 10 minutes. No coding required.</div>
-</div>
-
 <div class="container">
+<h1>TRACE</h1>
+<p class="subtitle">Visual Setup Guide</p>
+<p>This guide walks you through deploying TRACE for your neighborhood chapter. No coding required. Total time: about 10 minutes.</p>
 
-<p style="font-size:15px; color:var(--text-sec); text-align:center; margin-bottom:20px; line-height:1.8;">
-  TRACE is a vehicle tracking system for neighborhood chapters. Reporters submit sightings from a phone app. Operators review, dispatch, and track from a desktop console.
-</p>
-<p style="font-size:14px; color:var(--text-muted); text-align:center; margin-bottom:36px; line-height:1.8;">
-  TRACE requires two services: a <strong style="color:var(--text-sec)">database</strong> (stores your records) and a <strong style="color:var(--text-sec)">web host</strong> (serves the app to devices). Both are free. Both use industry-standard encryption. You control both accounts and can delete everything at any time.
-</p>
+<h2>What You Need</h2>
+<p>A computer with a web browser. That's it. Everything runs in the cloud on free tiers.</p>
 
-<!-- What you're setting up -->
-<div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px 24px;margin-bottom:48px;">
-  <h3 style="font-size:15px;margin-bottom:10px;">What you are setting up</h3>
-  <p style="font-size:13px;color:var(--text-sec);line-height:1.7;margin-bottom:10px;">
-    TRACE is open-source software. The code is publicly available and can be reviewed by anyone. Nothing is installed on your computer. Instead, you create your own private copy running on your own cloud accounts.
-  </p>
-  <p style="font-size:13px;color:var(--text-sec);line-height:1.7;margin-bottom:10px;">
-    The setup process creates three things:
-  </p>
-  <p style="font-size:13px;color:var(--text-sec);line-height:1.7;margin-bottom:4px;">
-    <strong style="color:var(--text)">1. A database</strong> on Neon (where your sighting records, vehicle data, and accounts are stored)
-  </p>
-  <p style="font-size:13px;color:var(--text-sec);line-height:1.7;margin-bottom:4px;">
-    <strong style="color:var(--text)">2. A website</strong> on Vercel (what reporters and operators open in their browser)
-  </p>
-  <p style="font-size:13px;color:var(--text-sec);line-height:1.7;margin-bottom:10px;">
-    <strong style="color:var(--text)">3. A code copy</strong> on GitHub (the source code that Vercel builds from)
-  </p>
-  <p style="font-size:13px;color:var(--text-sec);line-height:1.7;">
-    All three are under your accounts. No one else has access. Your chapter's TRACE instance is completely separate from every other chapter's instance. There is no central server, no shared database, and no way for one chapter to see another's data.
-  </p>
+<h2>Step 1: Create Your Database</h2>
+<div class="step">
+<p><span class="step-num">1</span> Go to <a href="https://neon.tech" target="_blank">neon.tech</a> and sign up</p>
+<p><span class="step-num">2</span> Click <strong>New Project</strong>, name it anything, pick the region closest to your area</p>
+<p><span class="step-num">3</span> Copy the <strong>Connection String</strong> — this is your database address. Keep it private.</p>
+</div>
+<div class="note">Neon provides free PostgreSQL databases with encryption at rest and TLS in transit. The free tier covers chapters up to 50 reporters.</div>
+
+<h2>Step 2: Deploy TRACE</h2>
+<div class="step">
+<p><span class="step-num">1</span> Go to the <a href="https://github.com/duke-of-beans/TRACE" target="_blank">TRACE GitHub page</a> and click the <strong>Deploy with Vercel</strong> button</p>
+<p><span class="step-num">2</span> Sign in with GitHub (create a free account if needed)</p>
+<p><span class="step-num">3</span> Paste your database connection string when asked for <code>DATABASE_URL</code></p>
+<p><span class="step-num">4</span> Click <strong>Deploy</strong>. Build takes about 2 minutes.</p>
+</div>
+<p>After deployment, Vercel gives you a URL like <code>trace-abc123.vercel.app</code>. Bookmark it — this is your chapter's home.</p>
+
+<h2>Step 3: Create Database Tables</h2>
+<div class="step">
+<p><span class="step-num">1</span> Go back to <a href="https://console.neon.tech" target="_blank">Neon</a> and open your project</p>
+<p><span class="step-num">2</span> Click <strong>SQL Editor</strong> in the sidebar</p>
+<p><span class="step-num">3</span> Open <a href="https://github.com/duke-of-beans/TRACE/blob/main/setup.sql" target="_blank">setup.sql</a> from GitHub, copy the entire file</p>
+<p><span class="step-num">4</span> Paste into the SQL Editor, click <strong>Run</strong></p>
+</div>
+<div class="note">You'll see "CREATE TABLE" confirmations. "Already exists" messages are fine — the script is safe to run multiple times.</div>
+
+<h2>Step 4: Create Your Operator Account</h2>
+<div class="step">
+<p><span class="step-num">1</span> Go to <code>your-app.vercel.app/operator/</code></p>
+<p><span class="step-num">2</span> You'll see a <strong>First-Time Setup</strong> screen</p>
+<p><span class="step-num">3</span> Enter your chapter name (e.g., "Westside Watch")</p>
+<p><span class="step-num">4</span> Choose a callsign — your operator code name</p>
+<p><span class="step-num">5</span> Set an access code (6+ characters)</p>
+</div>
+<div class="note warn">TRACE uses callsigns instead of email addresses to protect operator identity. Even if the database were compromised, attackers would find code names, not real people.</div>
+
+<h2>Step 5: Invite Reporters</h2>
+<div class="step">
+<p><span class="step-num">1</span> In the operator console, click <strong>Admin</strong></p>
+<p><span class="step-num">2</span> Go to <strong>Reporters</strong></p>
+<p><span class="step-num">3</span> Enter a callsign for the reporter (code name only)</p>
+<p><span class="step-num">4</span> Click <strong>Generate Invite Code</strong></p>
+<p><span class="step-num">5</span> Send the code to your reporter via Signal, WhatsApp, or in person</p>
 </div>
 
-<!-- STEP 1 -->
-<div class="step" id="step-1">
-  <div class="step-header"><span class="step-number">01</span><div class="step-rule"></div></div>
-  <h2>Create the database</h2>
-  <p>The database stores all sighting records, vehicle profiles, dispatch events, and accounts. Neon hosts PostgreSQL databases with encryption at rest (AES-256) and in transit (TLS 1.3). SOC 2 Type II certified. Free tier covers chapters with up to 50 reporters. Your database is isolated to your account. Neon staff cannot read your data without your connection credentials.</p>
+<h2>Step 6: Install on Phones</h2>
+<h3>iPhone (Safari only)</h3>
+<p>Open your TRACE URL in Safari. Tap Share → Add to Home Screen → Add.</p>
+<h3>Android (Chrome)</h3>
+<p>Open your TRACE URL in Chrome. Tap three-dot menu → Add to Home Screen → Add.</p>
+<div class="note">The app installs from the browser — no App Store or Google Play required. No review process, no trail in purchase history.</div>
 
-  <ol class="instructions">
-    <li>Go to <strong><a href="https://neon.tech" target="_blank">neon.tech</a></strong> and click <strong>Sign Up</strong>. Google account works, or use a separate email and password.</li>
-    <li>Click <strong>New Project</strong>. Name it anything. Pick the region closest to your area.</li>
-    <li>After creation, you will see a <strong>Connection String</strong> in the dashboard. Make sure the connection type says <strong>Pooled</strong> (not "Direct"). Copy the full string. It starts with <code>postgresql://</code> and contains the word <code>pooler</code>.</li>
-  </ol>
-
-  <div class="mockup">
-    <div class="mockup-header">
-      <div class="mockup-dot" style="background:#ff5f56"></div>
-      <div class="mockup-dot" style="background:#ffbd2e"></div>
-      <div class="mockup-dot" style="background:#27c93f"></div>
-      <div class="mockup-url">console.neon.tech</div>
-    </div>
-    <div class="mockup-label">What you will see</div>
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
-      <div style="width:7px;height:7px;border-radius:50%;background:var(--success)"></div>
-      <span style="font-size:13px;font-weight:600;">Project ready</span>
-    </div>
-    <div class="mock-label">Connection String</div>
-    <div style="display:flex;gap:8px;align-items:center;">
-      <div class="mock-input" style="margin:0;flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">postgresql://neondb_owner:abc123@ep-cool-frost-12345.neon.tech/neondb?sslmode=require</div>
-      <div style="background:var(--accent);color:var(--accent-text);padding:7px 14px;border-radius:6px;font-size:11px;font-weight:700;white-space:nowrap;">Copy</div>
-    </div>
-  </div>
-
-  <div class="callout">
-    <strong>Connection string</strong> is the address and credential for your database. TRACE uses it to read and write records. Do not share it publicly. Anyone with this string has full access to your database.
-  </div>
+<h2>Operator Console Pages</h2>
+<div class="pages">
+<div class="page-card"><span class="icon">📊</span><h4>Dashboard</h4><p>At-a-glance stats and status</p></div>
+<div class="page-card"><span class="icon">⚡</span><h4>Triage</h4><p>Review incoming sightings</p></div>
+<div class="page-card"><span class="icon">🗺️</span><h4>Activity Map</h4><p>Geospatial view with heatmap</p></div>
+<div class="page-card"><span class="icon">📻</span><h4>Dispatches</h4><p>Field alerts and pins</p></div>
+<div class="page-card"><span class="icon">📋</span><h4>Incidents</h4><p>Structured event reports</p></div>
+<div class="page-card"><span class="icon">⚠️</span><h4>Harassment</h4><p>Phone number reports</p></div>
+<div class="page-card"><span class="icon">🚗</span><h4>Vehicles</h4><p>Vehicle records and history</p></div>
+<div class="page-card"><span class="icon">👤</span><h4>Actors</h4><p>Person profiles</p></div>
+<div class="page-card"><span class="icon">⚙️</span><h4>Admin</h4><p>Chapter configuration</p></div>
+<div class="page-card"><span class="icon">🛡️</span><h4>Security</h4><p>Device control and kill switches</p></div>
 </div>
 
-<!-- STEP 2 -->
-<div class="step" id="step-2">
-  <div class="step-header"><span class="step-number">02</span><div class="step-rule"></div></div>
-  <h2>Deploy the application</h2>
-  <p>The Deploy button below does three things automatically: it copies the TRACE code to your GitHub account, connects it to Vercel, and builds your website. You do not need to download or install anything. The entire application runs in the cloud on your accounts.</p>
-  <p>Vercel serves the application over HTTPS. Each request runs in an isolated serverless function. Free tier supports thousands of daily requests.</p>
-
-  <ol class="instructions">
-    <li>Click the <strong>Deploy</strong> button below. It opens Vercel.</li>
-    <li>Sign in with <strong>GitHub</strong>. If you do not have an account, create one. It requires an email and password.</li>
-    <li>Vercel asks for <strong>DATABASE_URL</strong>. Paste the connection string from Step 1.</li>
-    <li>Click <strong>Deploy</strong>. Build takes about 2 minutes.</li>
-  </ol>
-
-  <div style="text-align:center;margin:20px 0;">
-    <a href="https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fduke-of-beans%2FTRACE&env=DATABASE_URL&envDescription=Paste%20your%20Neon%20connection%20string%20here&envLink=https%3A%2F%2Fneon.tech&project-name=trace&repository-name=TRACE"
-       target="_blank"
-       style="display:inline-block;background:var(--text);color:var(--bg);padding:12px 28px;border-radius:6px;font-size:14px;font-weight:700;text-decoration:none;">
-      Deploy with Vercel
-    </a>
-  </div>
-
-  <div class="mockup">
-    <div class="mockup-header">
-      <div class="mockup-dot" style="background:#ff5f56"></div>
-      <div class="mockup-dot" style="background:#ffbd2e"></div>
-      <div class="mockup-dot" style="background:#27c93f"></div>
-      <div class="mockup-url">vercel.com</div>
-    </div>
-    <div class="mockup-label">What Vercel asks</div>
-    <div class="mock-label">DATABASE_URL</div>
-    <div class="mock-input">postgresql://neondb_owner:abc123@ep-cool-...</div>
-    <div style="font-size:10px;color:var(--text-muted);margin-bottom:14px;">Paste your Neon connection string here</div>
-    <div class="mock-btn">Deploy</div>
-  </div>
-
-  <div class="callout">
-    <strong>After deployment,</strong> Vercel provides a URL like <code>trace-abc123.vercel.app</code>. This is your TRACE instance. Bookmark it. This is also the URL reporters will use.
-  </div>
+<h2>Production Hardening</h2>
+<p>Before giving anyone access, set these environment variables in your Vercel dashboard:</p>
+<div class="step">
+<p><code>TRACE_DISABLE_DEV_LOGIN=true</code> — Disables the development login bypass</p>
+<p><code>TRACE_DISABLE_TEST_CODE=true</code> — Disables test invite codes</p>
+<p><code>CORS_ORIGINS=https://your-app.vercel.app</code> — Restricts API access to your domain</p>
 </div>
 
-<!-- STEP 3 -->
-<div class="step" id="step-3">
-  <div class="step-header"><span class="step-number">03</span><div class="step-rule"></div></div>
-  <h2>Create the database tables</h2>
-  <p>The database from Step 1 is empty. This creates the table structure for sightings, vehicles, dispatches, and accounts. Paste one file into the Neon SQL editor and run it. One time only. Takes 30 seconds.</p>
+<h2>Need Help?</h2>
+<p>File an issue on <a href="https://github.com/duke-of-beans/TRACE/issues" target="_blank">GitHub</a> or use the bug report button in the operator console sidebar.</p>
 
-  <ol class="instructions">
-    <li>Go back to <strong><a href="https://console.neon.tech" target="_blank">Neon</a></strong> and click your project.</li>
-    <li>Click <strong>SQL Editor</strong> in the left sidebar.</li>
-    <li>Open <strong><a href="https://github.com/duke-of-beans/TRACE/blob/main/setup.sql" target="_blank">this file</a></strong> on GitHub. Click the <strong>copy icon</strong> in the toolbar above the code (looks like two overlapping squares).</li>
-    <li>Paste the entire contents into the Neon SQL Editor.</li>
-    <li>Click <strong>Run</strong>.</li>
-  </ol>
-
-  <div class="mockup">
-    <div class="mockup-header">
-      <div class="mockup-dot" style="background:#ff5f56"></div>
-      <div class="mockup-dot" style="background:#ffbd2e"></div>
-      <div class="mockup-dot" style="background:#27c93f"></div>
-      <div class="mockup-url">console.neon.tech &rsaquo; SQL Editor</div>
-    </div>
-    <div style="background:var(--bg);border-radius:6px;padding:14px;font-family:var(--font-mono);font-size:10px;color:var(--accent);margin-bottom:10px;max-height:80px;overflow:hidden;position:relative;">
-      <div style="opacity:0.7">CREATE SCHEMA IF NOT EXISTS "ops";</div>
-      <div style="opacity:0.7">CREATE SCHEMA IF NOT EXISTS "ident";</div>
-      <div style="opacity:0.5">-- ... (the rest of the file) ...</div>
-      <div style="position:absolute;bottom:0;left:0;right:0;height:24px;background:linear-gradient(transparent,var(--surface))"></div>
-    </div>
-    <div class="mock-btn" style="width:auto;display:inline-block;padding:6px 20px;font-size:12px;">Run</div>
-  </div>
-
-  <div class="callout">
-    <strong>Expected output:</strong> a series of CREATE TABLE statements. Errors about objects "already existing" are normal. The file is safe to run multiple times.
-  </div>
+<div style="margin-top:48px;padding-top:16px;border-top:1px solid #1e293b;font-size:11px;color:#475569">
+TRACE — Tracking, Reporting, Analysis & Community Evidence
 </div>
-
-<!-- STEP 4 -->
-<div class="step" id="step-4">
-  <div class="step-header"><span class="step-number">04</span><div class="step-rule"></div></div>
-  <h2>Create the operator account</h2>
-  <p>The operator console is a website, not installed software. Open it in any browser on any computer. Nothing is stored on your machine. All data lives in the database from Step 1.</p>
-  <p>TRACE does not use email addresses or real names for accounts. Operators authenticate with a <strong>callsign</strong> (a code name) and an <strong>access code</strong> (a passphrase, 6+ characters). No identifying information enters the system. If the database were compromised, an attacker would find callsigns, not people.</p>
-  <p>This screen appears once, on first access. After the first operator is created, it becomes a standard login.</p>
-
-  <ol class="instructions">
-    <li>Open your Vercel URL from Step 2 and add <code>/operator/</code> to the end. Example: if your URL is <code>trace-abc123.vercel.app</code>, go to <code>trace-abc123.vercel.app/operator/</code></li>
-    <li>The <strong>First-Time Setup</strong> screen appears automatically (because no operators exist yet).</li>
-    <li>Enter a <strong>chapter name</strong> (e.g. "Westside Watch")</li>
-    <li>Choose a <strong>callsign</strong> (your operator code name, e.g. "ALPHA" or "DISPATCH-1")</li>
-    <li>Choose an <strong>access code</strong> (passphrase, at least 6 characters). Store this securely.</li>
-    <li>Click <strong>Create Operator &amp; Start</strong></li>
-  </ol>
-
-  <div class="mockup">
-    <div class="mockup-header">
-      <div class="mockup-dot" style="background:#ff5f56"></div>
-      <div class="mockup-dot" style="background:#ffbd2e"></div>
-      <div class="mockup-dot" style="background:#27c93f"></div>
-      <div class="mockup-url">your-app.vercel.app/operator/</div>
-    </div>
-    <div style="text-align:center;margin-bottom:16px;">
-      <div style="font-family:'Exo 2',system-ui,sans-serif;font-weight:100;font-size:24px;letter-spacing:0.22em;color:var(--accent);">TRACE</div>
-      <div style="font-size:8px;letter-spacing:0.12em;color:var(--text-muted);text-transform:uppercase;margin-top:4px;">First-Time Setup</div>
-    </div>
-    <div class="mock-label">Chapter Name</div>
-    <div class="mock-input">Westside Watch</div>
-    <div class="mock-label">Callsign</div>
-    <div class="mock-input" style="text-transform:uppercase;letter-spacing:2px;">ALPHA</div>
-    <div class="mock-label">Access Code</div>
-    <div class="mock-input" style="letter-spacing:3px;">********</div>
-    <div class="mock-btn">Create Operator &amp; Start</div>
-  </div>
-
-  <div class="callout">
-    <strong>After login,</strong> the operator console loads with a walkthrough covering each section. You can skip it and access it later from the sidebar.
-  </div>
 </div>
-
-<!-- STEP 5 -->
-<div class="step" id="step-5">
-  <div class="step-header"><span class="step-number">05</span><div class="step-rule"></div></div>
-  <h2>Invite reporters</h2>
-  <p>Reporters do not create accounts with email or phone numbers. The operator generates a one-time invite code and delivers it directly (in person or via encrypted channel). The code is single-use and expires in 7 days. No email, phone number, or real name enters the system at any point.</p>
-
-  <ol class="instructions">
-    <li>In the operator console, click <strong>Admin</strong> in the left sidebar.</li>
-    <li>Click the <strong>Reporters</strong> tab.</li>
-    <li>Type a <strong>callsign</strong> for the reporter. Code name, not real name. (e.g. "SCOUT-1")</li>
-    <li>Click <strong>Generate Invite Code</strong>.</li>
-    <li>Deliver the code to the reporter via Signal or in person.</li>
-  </ol>
-
-  <div class="mockup">
-    <div class="mockup-header">
-      <div class="mockup-dot" style="background:#ff5f56"></div>
-      <div class="mockup-dot" style="background:#ffbd2e"></div>
-      <div class="mockup-dot" style="background:#27c93f"></div>
-      <div class="mockup-url">operator &rsaquo; Admin &rsaquo; Reporters</div>
-    </div>
-    <div class="mock-label">Reporter Callsign</div>
-    <div class="mock-input" style="text-transform:uppercase;letter-spacing:1px;">SCOUT-1</div>
-    <div class="mock-btn" style="margin-bottom:14px;">Generate Invite Code</div>
-    <div style="background:var(--bg);border-radius:6px;padding:14px;text-align:center;">
-      <div style="font-size:9px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px;">Invite Code for SCOUT-1</div>
-      <div style="font-family:var(--font-mono);font-size:24px;font-weight:700;letter-spacing:0.15em;color:var(--accent);">KXMP-7VNQ</div>
-      <div style="font-size:10px;color:var(--text-muted);margin-top:6px;">Single use. Expires in 7 days.</div>
-    </div>
-  </div>
-
-  <div class="callout-warn callout">
-    <strong>Deliver codes through encrypted channels only.</strong> Signal, in person, or encrypted email. Do not post codes in group chats or public channels.
-  </div>
-</div>
-
-<!-- STEP 6 -->
-<div class="step" id="step-6">
-  <div class="step-header"><span class="step-number">06</span><div class="step-rule"></div></div>
-  <h2>Reporter app installation</h2>
-  <p>TRACE is a Progressive Web App. It installs from the browser directly to the home screen. No App Store. No Google Play. No download history. No app purchase record. Once installed, it runs full-screen with push notifications.</p>
-
-  <div style="display:flex;gap:20px;justify-content:center;flex-wrap:wrap;margin:28px 0;">
-    <div>
-      <div style="text-align:center;margin-bottom:6px;">
-        <span style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.1em;">iPhone (Safari)</span>
-      </div>
-      <div class="phone-frame">
-        <div class="phone-notch"></div>
-        <div class="phone-screen">
-          <div style="text-align:center;">
-            <div style="font-family:'Exo 2',system-ui,sans-serif;font-weight:100;font-size:16px;letter-spacing:0.22em;color:var(--accent);margin-bottom:14px;">TRACE</div>
-            <div style="font-size:9px;color:var(--text-muted);margin-bottom:16px;">Enter invite code</div>
-            <div class="mock-input" style="font-size:14px;text-align:center;letter-spacing:3px;padding:6px;">KXMP-7VNQ</div>
-            <div class="mock-btn" style="font-size:10px;padding:6px;margin-top:6px;">Join Chapter</div>
-          </div>
-        </div>
-      </div>
-      <div style="text-align:center;margin-top:10px;max-width:200px;">
-        <div style="font-size:10px;color:var(--text-sec);line-height:1.6;">
-          Tap <strong style="color:var(--text)">Share</strong> button,<br>
-          <strong style="color:var(--text)">Add to Home Screen</strong>,<br>
-          <strong style="color:var(--text)">Add</strong>
-        </div>
-      </div>
-    </div>
-
-    <div>
-      <div style="text-align:center;margin-bottom:6px;">
-        <span style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.1em;">Android (Chrome)</span>
-      </div>
-      <div class="phone-frame">
-        <div class="phone-notch"></div>
-        <div class="phone-screen">
-          <div style="text-align:center;">
-            <div style="font-family:'Exo 2',system-ui,sans-serif;font-weight:100;font-size:16px;letter-spacing:0.22em;color:var(--accent);margin-bottom:14px;">TRACE</div>
-            <div style="font-size:9px;color:var(--text-muted);margin-bottom:16px;">Enter invite code</div>
-            <div class="mock-input" style="font-size:14px;text-align:center;letter-spacing:3px;padding:6px;">KXMP-7VNQ</div>
-            <div class="mock-btn" style="font-size:10px;padding:6px;margin-top:6px;">Join Chapter</div>
-          </div>
-        </div>
-      </div>
-      <div style="text-align:center;margin-top:10px;max-width:200px;">
-        <div style="font-size:10px;color:var(--text-sec);line-height:1.6;">
-          Tap <strong style="color:var(--text)">three-dot menu</strong>,<br>
-          <strong style="color:var(--text)">Add to Home Screen</strong>,<br>
-          <strong style="color:var(--text)">Add</strong>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="callout">
-    <strong>Message to send your reporter:</strong><br>
-    <div style="background:var(--bg);border-radius:6px;padding:10px 14px;margin-top:6px;font-size:12px;line-height:1.7;">
-      Open this link on your phone:<br>
-      <span style="color:var(--accent);">your-app.vercel.app</span><br><br>
-      Add it to your home screen.<br>
-      Your invite code is: <strong style="color:var(--accent);font-family:var(--font-mono);">KXMP-7VNQ</strong>
-    </div>
-  </div>
-</div>
-
-<!-- STEP 7 (OPTIONAL) -->
-<div class="step" id="step-7">
-  <div class="step-header"><span class="step-number">07</span><div class="step-rule"></div></div>
-  <h2>Optional: Configure integrations</h2>
-  <p>TRACE works without external services. These integrations are optional and add automatic vehicle identification and caller lookup. Skip this step if you do not need them. You can return to this later.</p>
-
-  <h3 style="font-size:14px;margin-top:24px;margin-bottom:8px;">CarAPI (plate lookup)</h3>
-  <p>When a reporter enters a license plate, TRACE checks the chapter database for free. With a CarAPI key, plates that are not in the database are resolved to a year, make, model, and color. This costs approximately $0.30 per lookup. Reporters see the result immediately in the field.</p>
-  <ol class="instructions">
-    <li>Create an account at <strong><a href="https://carapi.app" target="_blank">carapi.app</a></strong></li>
-    <li>Get an API token from the dashboard.</li>
-    <li>In the operator console, go to <strong>Admin</strong>, then the <strong>Integrations</strong> tab.</li>
-    <li>Click <strong>Configure</strong> on the CarAPI card, paste the token, and click <strong>Save</strong>.</li>
-    <li>Click <strong>Test</strong> to verify the connection.</li>
-  </ol>
-
-  <h3 style="font-size:14px;margin-top:24px;margin-bottom:8px;">Spokeo (caller identification)</h3>
-  <p>When reporters submit harassing phone numbers through the Alert tab, the operator reviews them in the Harassment section. With a Spokeo API key, the operator can click <strong>Identify Caller</strong> to look up the name, carrier, address, and spam risk for a phone number. Without Spokeo, operators review and tag reports manually.</p>
-  <ol class="instructions">
-    <li>Create an account at <strong><a href="https://www.spokeo.com" target="_blank">spokeo.com</a></strong> and obtain API access.</li>
-    <li>In the operator console, go to <strong>Admin</strong>, then the <strong>Integrations</strong> tab.</li>
-    <li>Click <strong>Configure</strong> on the Spokeo card, paste the key, and click <strong>Save</strong>.</li>
-    <li>Click <strong>Test</strong> to verify the connection.</li>
-  </ol>
-
-  <div class="callout">
-    <strong>All integrations are metered.</strong> The Integrations tab shows how many lookups have been used this month. API keys are encrypted at rest on the server. Each chapter has its own keys. Removing a key stops all lookups for that service immediately.
-  </div>
-</div>
-
-<!-- DONE -->
-<div id="complete" style="text-align:center;padding:36px 0 16px;border-top:1px solid var(--border);margin-top:16px;">
-  <h2 style="font-size:20px;margin-bottom:10px;">Setup complete.</h2>
-  <p style="color:var(--text-sec);font-size:14px;max-width:380px;margin:0 auto;line-height:1.7;">
-    The chapter is operational. Reporters submit sightings from their phones. The operator console receives them for triage, dispatch, and tracking.
-  </p>
-</div>
-
-<!-- FAQ -->
-<div style="margin-top:40px;margin-bottom:40px;">
-  <h3 style="font-size:15px;margin-bottom:14px;color:var(--text-muted);">Common Questions</h3>
-
-  <details style="margin-bottom:10px;border:1px solid var(--border);border-radius:6px;padding:10px 14px;">
-    <summary style="font-size:13px;font-weight:600;color:var(--text-sec);">Connection failed on login</summary>
-    <p style="font-size:12px;color:var(--text-muted);margin-top:6px;">Verify DATABASE_URL in Vercel. Go to your Vercel project, Settings, Environment Variables. The value should start with <code>postgresql://</code> and contain the word <code>pooler</code>. If it does not contain <code>pooler</code>, go back to Neon, switch to the Pooled connection string, copy it, and update the Vercel environment variable. Redeploy after changing it (Deployments tab, three-dot menu on the latest, Redeploy).</p>
-  </details>
-
-  <details style="margin-bottom:10px;border:1px solid var(--border);border-radius:6px;padding:10px 14px;">
-    <summary style="font-size:13px;font-weight:600;color:var(--text-sec);">Reporter cannot install on iPhone</summary>
-    <p style="font-size:12px;color:var(--text-muted);margin-top:6px;">Must use Safari. Chrome on iPhone does not support PWA installation. Open the URL in Safari, tap Share, then Add to Home Screen.</p>
-  </details>
-
-  <details style="margin-bottom:10px;border:1px solid var(--border);border-radius:6px;padding:10px 14px;">
-    <summary style="font-size:13px;font-weight:600;color:var(--text-sec);">Invite code not working</summary>
-    <p style="font-size:12px;color:var(--text-muted);margin-top:6px;">Codes expire after 7 days and can only be used once. Generate a new one from Admin, Reporters tab.</p>
-  </details>
-
-  <details style="margin-bottom:10px;border:1px solid var(--border);border-radius:6px;padding:10px 14px;">
-    <summary style="font-size:13px;font-weight:600;color:var(--text-sec);">Setup screen did not appear at /operator/</summary>
-    <p style="font-size:12px;color:var(--text-muted);margin-top:6px;">The First-Time Setup screen only appears when zero operators exist in the database. If you see a login screen instead, an operator was already created (possibly from a previous attempt). Try logging in with the callsign and access code you chose. If you do not remember them, you will need to delete the Neon project and start over from Step 1.</p>
-  </details>
-
-  <details style="margin-bottom:10px;border:1px solid var(--border);border-radius:6px;padding:10px 14px;">
-    <summary style="font-size:13px;font-weight:600;color:var(--text-sec);">Adding more operators</summary>
-    <p style="font-size:12px;color:var(--text-muted);margin-top:6px;">Admin, Operators tab, Add Operator. Each operator gets their own callsign and access code.</p>
-  </details>
-
-  <details style="margin-bottom:10px;border:1px solid var(--border);border-radius:6px;padding:10px 14px;">
-    <summary style="font-size:13px;font-weight:600;color:var(--text-sec);">Updating TRACE</summary>
-    <p style="font-size:12px;color:var(--text-muted);margin-top:6px;">When the Deploy button ran in Step 2, it created a copy of the TRACE code in your GitHub account. To get updates: go to github.com, open your TRACE repository, and look for a banner that says "This branch is X commits behind." Click <strong>Sync fork</strong>, then <strong>Update branch</strong>. Vercel detects the change and deploys automatically. Your data in Neon is unaffected.</p>
-  </details>
-
-  <h3 style="font-size:15px;margin-bottom:14px;margin-top:28px;color:var(--text-muted);">Accounts and Security</h3>
-
-  <details style="margin-bottom:10px;border:1px solid var(--border);border-radius:6px;padding:10px 14px;">
-    <summary style="font-size:13px;font-weight:600;color:var(--text-sec);">What accounts were created</summary>
-    <div style="font-size:12px;color:var(--text-muted);margin-top:6px;line-height:1.7;">
-      <p style="margin-bottom:6px;"><strong style="color:var(--text-sec)">Neon</strong> stores the database. <a href="https://console.neon.tech" target="_blank">console.neon.tech</a></p>
-      <p style="margin-bottom:6px;"><strong style="color:var(--text-sec)">Vercel</strong> serves the application. <a href="https://vercel.com/dashboard" target="_blank">vercel.com/dashboard</a></p>
-      <p><strong style="color:var(--text-sec)">GitHub</strong> stores the source code. Not used after initial deployment. <a href="https://github.com" target="_blank">github.com</a></p>
-    </div>
-  </details>
-
-  <details style="margin-bottom:10px;border:1px solid var(--border);border-radius:6px;padding:10px 14px;">
-    <summary style="font-size:13px;font-weight:600;color:var(--text-sec);">How data is stored</summary>
-    <div style="font-size:12px;color:var(--text-muted);margin-top:6px;line-height:1.7;">
-      <p style="margin-bottom:6px;">All data is in your Neon database. Neon encrypts at rest (AES-256) and in transit (TLS 1.3). SOC 2 Type II certified. Your database is isolated to your account.</p>
-      <p>TRACE separates reporter identities from sighting data at the database level. Sighting records, vehicle profiles, and dispatch events are in one schema. Reporter identity mappings are in a separate, isolated schema. A full export of the sighting data reveals zero real identities. The separation is structural, not policy.</p>
-    </div>
-  </details>
-
-  <details style="margin-bottom:10px;border:1px solid var(--border);border-radius:6px;padding:10px 14px;">
-    <summary style="font-size:13px;font-weight:600;color:var(--text-sec);">Who can access the URL</summary>
-    <p style="font-size:12px;color:var(--text-muted);margin-top:6px;line-height:1.7;">The Vercel URL is not indexed by search engines or listed in any directory. The reporter app requires a valid invite code. The operator console requires a callsign and access code. An unauthenticated visitor sees a login screen and nothing else.</p>
-  </details>
-
-  <details style="margin-bottom:10px;border:1px solid var(--border);border-radius:6px;padding:10px 14px;">
-    <summary style="font-size:13px;font-weight:600;color:var(--text-sec);">Shutting down and deleting all data</summary>
-    <div style="font-size:12px;color:var(--text-muted);margin-top:6px;line-height:1.7;">
-      <p style="margin-bottom:6px;">Three steps remove all data from all servers:</p>
-      <p style="margin-bottom:4px;"><strong style="color:var(--text-sec)">1. Delete the Neon project</strong> at <a href="https://console.neon.tech" target="_blank">console.neon.tech</a>. Project, Settings, Delete Project. Destroys all records permanently.</p>
-      <p style="margin-bottom:4px;"><strong style="color:var(--text-sec)">2. Delete the Vercel project</strong> at <a href="https://vercel.com/dashboard" target="_blank">vercel.com/dashboard</a>. Project, Settings, scroll to bottom, Delete Project. The application goes offline immediately.</p>
-      <p style="margin-bottom:4px;"><strong style="color:var(--text-sec)">3. Delete the GitHub repository</strong> (optional). Repository, Settings, scroll to bottom, Delete this repository.</p>
-      <p>After these steps, no data from the chapter exists on any server. Reporter apps stop functioning immediately.</p>
-    </div>
-  </details>
-
-  <details style="margin-bottom:10px;border:1px solid var(--border);border-radius:6px;padding:10px 14px;">
-    <summary style="font-size:13px;font-weight:600;color:var(--text-sec);">Cost</summary>
-    <p style="font-size:12px;color:var(--text-muted);margin-top:6px;line-height:1.7;">All three services (Neon, Vercel, GitHub) have free tiers. A chapter with up to 50 reporters and thousands of sightings stays within free limits. No credit card required. Each service warns before any charges.</p>
-  </details>
-
-  <details style="margin-bottom:10px;border:1px solid var(--border);border-radius:6px;padding:10px 14px;">
-    <summary style="font-size:13px;font-weight:600;color:var(--text-sec);">What are integrations?</summary>
-    <p style="font-size:12px;color:var(--text-muted);margin-top:6px;line-height:1.7;">TRACE works without external services. Optional integrations add vehicle identification (CarAPI) and caller ID (Spokeo). Each requires an API key from the respective provider. Keys are encrypted and stored server-side. Configure them in the operator console under Admin, Integrations.</p>
-  </details>
-
-  <details style="margin-bottom:10px;border:1px solid var(--border);border-radius:6px;padding:10px 14px;">
-    <summary style="font-size:13px;font-weight:600;color:var(--text-sec);">Do I need API keys?</summary>
-    <p style="font-size:12px;color:var(--text-muted);margin-top:6px;line-height:1.7;">No. All core features work without API keys. Plate lookups check your chapter's database for free. Harassment reports work without caller ID. API keys add automatic vehicle enrichment and phone number identification for operators who want that capability.</p>
-  </details>
-
-  <details style="margin-bottom:10px;border:1px solid var(--border);border-radius:6px;padding:10px 14px;">
-    <summary style="font-size:13px;font-weight:600;color:var(--text-sec);">How do harassment reports work?</summary>
-    <p style="font-size:12px;color:var(--text-muted);margin-top:6px;line-height:1.7;">Reporters submit harassing phone numbers through the Alert tab. Numbers become entities that track how many reporters flagged them. Operators review reports in the Harassment section, tag numbers, and send responses that reporters see when they look up the same number. If Spokeo is configured, operators can identify callers directly.</p>
-  </details>
-</div>
-
-</div>
-
-<div class="footer">
-  <p style="font-family:'Exo 2',system-ui,sans-serif;font-weight:100;font-size:18px;letter-spacing:0.22em;color:var(--accent);margin-bottom:0;">TRACE</p>
-  <div style="height:1px;background:var(--accent);opacity:0.5;width:100px;margin:8px auto 0;"></div>
-  <p style="margin-top:6px;font-size:8px;letter-spacing:0.08em;text-transform:uppercase;">Tracking · Reporting · Analysis · Community Evidence</p>
-  <p style="margin-top:8px;"><a href="https://github.com/duke-of-beans/TRACE">Source</a></p>
-</div>
-
-<script>
-(function() {
-  var dots = document.querySelectorAll('.scroll-nav-dot');
-  var fill = document.getElementById('scrollFill');
-  var sections = [];
-  dots.forEach(function(dot) {
-    var id = dot.getAttribute('href').replace('#','');
-    var el = document.getElementById(id);
-    if (el) sections.push({ el: el, dot: dot });
-  });
-  if (!sections.length) return;
-
-  function update() {
-    var scrollY = window.scrollY + window.innerHeight * 0.35;
-    var docH = document.documentElement.scrollHeight - window.innerHeight;
-    var pct = Math.min(100, Math.max(0, (window.scrollY / docH) * 100));
-    if (fill) fill.style.height = pct + '%';
-
-    var activeIdx = 0;
-    for (var i = sections.length - 1; i >= 0; i--) {
-      if (scrollY >= sections[i].el.offsetTop) { activeIdx = i; break; }
-    }
-    dots.forEach(function(d) { d.classList.remove('active'); });
-    if (sections[activeIdx]) sections[activeIdx].dot.classList.add('active');
-  }
-
-  // Smooth scroll on click
-  dots.forEach(function(dot) {
-    dot.addEventListener('click', function(e) {
-      e.preventDefault();
-      var id = this.getAttribute('href').replace('#','');
-      var target = document.getElementById(id);
-      if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    });
-  });
-
-  window.addEventListener('scroll', update, { passive: true });
-  update();
-})();
-</script>
-
 </body>
 </html>
