@@ -1584,51 +1584,26 @@ function ImportAdmin() {
   return (
     <div>
       <p className="text-sm mb-4" style={{ color: "var(--text-sec)" }}>
-        Import existing vehicle data from Excel (.xlsx) or CSV files. The system auto-maps columns, previews the import, and lets you confirm before writing to the database.
+        Bring in vehicle records from a spreadsheet. Upload a file, review the preview, then confirm.
       </p>
 
-      {/* Demo data warning */}
-      {hasDemoData && (
-        <div className="rounded-lg p-4 mb-4" style={{ background: "rgba(217,119,6,0.06)", border: "1px solid rgba(217,119,6,0.3)" }}>
-          <div className="text-sm font-medium mb-1" style={{ color: "#D97706" }}>Demo data detected</div>
-          <p className="text-xs mb-3" style={{ color: "var(--text-sec)" }}>
-            Your database contains seed data (DEMO/FAKE/TEST records). Clear it before importing real data to avoid mixing test records with real intelligence.
-          </p>
-          <button onClick={handleClearDemo} disabled={clearing}
-            className="px-3 py-1.5 rounded text-xs font-medium"
-            style={{ background: "#D97706", color: "#fff" }}>
-            {clearing ? "Clearing..." : "Clear Demo Data"}
-          </button>
-          <button onClick={async () => {
-            try {
-              const res = await fetch(`${API_BASE}/import/refresh-demo`, { method: "POST", headers: authHeaders() });
-              const data = await res.json();
-              toast.success(`Refreshed ${data.refreshed} sightings to recent timestamps`);
-            } catch { toast.error("Refresh failed"); }
-          }}
-            className="px-3 py-1.5 rounded text-xs font-medium ml-2"
-            style={{ background: "var(--accent)", color: "var(--accent-text)" }}>
-            Refresh Timestamps
-          </button>
-        </div>
-      )}
-
-      {/* Demo data tools (always visible) */}
+      {/* Sample data tools */}
       <div className="rounded-lg p-4 mb-4" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
-        <div className="text-xs font-medium mb-2" style={{ color: "var(--text-sec)" }}>Demo Data</div>
+        <div className="text-sm font-medium mb-1" style={{ color: "var(--text-sec)" }}>Sample Data</div>
         <p className="text-xs mb-3" style={{ color: "var(--text-muted)" }}>
-          Refresh moves all DEMO/FAKE/TEST sighting timestamps to the last 72 hours so they appear on the Intel Map. Clear removes all demo records permanently.
+          Your database came with sample vehicles and sightings (labeled DEMO/FAKE/TEST). Use these to explore the system before adding real data.
         </p>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           <button onClick={async () => {
             setRefreshing(true); setRefreshDone(false);
             try {
               const res = await fetch(`${API_BASE}/import/refresh-demo`, { method: "POST", headers: authHeaders() });
+              if (!res.ok) throw new Error(res.statusText);
               const data = await res.json();
-              toast.success(`Refreshed ${data.refreshed} sightings`);
+              toast.success(`Updated ${data.refreshed} sample sightings`);
               setRefreshDone(true);
               setTimeout(() => setRefreshDone(false), 3000);
-            } catch { toast.error("Refresh failed"); }
+            } catch (e) { toast.error("Could not refresh. Try again."); }
             setRefreshing(false);
           }}
             disabled={refreshing}
@@ -1642,11 +1617,24 @@ function ImportAdmin() {
             {refreshing ? (
               <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
                 <span style={{ display: "inline-block", width: 12, height: 12, border: "2px solid currentColor", borderTopColor: "transparent", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
-                Refreshing...
+                Updating...
               </span>
-            ) : refreshDone ? "\u2713 Refreshed" : "Refresh Timestamps"}
+            ) : refreshDone ? "\u2713 Done" : "Make Samples Recent"}
           </button>
-          <button onClick={handleClearDemo} disabled={clearing}
+          <button onClick={async () => {
+            setClearing(true); setClearDone(false);
+            try {
+              const res = await fetch(`${API_BASE}/import/clear-demo`, { method: "POST", headers: authHeaders() });
+              if (!res.ok) throw new Error(res.statusText);
+              const data = await res.json();
+              toast.success(`Removed ${data.vehiclesCleared} vehicles, ${data.sightingsCleared} sightings`);
+              setHasDemoData(false);
+              setClearDone(true);
+              setTimeout(() => setClearDone(false), 3000);
+            } catch (e) { toast.error("Could not clear. Try again."); }
+            setClearing(false);
+          }}
+            disabled={clearing}
             className="px-3 py-1.5 rounded text-xs font-medium transition-all duration-200"
             style={{
               background: clearDone ? "rgba(22,163,74,0.15)" : "rgba(217,119,6,0.15)",
@@ -1657,9 +1645,9 @@ function ImportAdmin() {
             {clearing ? (
               <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
                 <span style={{ display: "inline-block", width: 12, height: 12, border: "2px solid currentColor", borderTopColor: "transparent", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
-                Clearing...
+                Removing...
               </span>
-            ) : clearDone ? "\u2713 Cleared" : "Clear All Demo Data"}
+            ) : clearDone ? "\u2713 Cleared" : "Remove All Samples"}
           </button>
         </div>
         <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
@@ -1667,7 +1655,10 @@ function ImportAdmin() {
 
       {/* File upload */}
       <div className="rounded-lg p-4 mb-4" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
-        <label className="text-xs font-medium block mb-2" style={{ color: "var(--text-sec)" }}>Select file</label>
+        <div className="text-sm font-medium mb-2" style={{ color: "var(--text-sec)" }}>Upload a spreadsheet</div>
+        <p className="text-xs mb-3" style={{ color: "var(--text-muted)" }}>
+          Accepts .xlsx, .xls, .csv, or .tsv files. Column names are matched automatically.
+        </p>
         <input type="file" accept=".xlsx,.xls,.csv,.tsv"
           onChange={(e) => { setFile(e.target.files?.[0] || null); setPreview(null); setResult(null); }}
           className="text-sm" style={{ color: "var(--text)" }} />
