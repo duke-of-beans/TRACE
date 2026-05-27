@@ -129,6 +129,7 @@ function ActorRecord({ actor, onUpdated, onDeactivated }: { actor: any; onUpdate
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState({ alias: "", physicalDescription: "", notes: "" });
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [lightbox, setLightbox] = useState(false);
   const photoRef = useRef<HTMLInputElement>(null);
   const toast = useToast();
   const confirm = useConfirm();
@@ -262,8 +263,11 @@ function ActorRecord({ actor, onUpdated, onDeactivated }: { actor: any; onUpdate
       }} />
       <div className="mb-4">
         {actor.photoUrl ? (
-          <div className="relative">
-            <img src={actor.photoUrl} alt={actor.alias || "Actor"} className="w-full h-48 object-cover rounded-lg" style={{ border: "1px solid var(--border)" }} />
+          <div className="relative" style={{ width: "200px" }}>
+            <div style={{ width: "200px", height: "200px", overflow: "hidden", borderRadius: "12px", border: "1px solid var(--border)", cursor: "pointer" }}
+              onClick={() => setLightbox(true)}>
+              <img src={actor.photoUrl} alt={actor.alias || "Actor"} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+            </div>
             <button onClick={() => photoRef.current?.click()}
               className="absolute bottom-2 right-2 px-2 py-1 rounded text-xs font-medium"
               style={{ background: "rgba(0,0,0,0.7)", color: "#fff" }}>
@@ -279,6 +283,16 @@ function ActorRecord({ actor, onUpdated, onDeactivated }: { actor: any; onUpdate
           </button>
         )}
       </div>
+
+      {/* Lightbox */}
+      {lightbox && actor.photoUrl && (
+        <div onClick={() => setLightbox(false)}
+          style={{ position: "fixed", inset: 0, zIndex: 1000, background: "rgba(0,0,0,0.85)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "zoom-out" }}>
+          <img src={actor.photoUrl} alt={actor.alias || ""}
+            style={{ maxWidth: "90vw", maxHeight: "90vh", objectFit: "contain", borderRadius: "8px" }}
+            onClick={(e) => e.stopPropagation()} />
+        </div>
+      )}
 
       {/* Edit form or read-only fields */}
       {editing ? (

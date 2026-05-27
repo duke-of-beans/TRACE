@@ -153,38 +153,38 @@ const now = Date.now();
 const day = 86400000;
 const hour = 3600000;
 
-// Simi Valley area: ~34.26-34.30 lat, ~-118.76 to -118.82 lng
+// McLean / Langley VA residential area: ~38.925-38.950 lat, ~-77.165 to -77.200 lng
 // Create clusters for heat map visibility + spread for corridors
 const sightingData = [
-  // CLUSTER 1: Oak Park area (hot zone — many sightings)
-  { vehicleIdx: 0, lat: 34.268, lng: -118.781, hoursAgo: 2,   notes: "DEMO: Gray Accord parked at Oak Park. Engine running.", triaged: false },
-  { vehicleIdx: 0, lat: 34.267, lng: -118.780, hoursAgo: 26,  notes: "DEMO: Same Accord, different spot in Oak Park.", triaged: true, dir: "eastbound" },
-  { vehicleIdx: 3, lat: 34.269, lng: -118.782, hoursAgo: 50,  notes: "DEMO: Red Altima circling the block near Oak Park.", triaged: true, dir: "westbound" },
-  { vehicleIdx: 4, lat: 34.268, lng: -118.783, hoursAgo: 74,  notes: "DEMO: Silver Malibu brief stop at Oak Park.", triaged: true },
-  { vehicleIdx: 0, lat: 34.270, lng: -118.780, hoursAgo: 170, notes: "DEMO: Accord night sighting near Oak Park.", triaged: true },
-  // CLUSTER 2: Main & First intersection (medium activity)
-  { vehicleIdx: 1, lat: 34.275, lng: -118.790, hoursAgo: 5,   notes: "DEMO: Black F-150 scout at Main & First.", triaged: false },
-  { vehicleIdx: 1, lat: 34.276, lng: -118.791, hoursAgo: 48,  notes: "DEMO: Scout vehicle returning eastbound on Main.", triaged: true, dir: "eastbound" },
-  { vehicleIdx: 6, lat: 34.274, lng: -118.789, hoursAgo: 96,  notes: "DEMO: Black Mercedes at Main & First, two occupants.", triaged: true },
-  { vehicleIdx: 3, lat: 34.275, lng: -118.792, hoursAgo: 200, notes: "DEMO: Red Altima quick stop near gas station.", triaged: true },
+  // CLUSTER 1: Langley Forest area (hot zone — many sightings)
+  { vehicleIdx: 0, lat: 38.937, lng: -77.184, hoursAgo: 2,   notes: "DEMO: Gray Accord parked at Langley Forest. Engine running.", triaged: false },
+  { vehicleIdx: 0, lat: 38.938, lng: -77.1830, hoursAgo: 26,  notes: "DEMO: Same Accord, different spot in Langley Forest.", triaged: true, dir: "eastbound" },
+  { vehicleIdx: 3, lat: 38.936, lng: -77.1832, hoursAgo: 50,  notes: "DEMO: Red Altima circling the block near Langley Forest.", triaged: true, dir: "westbound" },
+  { vehicleIdx: 4, lat: 38.937, lng: -77.1833, hoursAgo: 74,  notes: "DEMO: Silver Malibu brief stop at Langley Forest.", triaged: true },
+  { vehicleIdx: 0, lat: 38.940, lng: -77.1830, hoursAgo: 170, notes: "DEMO: Accord night sighting near Langley Forest.", triaged: true },
+  // CLUSTER 2: Chain Bridge & Dolley Madison intersection (medium activity)
+  { vehicleIdx: 1, lat: 38.945, lng: -77.170, hoursAgo: 5,   notes: "DEMO: Black F-150 scout at Chain Bridge & Dolley Madison.", triaged: false },
+  { vehicleIdx: 1, lat: 38.946, lng: -77.171, hoursAgo: 48,  notes: "DEMO: Scout vehicle returning eastbound on Main.", triaged: true, dir: "eastbound" },
+  { vehicleIdx: 6, lat: 38.944, lng: -77.1839, hoursAgo: 96,  notes: "DEMO: Black Mercedes at Chain Bridge & Dolley Madison, two occupants.", triaged: true },
+  { vehicleIdx: 3, lat: 38.945, lng: -77.172, hoursAgo: 200, notes: "DEMO: Red Altima quick stop near gas station.", triaged: true },
   // CLUSTER 3: North checkpoint (consistent pattern)
-  { vehicleIdx: 6, lat: 34.290, lng: -118.775, hoursAgo: 8,   notes: "DEMO: Mercedes at north checkpoint. Regular.", triaged: false },
-  { vehicleIdx: 2, lat: 34.291, lng: -118.776, hoursAgo: 36,  notes: "DEMO: White Camry with DIFFERENT plate. Plate swap?", triaged: true, dir: "northbound" },
-  { vehicleIdx: 4, lat: 34.289, lng: -118.774, hoursAgo: 120, notes: "DEMO: Malibu spotted at checkpoint. Driver matches GHOST.", triaged: true },
+  { vehicleIdx: 6, lat: 38.950, lng: -77.192, hoursAgo: 8,   notes: "DEMO: Mercedes at north checkpoint. Regular.", triaged: false },
+  { vehicleIdx: 2, lat: 38.951, lng: -77.193, hoursAgo: 36,  notes: "DEMO: White Camry with DIFFERENT plate. Plate swap?", triaged: true, dir: "northbound" },
+  { vehicleIdx: 4, lat: 38.949, lng: -77.191, hoursAgo: 120, notes: "DEMO: Malibu spotted at checkpoint. Driver matches GHOST.", triaged: true },
   // CLUSTER 4: South residential (low activity, spread out)
-  { vehicleIdx: 5, lat: 34.255, lng: -118.770, hoursAgo: 168, notes: "DEMO: Blue BMW in residential area. Belongs to resident. Cleared.", triaged: true },
-  { vehicleIdx: 7, lat: 34.258, lng: -118.795, hoursAgo: 240, notes: "DEMO: White Transit van, Amazon delivery. Cleared.", triaged: true },
-  { vehicleIdx: 3, lat: 34.256, lng: -118.810, hoursAgo: 60,  notes: "DEMO: Red Altima at school zone during pickup hours.", triaged: true, dir: "southbound" },
-  // CORRIDOR: Repeated sightings along a route (east-west on Cochran)
-  { vehicleIdx: 0, lat: 34.272, lng: -118.760, hoursAgo: 300, notes: "DEMO: Accord heading west on Cochran.", triaged: true, dir: "westbound" },
-  { vehicleIdx: 0, lat: 34.272, lng: -118.772, hoursAgo: 295, notes: "DEMO: Accord still westbound, Cochran & Sycamore.", triaged: true, dir: "westbound" },
-  { vehicleIdx: 0, lat: 34.272, lng: -118.785, hoursAgo: 290, notes: "DEMO: Accord westbound, approaching Oak Park.", triaged: true, dir: "westbound" },
-  { vehicleIdx: 0, lat: 34.272, lng: -118.798, hoursAgo: 285, notes: "DEMO: Accord passed Oak Park heading west.", triaged: true, dir: "westbound" },
+  { vehicleIdx: 5, lat: 38.926, lng: -77.1780, hoursAgo: 168, notes: "DEMO: Blue BMW in residential area. Belongs to resident. Cleared.", triaged: true },
+  { vehicleIdx: 7, lat: 38.927, lng: -77.175, hoursAgo: 240, notes: "DEMO: White Transit van, Amazon delivery. Cleared.", triaged: true },
+  { vehicleIdx: 3, lat: 38.925, lng: -77.1850, hoursAgo: 60,  notes: "DEMO: Red Altima at school zone during pickup hours.", triaged: true, dir: "southbound" },
+  // CORRIDOR: Repeated sightings along a route (east-west on Old Dominion Dr)
+  { vehicleIdx: 0, lat: 38.942, lng: -77.1650, hoursAgo: 300, notes: "DEMO: Accord heading west on Old Dominion Dr.", triaged: true, dir: "westbound" },
+  { vehicleIdx: 0, lat: 38.942, lng: -77.1782, hoursAgo: 295, notes: "DEMO: Accord still westbound, Old Dominion Dr & Kirby Rd.", triaged: true, dir: "westbound" },
+  { vehicleIdx: 0, lat: 38.942, lng: -77.1835, hoursAgo: 290, notes: "DEMO: Accord westbound, approaching Langley Forest.", triaged: true, dir: "westbound" },
+  { vehicleIdx: 0, lat: 38.942, lng: -77.178, hoursAgo: 285, notes: "DEMO: Accord passed Langley Forest heading west.", triaged: true, dir: "westbound" },
   // WIDE DATE RANGE: older sightings for time playback
-  { vehicleIdx: 4, lat: 34.280, lng: -118.770, hoursAgo: 360, notes: "DEMO: Malibu 15 days ago at stash house.", triaged: true },
-  { vehicleIdx: 1, lat: 34.260, lng: -118.800, hoursAgo: 480, notes: "DEMO: Scout 20 days ago, south patrol.", triaged: true },
-  { vehicleIdx: 3, lat: 34.285, lng: -118.785, hoursAgo: 600, notes: "DEMO: Altima 25 days ago, north area.", triaged: true },
-  { vehicleIdx: 0, lat: 34.270, lng: -118.775, hoursAgo: 720, notes: "DEMO: Accord 30 days ago, first sighting.", triaged: true },
+  { vehicleIdx: 4, lat: 38.9420, lng: -77.1780, hoursAgo: 360, notes: "DEMO: Malibu 15 days ago at stash house.", triaged: true },
+  { vehicleIdx: 1, lat: 38.9280, lng: -77.18300, hoursAgo: 480, notes: "DEMO: Scout 20 days ago, south patrol.", triaged: true },
+  { vehicleIdx: 3, lat: 38.9425, lng: -77.1835, hoursAgo: 600, notes: "DEMO: Altima 25 days ago, north area.", triaged: true },
+  { vehicleIdx: 0, lat: 38.940, lng: -77.192, hoursAgo: 720, notes: "DEMO: Accord 30 days ago, first sighting.", triaged: true },
 ];
 
 const sightingIds: string[] = [];
@@ -213,12 +213,12 @@ const plateSwapType = findType(dTypes, "Plate Swap");
 const suspActType = findType(dTypes, "Suspicious");
 
 const dispatchData = [
-  { typeId: confirmedVehicleType, status: "open",       priority: "urgent",  lat: 34.268, lng: -118.781, hoursAgo: 1, notes: "DEMO: DEMO-001 spotted at Oak Park. Respond immediately." },
-  { typeId: communityType,       status: "responding",  priority: "routine", lat: 34.275, lng: -118.790, hoursAgo: 3, notes: "DEMO: Community member called in suspicious activity on Elm St." },
-  { typeId: areaCheckType,       status: "on_scene",    priority: "routine", lat: 34.280, lng: -118.770, hoursAgo: 6, notes: "DEMO: Patrol the north parking lot area." },
-  { typeId: confirmedVehicleType, status: "closed",     priority: "urgent",  lat: 34.255, lng: -118.800, hoursAgo: 48, notes: "DEMO: DEMO-002 confirmed and tracked. No longer in area." },
-  { typeId: plateSwapType,       status: "closed",      priority: "urgent",  lat: 34.290, lng: -118.780, hoursAgo: 72, notes: "DEMO: Plate swap on DEMO-003 confirmed. Photos captured." },
-  { typeId: suspActType,         status: "expired",     priority: "routine", lat: 34.260, lng: -118.810, hoursAgo: 200, notes: "DEMO: Suspicious person near playground. Auto-expired." },
+  { typeId: confirmedVehicleType, status: "open",       priority: "urgent",  lat: 38.937, lng: -77.184, hoursAgo: 1, notes: "DEMO: DEMO-001 spotted at Langley Forest. Respond immediately." },
+  { typeId: communityType,       status: "responding",  priority: "routine", lat: 38.945, lng: -77.170, hoursAgo: 3, notes: "DEMO: Community member called in suspicious activity on Elm St." },
+  { typeId: areaCheckType,       status: "on_scene",    priority: "routine", lat: 38.9420, lng: -77.1780, hoursAgo: 6, notes: "DEMO: Patrol the north parking lot area." },
+  { typeId: confirmedVehicleType, status: "closed",     priority: "urgent",  lat: 38.926, lng: -77.18300, hoursAgo: 48, notes: "DEMO: DEMO-002 confirmed and tracked. No longer in area." },
+  { typeId: plateSwapType,       status: "closed",      priority: "urgent",  lat: 38.950, lng: -77.1830, hoursAgo: 72, notes: "DEMO: Plate swap on DEMO-003 confirmed. Photos captured." },
+  { typeId: suspActType,         status: "expired",     priority: "routine", lat: 38.9280, lng: -77.1850, hoursAgo: 200, notes: "DEMO: Suspicious person near playground. Auto-expired." },
 ];
 
 for (const d of dispatchData) {
@@ -280,7 +280,7 @@ for (const inc of incidentData) {
   const [row] = await sql`
     INSERT INTO ops.incidents (id, chapter_id, incident_type_id, status, severity, title, description, occurred_at, closed_at, lat, lng, location_description)
     VALUES (gen_random_uuid(), ${chapterId}, ${inc.typeId}, ${inc.status}, ${inc.severity}, ${inc.title}, ${inc.desc}, ${occurredAt}, ${closedAt},
-      ${34.265 + Math.random() * 0.03}, ${-118.790 + Math.random() * 0.03}, ${"Simi Valley area (DEMO)"})
+      ${38.9285 + Math.random() * 0.03}, ${-77.170 + Math.random() * 0.03}, ${"McLean VA area (DEMO)"})
     ON CONFLICT DO NOTHING RETURNING id`;
   if (row) incidentIds.push(row.id);
 }
