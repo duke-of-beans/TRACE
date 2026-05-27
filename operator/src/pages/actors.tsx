@@ -580,11 +580,11 @@ function CreateActorForm({ onCreated, onCancel }: { onCreated: (a: any) => void;
       <h2 className="text-lg font-semibold mb-4">New Actor Profile</h2>
       <div className="space-y-3">
         <div><label className="text-xs uppercase tracking-wider mb-1 block" style={{ color: "var(--text-muted)" }}>Alias</label>
-          <input value={form.alias} onChange={(e) => setForm({ ...form, alias: e.target.value })} className={inputCls} placeholder="Known name or alias" /></div>
+          <input value={form.alias} onChange={(e) => setForm({ ...form, alias: e.target.value })} className={inputCls} placeholder="Codename only. Never use real names." /></div>
         <div><label className="text-xs uppercase tracking-wider mb-1 block" style={{ color: "var(--text-muted)" }}>Physical Description</label>
           <textarea value={form.physicalDescription} onChange={(e) => setForm({ ...form, physicalDescription: e.target.value })} className={inputCls} rows={3} placeholder="Height, build, distinguishing features" /></div>
         <div><label className="text-xs uppercase tracking-wider mb-1 block" style={{ color: "var(--text-muted)" }}>Notes</label>
-          <textarea value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} className={inputCls} rows={2} placeholder="Additional intelligence" /></div>
+          <textarea value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} className={inputCls} rows={2} placeholder="Additional context or observations" /></div>
         <div className="flex gap-2 pt-2">
           <button onClick={onCancel} className="px-4 py-2 rounded-lg text-sm" style={{ border: "1px solid var(--border)", color: "var(--text-sec)" }}>Cancel</button>
           <button onClick={handleSubmit} disabled={saving} className="px-4 py-2 rounded-lg text-sm font-semibold" style={{ background: "var(--accent)", color: "var(--accent-text)" }}>
