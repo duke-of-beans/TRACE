@@ -1,6 +1,41 @@
 # TRACE — Session Handoff
-# Updated: 2026-05-26
-# Status: PHASE 1 COMPLETE, PHASE 2 READY
+# Updated: 2026-05-27 (Session 3 closeout)
+# Status: PHASES 1-8 COMPLETE + BUG SWEEP + YUMA GATE
+# Next: P0 Unified Incident System (CRITICAL - client has real incidents)
+
+---
+
+## CRITICAL CONTEXT FOR NEXT SESSION
+
+This project has a CLIENT with REAL INCIDENTS happening NOW. Tonight volunteers
+were assaulted, 3 people kidnapped, multiple actors/vehicles involved. The P0
+Unified Incident System is the highest priority feature. See full spec below.
+
+**Read the transcript:** /mnt/transcripts/ has full session history.
+
+**What works in production RIGHT NOW:**
+- Reporter PWA: submit sightings, check plates, report harassment, view map
+- Operator Console: triage, vehicles, actors, Intel Map, dispatches, harassment
+  review, admin (vehicle types, suspicion levels, integrations, import)
+- All Phase 2-8 features deployed and functional
+- YUMA gate (13 tests, 69 checks) blocks bad deploys
+
+**What needs attention:**
+- Intel Map filter bar still gets cut off in narrow split-screen
+- Seed data expanded in code (25 sightings) but DB has old 8. Fix: Admin >
+  Import > Remove All Samples, then run npm run seed against production DB
+- Reporter portal design is functional but not polished (P2)
+
+**Deploy:** deploy.bat runs YUMA then builds then pushes to both repos then deploys.
+Token is in D:\Meta\Vercel API.md (not embedded here for security).
+
+**Two entry points MUST STAY IN SYNC:**
+- src/index.ts (local dev with WebSocket)
+- api/index.ts (Vercel serverless, no WebSocket)
+- YUMA test 1 catches drift between them
+
+**Toast API:** toast("message", "type") NOT toast.success("message")
+YUMA test 13 catches this.
 
 ---
 
