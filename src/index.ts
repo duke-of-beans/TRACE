@@ -36,8 +36,18 @@ const app = new Hono();
 
 // ---------- Middleware ----------
 app.use("*", logger());
+
+// CORS: restrict to known origins in production
+const CORS_ORIGINS = (process.env.CORS_ORIGINS || "").split(",").filter(Boolean);
 app.use("*", cors({
-  origin: "*",  // lock down in production
+  origin: (origin) => {
+    if (!origin) return "*"; // allow non-browser requests (cURL, Postman)
+    if (CORS_ORIGINS.length && CORS_ORIGINS.includes(origin)) return origin;
+    if (origin.endsWith(".vercel.app")) return origin; // all Vercel preview deploys
+    if (origin.startsWith("http://localhost")) return origin; // local dev
+    if (!CORS_ORIGINS.length) return origin; // no config = allow all (dev mode)
+    return ""; // reject
+  },
   credentials: true,
 }));
 

@@ -29,7 +29,19 @@ export const config = { runtime: "nodejs" };
 
 const app = new Hono().basePath("/api/v1");
 
-app.use("*", cors({ origin: "*", credentials: true }));
+// CORS: restrict to known origins in production
+const CORS_ORIGINS = (process.env.CORS_ORIGINS || "").split(",").filter(Boolean);
+app.use("*", cors({
+  origin: (origin) => {
+    if (!origin) return "*";
+    if (CORS_ORIGINS.length && CORS_ORIGINS.includes(origin)) return origin;
+    if (origin.endsWith(".vercel.app")) return origin;
+    if (origin.startsWith("http://localhost")) return origin;
+    if (!CORS_ORIGINS.length) return origin;
+    return "";
+  },
+  credentials: true,
+}));
 
 // Health
 app.get("/health", (c) => c.json({ status: "ok", service: "trace-vercel" }));
