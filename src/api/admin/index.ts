@@ -669,3 +669,70 @@ adminRouter.put("/operators/:id/access-code", async (c) => {
   if (!updated) return c.json({ error: "Operator not found" }, 404);
   return c.json({ updated: true });
 });
+
+// ============================================================
+// BUG REPORT → GITHUB ISSUES
+// Sanitizes operator-submitted reports, creates GitHub Issues.
+// ============================================================
+const GITHUB_TOKEN = process.env.GITHUB_PAT || "";
+const GITHUB_REPO = "duke-of-beans/TRACE";
+
+adminRouter.post("/bug-report", async (c) => {
+  const body = await c.req.json();
+  const { title, description, page, severity, browser, isSecurity } = body;
+
+  if (!title || !description) return c.json({ error: "Title and description required" }, 400);
+
+  // Sanitize: strip any UUIDs, tokens, chapter IDs, reporter IDs
+  const sanitize = (s: string) =>
+    s.replace(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi, "[REDACTED-ID]")
+     .replace(/Bearer\s+\S+/gi, "[REDACTED-TOKEN]")
+     .replace(/eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+/g, "[REDACTED-JWT]");
+
+  const cleanTitle = sanitize(title);
+  const cleanDesc = sanitize(description);
+
+  const labels = ["bug", "from-app"];
+  if (severity === "critical") labels.push("priority: critical");
+  if (severity === "high") labels.push("priority: high");
+
+  // Security issues: don't post publicly, just log
+  if (isSecurity) {
+    console.error(`[SECURITY BUG REPORT] ${cleanTitle}: ${cleanDesc}`);
+    return c.json({ created: true, note: "Security reports are handled privately.", url: null });
+  }
+
+  if (!GITHUB_TOKEN) {
+    return c.json({ error: "GitHub integration not configured" }, 503);
+  }
+
+  const issueBody = [
+    `**Reported from:** ${page || "unknown page"}`,
+    `**Browser:** ${sanitize(browser || "unknown")}`,
+    `**Severity:** ${severity || "medium"}`,
+    "",
+    "---",
+    "",
+    cleanDesc,
+    "",
+    "_This issue was filed automatically from the TRACE operator console._",
+  ].join("\n");
+
+  try {
+    const res = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/issues`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${GITHUB_TOKEN}`,
+        Accept: "application/vnd.github+json",
+        "Content-Type": "application/json",
+        "X-GitHub-Api-Version": "2022-11-28",
+      },
+      body: JSON.stringify({ title: `[Bug] ${cleanTitle}`, body: issueBody, labels }),
+    });
+    const data = await res.json() as { html_url?: string; message?: string };
+    if (!res.ok) return c.json({ error: data.message || "GitHub API error" }, 502);
+    return c.json({ created: true, url: data.html_url });
+  } catch (e) {
+    return c.json({ error: "Failed to reach GitHub" }, 502);
+  }
+});

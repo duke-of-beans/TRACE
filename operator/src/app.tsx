@@ -243,19 +243,31 @@ function BugReportModal({ onClose }: { onClose: () => void }) {
   const [desc, setDesc] = useState("");
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
+  const [issueUrl, setIssueUrl] = useState<string | null>(null);
 
   const handleSubmit = async () => {
     if (!title.trim() || !desc.trim()) return;
     setSending(true);
     try {
       const token = localStorage.getItem("trace_op_token");
-      await fetch(`${import.meta.env.VITE_API_URL || "/api/v1"}/feedback`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
-        body: JSON.stringify({ type, title: title.trim(), description: desc.trim(), page: "operator", metadata: { screen: `${window.screen.width}x${window.screen.height}`, timestamp: new Date().toISOString() } }),
-      });
+      const headers: Record<string, string> = { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) };
+      if (type === "bug") {
+        // Bugs go to GitHub Issues via server-side endpoint
+        const res = await fetch(`${import.meta.env.VITE_API_URL || "/api/v1"}/admin/bug-report`, {
+          method: "POST", headers,
+          body: JSON.stringify({ title: title.trim(), description: desc.trim(), page: "operator", severity: "medium", browser: navigator.userAgent }),
+        });
+        const data = await res.json();
+        if (data.url) setIssueUrl(data.url);
+      } else {
+        // Feature requests go to internal feedback
+        await fetch(`${import.meta.env.VITE_API_URL || "/api/v1"}/feedback`, {
+          method: "POST", headers,
+          body: JSON.stringify({ type, title: title.trim(), description: desc.trim(), page: "operator", metadata: { screen: `${window.screen.width}x${window.screen.height}`, timestamp: new Date().toISOString() } }),
+        });
+      }
       setSent(true);
-      setTimeout(() => onClose(), 2000);
+      setTimeout(() => onClose(), 3000);
     } catch {}
     setSending(false);
   };
@@ -266,7 +278,14 @@ function BugReportModal({ onClose }: { onClose: () => void }) {
         {sent ? (
           <div className="text-center py-4">
             <div className="mb-2" style={{ color: "var(--accent)" }}><Icon name="check" size={28} /></div>
-            <p className="text-sm" style={{ color: "var(--text-sec)" }}>Report received. It will appear in Admin, Feedback.</p>
+            <p className="text-sm" style={{ color: "var(--text-sec)" }}>
+              {type === "bug" ? "Bug report filed." : "Feedback received."}
+            </p>
+            {issueUrl && (
+              <a href={issueUrl} target="_blank" rel="noopener" className="text-xs mt-2 inline-block" style={{ color: "var(--accent)" }}>
+                View on GitHub
+              </a>
+            )}
           </div>
         ) : (
           <>
