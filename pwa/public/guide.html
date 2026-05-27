@@ -96,20 +96,31 @@
   .hero-brand {
     font-family: 'Exo 2', system-ui, sans-serif;
     font-weight: 100;
-    font-size: 44px;
-    letter-spacing: 0.25em;
+    font-size: 40px;
+    letter-spacing: 0.22em;
     color: var(--accent);
-    margin-bottom: 8px;
+    margin-bottom: 0;
+  }
+  .hero-rule {
+    height: 1px;
+    background: var(--accent);
+    opacity: 0.5;
+    margin: 6px auto 0;
+    width: 100%;
+    max-width: 220px;
   }
   .hero-sub {
-    font-size: 12px;
-    letter-spacing: 0.12em;
+    font-size: 10px;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
     color: var(--text-muted);
+    margin-top: 8px;
     margin-bottom: 6px;
   }
   .hero-label {
     font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
     color: var(--text-muted);
     margin-bottom: 24px;
   }
@@ -126,22 +137,99 @@
     color: var(--accent);
   }
 
-  .step { margin-bottom: 56px; }
+  .step { margin-bottom: 56px; position: relative; padding-left: 56px; }
   .step-number {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 32px; height: 32px;
-    border-radius: 50%;
-    background: var(--accent);
-    color: var(--accent-text);
-    font-weight: 700;
-    font-size: 14px;
-    margin-bottom: 12px;
+    position: absolute;
+    left: 0;
+    top: 0;
+    font-family: 'Exo 2', system-ui, sans-serif;
+    font-weight: 100;
+    font-size: 36px;
+    color: var(--accent);
+    opacity: 0.25;
+    line-height: 1;
+    width: 44px;
+    text-align: center;
   }
   .step h2 { font-size: 20px; font-weight: 700; margin-bottom: 10px; }
   .step p { font-size: 14px; color: var(--text-sec); margin-bottom: 14px; line-height: 1.7; }
   .step strong { color: var(--text); }
+
+  /* Scroll progress rail — fixed right side */
+  .scroll-nav {
+    position: fixed;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0;
+  }
+  .scroll-nav-dot {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 0;
+    cursor: pointer;
+    text-decoration: none;
+  }
+  .scroll-nav-label {
+    font-size: 10px;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    opacity: 0;
+    transform: translateX(4px);
+    transition: opacity 0.2s, transform 0.2s;
+    white-space: nowrap;
+    pointer-events: none;
+  }
+  .scroll-nav-dot:hover .scroll-nav-label,
+  .scroll-nav-dot.active .scroll-nav-label {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  .scroll-nav-pip {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--border);
+    transition: background 0.2s, transform 0.2s;
+    flex-shrink: 0;
+  }
+  .scroll-nav-dot.active .scroll-nav-pip {
+    background: var(--accent);
+    transform: scale(1.5);
+  }
+  .scroll-nav-dot:hover .scroll-nav-pip {
+    background: var(--accent);
+  }
+  /* Progress line connecting dots */
+  .scroll-nav-track {
+    position: absolute;
+    right: 2px;
+    top: 6px;
+    bottom: 6px;
+    width: 2px;
+    background: var(--border);
+    border-radius: 1px;
+    z-index: -1;
+  }
+  .scroll-nav-fill {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background: var(--accent);
+    border-radius: 1px;
+    transition: height 0.15s;
+  }
+  @media (max-width: 900px) {
+    .scroll-nav { display: none; }
+    .step { padding-left: 48px; }
+    .step-number { font-size: 28px; width: 36px; }
+  }
 
   .mockup {
     background: var(--surface);
@@ -333,8 +421,21 @@ function toggleTheme() {
 applyTheme(getTheme());
 </script>
 
+<!-- Scroll progress navigation -->
+<nav class="scroll-nav" id="scrollNav" aria-label="Guide progress">
+  <div class="scroll-nav-track"><div class="scroll-nav-fill" id="scrollFill"></div></div>
+  <a class="scroll-nav-dot" href="#step-1"><span class="scroll-nav-label">Database</span><span class="scroll-nav-pip"></span></a>
+  <a class="scroll-nav-dot" href="#step-2"><span class="scroll-nav-label">Deploy</span><span class="scroll-nav-pip"></span></a>
+  <a class="scroll-nav-dot" href="#step-3"><span class="scroll-nav-label">Tables</span><span class="scroll-nav-pip"></span></a>
+  <a class="scroll-nav-dot" href="#step-4"><span class="scroll-nav-label">Operator</span><span class="scroll-nav-pip"></span></a>
+  <a class="scroll-nav-dot" href="#step-5"><span class="scroll-nav-label">Reporters</span><span class="scroll-nav-pip"></span></a>
+  <a class="scroll-nav-dot" href="#step-6"><span class="scroll-nav-label">Install</span><span class="scroll-nav-pip"></span></a>
+  <a class="scroll-nav-dot" href="#complete"><span class="scroll-nav-label">Done</span><span class="scroll-nav-pip"></span></a>
+</nav>
+
 <div class="hero">
   <div class="hero-brand">TRACE</div>
+  <div class="hero-rule"></div>
   <div class="hero-sub">Tracking · Reporting · Analysis · Community Evidence</div>
   <div class="hero-label">Chapter Setup Guide</div>
   <div class="hero-time">About 10 minutes. No coding required.</div>
@@ -373,7 +474,7 @@ applyTheme(getTheme());
 </div>
 
 <!-- STEP 1 -->
-<div class="step">
+<div class="step" id="step-1">
   <div class="step-number">1</div>
   <h2>Create the database</h2>
   <p>The database stores all sighting records, vehicle profiles, dispatch events, and accounts. Neon hosts PostgreSQL databases with encryption at rest (AES-256) and in transit (TLS 1.3). SOC 2 Type II certified. Free tier covers chapters with up to 50 reporters. Your database is isolated to your account. Neon staff cannot read your data without your connection credentials.</p>
@@ -409,7 +510,7 @@ applyTheme(getTheme());
 </div>
 
 <!-- STEP 2 -->
-<div class="step">
+<div class="step" id="step-2">
   <div class="step-number">2</div>
   <h2>Deploy the application</h2>
   <p>The Deploy button below does three things automatically: it copies the TRACE code to your GitHub account, connects it to Vercel, and builds your website. You do not need to download or install anything. The entire application runs in the cloud on your accounts.</p>
@@ -450,7 +551,7 @@ applyTheme(getTheme());
 </div>
 
 <!-- STEP 3 -->
-<div class="step">
+<div class="step" id="step-3">
   <div class="step-number">3</div>
   <h2>Create the database tables</h2>
   <p>The database from Step 1 is empty. This creates the table structure for sightings, vehicles, dispatches, and accounts. Paste one file into the Neon SQL editor and run it. One time only. Takes 30 seconds.</p>
@@ -485,7 +586,7 @@ applyTheme(getTheme());
 </div>
 
 <!-- STEP 4 -->
-<div class="step">
+<div class="step" id="step-4">
   <div class="step-number">4</div>
   <h2>Create the operator account</h2>
   <p>The operator console is a website, not installed software. Open it in any browser on any computer. Nothing is stored on your machine. All data lives in the database from Step 1.</p>
@@ -527,7 +628,7 @@ applyTheme(getTheme());
 </div>
 
 <!-- STEP 5 -->
-<div class="step">
+<div class="step" id="step-5">
   <div class="step-number">5</div>
   <h2>Invite reporters</h2>
   <p>Reporters do not create accounts with email or phone numbers. The operator generates a one-time invite code and delivers it directly (in person or via encrypted channel). The code is single-use and expires in 7 days. No email, phone number, or real name enters the system at any point.</p>
@@ -563,7 +664,7 @@ applyTheme(getTheme());
 </div>
 
 <!-- STEP 6 -->
-<div class="step">
+<div class="step" id="step-6">
   <div class="step-number">6</div>
   <h2>Reporter app installation</h2>
   <p>TRACE is a Progressive Web App. It installs from the browser directly to the home screen. No App Store. No Google Play. No download history. No app purchase record. Once installed, it runs full-screen with push notifications.</p>
@@ -630,7 +731,7 @@ applyTheme(getTheme());
 </div>
 
 <!-- DONE -->
-<div style="text-align:center;padding:36px 0 16px;border-top:1px solid var(--border);margin-top:16px;">
+<div id="complete" style="text-align:center;padding:36px 0 16px;border-top:1px solid var(--border);margin-top:16px;">
   <h2 style="font-size:20px;margin-bottom:10px;">Setup complete.</h2>
   <p style="color:var(--text-sec);font-size:14px;max-width:380px;margin:0 auto;line-height:1.7;">
     The chapter is operational. Reporters submit sightings from their phones. The operator console receives them for triage, dispatch, and tracking.
@@ -715,10 +816,52 @@ applyTheme(getTheme());
 </div>
 
 <div class="footer">
-  <p style="font-family:'Exo 2',system-ui,sans-serif;font-weight:100;font-size:18px;letter-spacing:0.2em;color:var(--accent);margin-bottom:8px;">TRACE</p>
-  <p>Tracking · Reporting · Analysis · Community Evidence</p>
-  <p style="margin-top:6px;"><a href="https://github.com/duke-of-beans/TRACE">Source</a></p>
+  <p style="font-family:'Exo 2',system-ui,sans-serif;font-weight:100;font-size:18px;letter-spacing:0.22em;color:var(--accent);margin-bottom:0;">TRACE</p>
+  <div style="height:1px;background:var(--accent);opacity:0.5;margin:4px auto 0;width:100px;"></div>
+  <p style="margin-top:6px;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;">Tracking · Reporting · Analysis · Community Evidence</p>
+  <p style="margin-top:8px;"><a href="https://github.com/duke-of-beans/TRACE">Source</a></p>
 </div>
+
+<script>
+(function() {
+  var dots = document.querySelectorAll('.scroll-nav-dot');
+  var fill = document.getElementById('scrollFill');
+  var sections = [];
+  dots.forEach(function(dot) {
+    var id = dot.getAttribute('href').replace('#','');
+    var el = document.getElementById(id);
+    if (el) sections.push({ el: el, dot: dot });
+  });
+  if (!sections.length) return;
+
+  function update() {
+    var scrollY = window.scrollY + window.innerHeight * 0.35;
+    var docH = document.documentElement.scrollHeight - window.innerHeight;
+    var pct = Math.min(100, Math.max(0, (window.scrollY / docH) * 100));
+    if (fill) fill.style.height = pct + '%';
+
+    var activeIdx = 0;
+    for (var i = sections.length - 1; i >= 0; i--) {
+      if (scrollY >= sections[i].el.offsetTop) { activeIdx = i; break; }
+    }
+    dots.forEach(function(d) { d.classList.remove('active'); });
+    if (sections[activeIdx]) sections[activeIdx].dot.classList.add('active');
+  }
+
+  // Smooth scroll on click
+  dots.forEach(function(dot) {
+    dot.addEventListener('click', function(e) {
+      e.preventDefault();
+      var id = this.getAttribute('href').replace('#','');
+      var target = document.getElementById(id);
+      if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  });
+
+  window.addEventListener('scroll', update, { passive: true });
+  update();
+})();
+</script>
 
 </body>
 </html>

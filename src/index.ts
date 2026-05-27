@@ -20,6 +20,7 @@ import { dispatchRouter } from "./api/dispatch/index.js";
 import { setupRouter } from "./api/setup/index.js";
 import { tagRouter } from "./api/tags/index.js";
 import { integrationsRouter } from "./api/integrations/index.js";
+import { importRouter } from "./api/import/index.js";
 import { closeAll } from "./db/connection.js";
 import { authMiddleware, operatorOnly, adminOnly } from "./middleware/auth.js";
 import { auditMiddleware } from "./middleware/audit.js";
@@ -114,8 +115,10 @@ api.post("/feedback", async (c) => {
 // Admin routes require operator or admin role
 api.use("/admin/*", operatorOnly);
 api.use("/integrations/*", operatorOnly);
+api.use("/import/*", operatorOnly);
 api.route("/admin", adminRouter);
 api.route("/integrations", integrationsRouter);
+api.route("/import", importRouter);
 
 app.route("/api/v1", api);
 

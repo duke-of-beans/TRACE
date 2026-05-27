@@ -1,6 +1,6 @@
 # TRACE — Session Handoff
 # Updated: 2026-05-26
-# Status: DESIGN APPROVED, READY TO BUILD
+# Status: PHASE 1 COMPLETE, PHASE 2 READY
 
 ---
 
@@ -58,55 +58,93 @@ Elm St, Kirby Rd). NOT on or near CIA campus.
 
 ## WHAT WAS COMPLETED THIS SESSION
 
-### Guide.html
-- YUMA audit: fixed pooled connection string instruction, GitHub copy button location,
-  placeholder URL clarity, bootstrap recovery FAQ, update instructions FAQ
-- Added theme toggle (moon/sun, top-right, persists to localStorage)
-- WCAG fix: --text-muted bumped to #7C8BA4 (4.7:1 contrast)
-- Exo 2 font imported for all TRACE wordmarks (hero, footer, mockups)
+### Phase 1: Schema + API Foundations (COMPLETE)
 
-### Reporter App (PWA)
-- Fixed false wipe on fresh install: isWiped() now checks for prior setup evidence
-- panic() sets trace_wiped flag that survives localStorage.clear()
-- Background lock grace period increased from 30s to 5 minutes
-- Onboarding redesigned: visual-first cards, icon circles, punchy 2-sentence copy,
-  expandable "Technical details", pill-shaped progress dots, pinned Continue button
-- Added "Something Not Working?" onboarding slide with GitHub Issues link
+**Database Schema (Drizzle + raw SQL):**
+- 5 new tables in vault-a.ts: tagDefinitions, knownNumbers, harassmentReports,
+  integrationConfig, vehicleEnrichments
+- 3 new columns on sightings: operatorTag, operatorResponse, operatorRespondedAt
+- setup.sql updated with all new DDL (idempotent CREATE IF NOT EXISTS + ALTER ADD COLUMN)
+- Migration: migrations/0005_phase1-integrations-harassment.sql
+- Seed: 18 default tag definitions (6 sighting + 6 vehicle + 6 harassment)
 
-### Operator Console
-- Guide modal z-index fixed to 9999 (was z-50, Leaflet uses 1000+)
-- Onboarding redesigned: same visual system as reporter, 8 slides
-- Added "Reporting Issues" to onboarding + operator guide
-- Intel Map: detail panels now render as overlays ON the map (not below it)
-- Intel Map: Drop Pin button floats on the map (top-left, near zoom controls)
-- Intel Map: dispatch pins use tooltip (hover) instead of popup (click)
-- Intel Map: sighting markers increased to 9px radius, color fixed to indigo
-- Intel Map: map height increased to calc(100vh - 220px)
-- Intel Map: tile toggle fixed from cyan to indigo
-- IntelMap component accepts children prop for overlay content
+**API Endpoints:**
+- GET/POST/DELETE /api/v1/tag-definitions (chapter-scoped tag management)
+- GET/PUT/DELETE /api/v1/integrations/:service (encrypted API key CRUD)
+- POST /api/v1/integrations/:service/test (service-specific connection tests)
+- PATCH /api/v1/sightings/:id/respond (operator adds tag + response)
+- GET /api/v1/sightings/mine (reporter's sightings with tag/response data)
+- GET /api/v1/import/status (check for demo data)
+- POST /api/v1/import/clear-demo (remove seed data before first real import)
+- POST /api/v1/import/preview (upload file, get mapping preview)
+- POST /api/v1/import/run (execute import from previewed file)
+- Helper exports: isIntegrationEnabled(), getApiKey(), incrementLookupCount()
 
-### Data & Coordinates
-- Default map center moved to McLean, VA (38.9310, -77.1770)
-- All demo sightings moved to McLean residential streets
-- Old Simi Valley sightings cleared from Neon via _clear_demo.ts
-- Reseeded with Langley-area coordinates
+**Route Mounting:**
+- /api/v1/tag-definitions (authenticated)
+- /api/v1/integrations (operator-only)
+- /api/v1/import (operator-only)
 
-### Repo Cleanup
-- PDFs deleted (TRACE_Chapter_Setup_Guide.pdf, TRACE_Dispatch_Design.pdf, TRACE_Overview.pdf)
-- .env.neon and utility scripts (_check.py, _clear_demo.ts, etc.) removed from git, gitignored
-- GitHub repo confirmed PUBLIC (required for deploy button flow)
+### Brand Consistency: Unified Wordmark
+
+All three portals now use the same brand lockup pattern:
+1. "TRACE" in Exo 2 Thin (100), accent color, 0.22em letter-spacing
+2. Hairline rule below (accent, 50% opacity)
+3. "Tracking · Reporting · Analysis · Community Evidence" in small uppercase
+4. Context label below (Field Reporter / Operator Console / Chapter Setup Guide)
+
+**Files changed:**
+- shared/design/wordmark.ts: unified spec, size presets (lg/md/sm)
+- pwa/src/styles.css: .wordmark classes updated, .wordmark-expansion added
+- pwa/src/components/pin-lock.tsx: accent color, expansion text added
+- operator/src/lib/auth-gate.tsx: Logo() sized to lg preset, consistent spacing
+- pwa/public/guide.html: hero updated to match (40px, rule, 10px expansion)
+- guide.html footer: consistent wordmark treatment
+
+### Guide.html Navigation Redesign
+
+- Step numbers redesigned: large Exo 2 Thin (36px) in left margin, 25% opacity
+- Steps have padding-left to create typographic gutter
+- Fixed scroll progress indicator on right side with labeled dots
+- Dots show section labels on hover, highlight active section on scroll
+- Progress fill tracks scroll position
+- Section IDs added for deep linking (#step-1 through #step-6, #complete)
+- Smooth scroll on dot click
+- Mobile responsive: scroll nav hidden below 900px, step numbers shrink
+
+### Data Import System
+
+- src/services/import/clear-demo.ts: detects and removes all DEMO/FAKE/TEST data
+  (vehicles, sightings, actors, dispatches, linked records) while preserving
+  chapter config (reporters, tags, suspicion levels, dispatch types)
+- src/api/import/index.ts: upload, preview, and import API endpoints
+- Pipeline: upload -> auto-map columns -> preview report -> confirm -> import
+- Supports .xlsx, .xls, .csv, .tsv
+- Auto-mapping handles: plate, make, model, color, year, date, time, location, notes
+- Demo data detection: hasDemoData() check before first import
+
+### Documentation Updates
+
+- README.md: added Integrations, Import, Harassment Reporting, Tags sections.
+  Fixed "ensures" voice violation.
+- CHAPTER_SETUP.md: added "Optional: Configure Integrations" and "Import Data"
+- DESIGN_SYSTEM.md: added Tag Colors section (18 tags with hex colors and use cases),
+  Unified Wordmark specification (sizes, rules, mid-dot expansion)
+
+### YUMA Audit
+
+- All new user-facing copy passes YUMA (no forbidden phrases, no em dashes,
+  no celebration language, no security theater)
+- Fixed pre-existing "ensures" violation in README.md project description
 
 ---
 
 ## WHAT REMAINS TO BUILD
 
-All remaining work is documented in: **D:\Projects\TRACE\docs\FEATURE_DESIGN.md** (813 lines)
+All remaining work is documented in: **D:\Projects\TRACE\docs\FEATURE_DESIGN.md** (927 lines)
 
-### Phase 1: Schema + API Foundations
-- New tables: harassment_reports, integration_config, tag_definitions, vehicle_enrichments
-- Add operator_tag, operator_response, operator_responded_at columns to sightings
-- Update setup.sql with all new tables
-- Seed default tag definitions per chapter
+### Phase 1: Schema + API Foundations — COMPLETE
+- All tables, columns, migration, seed, and API endpoints shipped.
 
 ### Phase 2: Reporter Plate Lookup (HIGHEST VALUE)
 - Two-tier lookup: Tier 1 = TRACE database, Tier 2 = CarAPI (if configured)
@@ -198,25 +236,28 @@ All remaining work is documented in: **D:\Projects\TRACE\docs\FEATURE_DESIGN.md*
 
 ```
 D:\Projects\TRACE\
-  docs/FEATURE_DESIGN.md         ← MASTER DESIGN DOC (813 lines, approved)
-  docs/CHAPTER_SETUP.md          Detailed setup guide
-  DESIGN_SYSTEM.md               Brand colors, typography, patterns
+  docs/FEATURE_DESIGN.md         ← MASTER DESIGN DOC (927 lines, approved)
+  docs/CHAPTER_SETUP.md          Detailed setup guide (updated: integrations, import)
+  DESIGN_SYSTEM.md               Brand colors, typography, patterns (updated: tags, wordmark)
   VOICE_GUIDE.md                 Copy voice rules, forbidden patterns
   DEPENDENCIES.md                Blast radius graph
   CONTRIBUTING.md                Dev setup guide
-  setup.sql                      Combined idempotent DB setup
-  README.md                      Primary docs with deploy button
+  setup.sql                      Combined idempotent DB setup (updated: Phase 1 tables)
+  README.md                      Primary docs with deploy button (updated: integrations, import)
   .env.neon                      Neon connection strings (gitignored)
-  pwa/public/guide.html          Visual setup guide (Exo 2, theme toggle)
-  pwa/src/components/onboarding.tsx  Reporter onboarding (redesigned)
-  pwa/src/lib/panic.ts           Wipe logic (fixed false wipe)
-  pwa/src/lib/app-lock.ts        Auto-lock (5min grace period)
-  operator/src/components/operator-onboarding.tsx  Operator onboarding (redesigned)
-  operator/src/components/map-view.tsx  IntelMap (children prop, indigo markers)
-  operator/src/pages/intelligence.tsx   Intel Map page (overlay panels, floating pin)
-  operator/src/app.tsx            Guide modal (z-index 9999)
-  operator/src/lib/auth-gate.tsx  Login (Exo 2 wordmark)
-  src/db/seed.ts                  Demo data (McLean, VA coordinates)
+  migrations/0005_phase1-*.sql   Phase 1 migration (new tables + columns)
+  src/api/tags/index.ts          Tag definitions API (new)
+  src/api/integrations/index.ts  Integrations API + helpers (new)
+  src/api/import/index.ts        Data import API (new)
+  src/services/import/clear-demo.ts  Demo data detection and removal (new)
+  shared/design/wordmark.ts      Unified wordmark spec (updated)
+  pwa/src/styles.css             Reporter CSS (updated: wordmark classes)
+  pwa/src/components/pin-lock.tsx Reporter lock screen (updated: brand lockup)
+  pwa/public/guide.html          Setup guide (updated: brand, scroll nav, step numbers)
+  operator/src/lib/auth-gate.tsx  Operator login (updated: brand lockup)
+  src/db/schema/vault-a.ts       Drizzle schema (updated: 5 new tables, 3 columns)
+  src/db/seed.ts                 Demo data (updated: tag definitions)
+  src/index.ts                   Server entry (updated: new route mounting)
 ```
 
 ---

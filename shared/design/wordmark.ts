@@ -1,29 +1,20 @@
 /**
  * TRACE Design System — Wordmark
  *
- * Exo 2 Thin (100) with indigo hairline rule underneath.
- * At small sizes (≤16px), weight bumps to 200-300 for legibility.
+ * Unified brand lockup used across all portals.
+ * Structure (top to bottom):
+ *   1. "T R A C E" — Exo 2 Thin (100), accent color, 0.22em letter-spacing
+ *   2. Hairline rule — accent color, 50% opacity, matches text width
+ *   3. Expansion — "Tracking · Reporting · Analysis · Community Evidence"
+ *   4. Context label — e.g. "Field Reporter", "Operator Console" (optional)
  *
- * Full name: Tracking, Reporting, Analysis & Community Evidence
- * Spell out only in onboarding and security docs — not on every screen.
+ * Three sizes:
+ *   lg — 40px TRACE, 10px expansion (hero/login, fullscreen contexts)
+ *   md — 28px TRACE, 9px expansion (pin lock, compact login)
+ *   sm — 18px TRACE, omit expansion (inline references)
  *
  * Font load: <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@100;200;300&display=swap" rel="stylesheet">
- * Or preload in index.html for no FOUT.
  */
-
-/** Inline SVG wordmark — works without font loading (paths, not text) */
-export function getWordmarkSvg(opts: { width?: number; dark?: boolean; rule?: boolean } = {}): string {
-  const { width = 120, dark = false, rule = true } = opts;
-  const textColor = dark ? "#F1F5F9" : "#1E293B";
-  const ruleColor = dark ? "rgba(129,140,248,0.5)" : "rgba(79,70,229,0.6)";
-  const height = rule ? Math.round(width * 0.32) : Math.round(width * 0.28);
-
-  // The wordmark as CSS text (requires Exo 2 font loaded)
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" fill="none">
-    <text x="0" y="${Math.round(height * 0.72)}" fill="${textColor}" font-family="'Exo 2', system-ui, sans-serif" font-weight="100" font-size="${Math.round(width * 0.28)}" letter-spacing="${Math.round(width * 0.05)}">TRACE</text>
-    ${rule ? `<line x1="0" y1="${height - 2}" x2="${width}" y2="${height - 2}" stroke="${ruleColor}" stroke-width="1"/>` : ""}
-  </svg>`;
-}
 
 /** CSS class approach — apply to a span/div containing "TRACE" */
 export const wordmarkStyles = {
@@ -40,5 +31,12 @@ export function wordmarkWeight(fontSize: number): number {
   return 100;
 }
 
-/** The full expanded name */
-export const TRACE_FULL_NAME = "Tracking, Reporting, Analysis & Community Evidence";
+/** The full expanded name (mid-dot separated, used in brand lockup) */
+export const TRACE_FULL_NAME = "Tracking · Reporting · Analysis · Community Evidence";
+
+/** Size presets for the brand lockup */
+export const WORDMARK_SIZES = {
+  lg: { fontSize: 40, expansionSize: 10, ruleMargin: 6, expansionMargin: 8, labelMargin: 6, labelSize: 11 },
+  md: { fontSize: 28, expansionSize: 9,  ruleMargin: 4, expansionMargin: 6, labelMargin: 4, labelSize: 10 },
+  sm: { fontSize: 18, expansionSize: 0,  ruleMargin: 3, expansionMargin: 0, labelMargin: 0, labelSize: 0 },
+} as const;

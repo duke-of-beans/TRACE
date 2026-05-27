@@ -2,7 +2,7 @@
 
 **T**racking, **R**eporting, **A**nalysis & **C**ommunity **E**vidence
 
-Community vehicle tracking platform for neighborhood safety chapters. Reporters submit sightings from their phones. Operators triage, dispatch, and build intelligence from a desktop console. Three-vault database architecture ensures reporter identities stay separate from operational data.
+Community vehicle tracking platform for neighborhood safety chapters. Reporters submit sightings from their phones. Operators triage, dispatch, and build intelligence from a desktop console. Three-vault database architecture separates reporter identities from operational data.
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fduke-of-beans%2FTRACE&env=DATABASE_URL&envDescription=Neon%20PostgreSQL%20connection%20string%20(pooler%20URL)&envLink=https%3A%2F%2Fneon.tech&project-name=trace&repository-name=TRACE)
 
@@ -253,6 +253,42 @@ The app appears on the home screen with a standalone icon. It runs full-screen w
 **Desktop (Chrome/Edge)**
 1. Open your TRACE URL
 2. Click the install icon in the address bar (or three-dot menu > Install)
+
+## Integrations (Optional)
+
+TRACE works without any external services. Integrations add automatic vehicle identification and caller lookup for chapters that want them.
+
+**CarAPI** resolves license plates to VIN, year, make, model, and color. Reporters get field intelligence during sightings. Operators get full vehicle data. Costs about $0.30 per lookup. Sign up at [carapi.app](https://carapi.app).
+
+**Spokeo** identifies phone numbers reported through the harassment reporting system. Returns name, carrier, line type, and spam risk. Contact [apisupport@spokeo.com](mailto:apisupport@spokeo.com) for API access and pricing.
+
+Configure integrations in the operator console under Admin, Integrations. Enter an API key, test the connection, toggle it on. When disabled, lookup buttons do not appear. No errors, no prompts.
+
+## Importing Existing Data
+
+Chapters with existing vehicle spreadsheets can import them through the operator console under Admin, Import. The system reads Excel (.xlsx) and CSV files, auto-maps columns to TRACE fields, and shows a preview before writing anything to the database.
+
+The import pipeline handles common spreadsheet patterns: inconsistent date formats, combined vehicle descriptions ("Red 2019 Honda Civic"), dirty plate numbers, and duplicate entries. Operators review the mapping and preview before confirming.
+
+If the chapter is running with demo data from the initial seed, the import tool detects this and prompts to clear it before importing real records. Demo data is identified by the DEMO/FAKE/TEST prefixes used in all seed records.
+
+## Harassment Reporting
+
+Reporters can submit harassing phone numbers through the Alert tab. Each number becomes an entity in the system, similar to a vehicle dossier. Multiple reporters can report the same number. The operator sees cross-reporter patterns: how many reporters are affected, time clustering, and escalation flags.
+
+If Spokeo is configured, operators can identify callers directly from the number dossier. Otherwise, they tag and respond to reports manually. Reporters see the operator's tag and response in their history. They also see how many other reporters have reported the same number (count only, not callsigns).
+
+## Tags and Responses
+
+Operators can tag sightings, vehicles, and harassment reports with configurable labels. Tags are chapter-specific and come with a default set:
+
+Sighting tags: Confirmed Suspicious, Cleared (Resident), Known Delivery Vehicle, Under Active Tracking, Duplicate Report, Requires Follow-Up.
+
+Vehicle tags: Active Threat, Monitoring, Cleared, Flagged for LE, Known Resident, Rental/Fleet.
+
+Harassment tags: Known Threat, Spam, Under Investigation, Cleared, Reported to Authorities, Unknown.
+
+Operators can also write a short response (280 characters) that the reporter sees in their history. Tags and responses close the feedback loop between field reporters and the operator.
 
 ## Documentation
 

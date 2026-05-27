@@ -303,3 +303,67 @@ shared/
     icons.tsx        <- SVG icon components (shared)
     theme.ts         <- Theme toggle logic
 ```
+
+---
+
+## Wordmark (Unified Brand Lockup)
+
+The TRACE wordmark uses the same structure across all portals and documentation.
+Four elements, top to bottom:
+
+1. **"TRACE"** in Exo 2 Thin (100), accent color, 0.22em letter-spacing
+2. **Hairline rule** at accent color, 50% opacity, matching text width
+3. **Expansion** "Tracking · Reporting · Analysis · Community Evidence" in 9-10px uppercase
+4. **Context label** (optional): "Field Reporter", "Operator Console", "Chapter Setup Guide"
+
+### Size Presets
+| Context | TRACE size | Expansion size | Used in |
+|---------|-----------|----------------|---------|
+| lg      | 40px      | 10px           | guide.html hero, operator login |
+| md      | 28px      | 9px            | reporter pin lock |
+| sm      | 18px      | omitted        | footer, inline references |
+
+### Rules
+- Exo 2 Thin (weight 100) for the wordmark text only. Below 20px, bump to weight 200.
+- Expansion uses system font, not Exo 2.
+- Mid-dots (·) separate the expansion words, not commas or ampersands.
+- Context label uses system font, 10-11px, muted color, uppercase, 2px letter-spacing.
+- The rule line matches the width of the parent container, not the text.
+
+---
+
+## Tag Colors
+
+Tags use the existing status palette. Each context has a default set:
+
+### Sighting Tags
+| Label | Color | Use |
+|-------|-------|-----|
+| Confirmed Suspicious | #DC2626 (danger) | Verified threat |
+| Cleared - Resident | #16A34A (success) | Known, not suspicious |
+| Known Delivery Vehicle | #64748B (slate) | Commercial, expected |
+| Under Active Tracking | #D97706 (warning) | Being monitored |
+| Duplicate Report | #94A3B8 (muted) | Already filed |
+| Requires Follow-Up | #4F46E5 (accent) | Needs more info |
+
+### Vehicle Tags
+| Label | Color | Use |
+|-------|-------|-----|
+| Active Threat | #DC2626 | Confirmed operational |
+| Monitoring | #D97706 | Watch list |
+| Cleared | #16A34A | No longer suspicious |
+| Flagged for LE | #7C3AED | Referred to authorities |
+| Known Resident | #64748B | Identified, benign |
+| Rental/Fleet | #94A3B8 | Commercial vehicle |
+
+### Harassment Tags
+| Label | Color | Use |
+|-------|-------|-----|
+| Known Threat | #DC2626 | Identified harasser |
+| Spam | #94A3B8 | Robocall, not targeted |
+| Under Investigation | #D97706 | Being looked into |
+| Cleared | #16A34A | Resolved |
+| Reported to Authorities | #7C3AED | Escalated to LE |
+| Unknown | #64748B | Not yet classified |
+
+Tags render as small colored pills. On light backgrounds, the color is the text color with a 10% opacity background fill. On dark backgrounds, the color is used directly as text with a 15% opacity background.

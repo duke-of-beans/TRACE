@@ -3,34 +3,48 @@
  */
 
 /* ================================================================
-   WORDMARK
+   WORDMARK — unified brand lockup
    ================================================================ */
 .wordmark {
   font-family: 'Exo 2', system-ui, sans-serif;
   font-weight: 100;
   letter-spacing: 0.22em;
   line-height: 1;
-  display: inline-block;
+  display: block;
+  color: var(--accent);
 }
 .wordmark-wrap {
   display: inline-block;
+  text-align: center;
 }
 .wordmark-rule {
   display: block;
   height: 1px;
   background: var(--accent);
   opacity: 0.5;
-  margin-top: 4px;
+  margin-top: 6px;
+  width: 100%;
+}
+.wordmark-expansion {
+  display: block;
+  font-size: 9px;
+  color: var(--text-muted);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-top: 6px;
+  font-family: var(--font);
+  font-weight: 400;
 }
 .wordmark-sm { font-size: 18px; font-weight: 200; }
 .wordmark-md { font-size: 28px; font-weight: 100; }
 .wordmark-lg { font-size: 40px; font-weight: 100; }
 .wordmark-subtitle {
-  font-size: var(--text-xs);
+  display: block;
+  font-size: 10px;
   color: var(--text-muted);
   letter-spacing: 2px;
   text-transform: uppercase;
-  margin-top: var(--sp-1);
+  margin-top: 4px;
   font-family: var(--font);
   font-weight: 400;
 }

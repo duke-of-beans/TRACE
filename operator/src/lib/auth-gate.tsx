@@ -227,10 +227,10 @@ function OperatorLoginScreen({ onAuth }: { onAuth: () => void }) {
 // --- Shared ---
 function Logo() {
   return (
-    <div style={{ display: "inline-block" }}>
-      <span style={{ fontFamily: "'Exo 2', system-ui, sans-serif", fontWeight: 100, fontSize: 32, letterSpacing: "0.22em", color: "var(--accent)" }}>TRACE</span>
-      <span style={{ display: "block", height: 1, background: "var(--accent)", opacity: 0.5, marginTop: 4 }}></span>
-      <span style={{ display: "block", fontSize: 8, letterSpacing: "0.08em", color: "var(--text-muted)", marginTop: 6, textAlign: "center" }}>Tracking · Reporting · Analysis · Community Evidence</span>
+    <div style={{ display: "inline-block", textAlign: "center" }}>
+      <span style={{ fontFamily: "'Exo 2', system-ui, sans-serif", fontWeight: 100, fontSize: 40, letterSpacing: "0.22em", color: "var(--accent)", display: "block" }}>TRACE</span>
+      <span style={{ display: "block", height: 1, background: "var(--accent)", opacity: 0.5, marginTop: 6, width: "100%" }}></span>
+      <span style={{ display: "block", fontSize: 10, letterSpacing: "0.1em", color: "var(--text-muted)", marginTop: 8, textTransform: "uppercase" as const }}>Tracking · Reporting · Analysis · Community Evidence</span>
     </div>
   );
 }

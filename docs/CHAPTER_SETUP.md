@@ -226,6 +226,35 @@ When new versions are released:
 2. Vercel auto-deploys the update
 3. If there are new migrations, run them in the Neon SQL Editor
 
+---
+
+## Optional: Configure Integrations
+
+TRACE works without external services. If your chapter wants automatic vehicle identification or caller lookup, configure them in Admin, Integrations.
+
+**CarAPI (Vehicle Identification)**
+Resolves license plates to VIN, year, make, model, and color. Reporters see make/model during sightings. Operators get full API data. Sign up at [carapi.app](https://carapi.app). Enter the API key in Admin, Integrations, CarAPI. Click Test Connection, then toggle on.
+
+**Spokeo (Caller Identification)**
+Identifies phone numbers reported through the harassment system. Returns name, carrier, line type, and spam risk. Contact apisupport@spokeo.com for API access. Enter the key in Admin, Integrations, Spokeo.
+
+When an integration is disabled or not configured, lookup buttons do not appear anywhere in the app. No error messages, no prompts.
+
+---
+
+## Optional: Import Existing Data
+
+If your chapter has existing vehicle data in spreadsheets, import it through Admin, Import.
+
+1. Go to Admin, Import
+2. If you are running with demo/seed data, the system prompts you to clear it first. Clear it.
+3. Upload your Excel (.xlsx) or CSV file
+4. The system auto-maps your columns to TRACE fields (plate, make, model, color, location, date, notes)
+5. Review the preview: it shows how many vehicles and sightings will be created, and flags rows with errors
+6. Confirm to import
+
+The pipeline handles inconsistent dates, combined vehicle descriptions ("Red 2019 Honda Civic"), dirty plate numbers with spaces or dashes, and duplicate entries. Imported records are marked as pre-triaged.
+
 ## Troubleshooting
 
 **"Connection failed. Is the server running?"**
