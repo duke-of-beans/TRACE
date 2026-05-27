@@ -410,11 +410,11 @@ export function IntelMap({
   }, [dispatchPins]);
 
   return (
-    <div style={{ position: "relative" }}>
+    <div style={{ position: "relative", height }}>
       <div
         ref={mapRef}
         style={{
-          height, width: "100%", borderRadius: 8, overflow: "hidden",
+          height: "100%", width: "100%", borderRadius: 8, overflow: "hidden",
           border: "1px solid #2a2a3e",
         }}
       />

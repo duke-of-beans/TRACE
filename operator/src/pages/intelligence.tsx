@@ -208,7 +208,12 @@ export function Intelligence() {
   ];
 
   return (
-    <div style={{ position: "relative", height: "calc(100vh - 48px)", overflow: "hidden" }}>
+    <div style={{
+      position: "relative",
+      height: "calc(100vh - 56px)",
+      margin: "-16px -16px -16px -16px",
+      overflow: "hidden",
+    }}>
       {/* FULL-BLEED MAP */}
       <IntelMap
         markers={temporalMarkers}
