@@ -55,6 +55,7 @@ app.use("*", cors({
 app.get("/health", (c) => c.json({
   status: "ok",
   service: "trace",
+  version: "1.0.0",
   wsClients: getClientCount(),
 }));
 

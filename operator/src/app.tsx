@@ -163,6 +163,7 @@ export function App() {
               <div className="text-[10px] hidden lg:block" style={{ color: "var(--text-muted)" }}>
                 Press <kbd className="px-1 py-0.5 rounded text-[9px]" style={{ background: "var(--bg)", border: "1px solid var(--border)", color: "var(--text-muted)" }}>?</kbd> for shortcuts
               </div>
+              <div className="text-[9px] mt-1 hidden lg:block" style={{ color: "var(--text-muted)", opacity: 0.5 }}>v1.0.0</div>
             </div>
           </aside>
 

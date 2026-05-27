@@ -44,7 +44,7 @@ app.use("*", cors({
 }));
 
 // Health
-app.get("/health", (c) => c.json({ status: "ok", service: "trace-vercel" }));
+app.get("/health", (c) => c.json({ status: "ok", service: "trace-vercel", version: "1.0.0" }));
 
 // Auth and setup (public)
 app.route("/auth", authRouter);
