@@ -259,20 +259,11 @@ export function Intelligence() {
           </button>
         </div>
 
-        {/* ── FLOATING ACTION BUTTONS (left side, below zoom) ── */}
+        {/* ── LEFT SIDE CONTROLS ── */}
         <div style={{
-          position: "absolute", top: 90, left: 12, zIndex: 1000,
+          position: "absolute", top: 90, left: 8, zIndex: 1000,
           display: "flex", flexDirection: "column", gap: 6,
         }}>
-          <button onClick={() => {
-            const mapEl = document.querySelector(".leaflet-container") as any;
-            const center = mapEl?._leaflet_map?.getCenter?.() || { lat: 38.9310, lng: -77.1770 };
-            setPlacingPin({ lat: center.lat, lng: center.lng }); setSelectedPin(null); setSelectedMarker(null);
-          }} style={{
-            background: "var(--accent)", color: "var(--accent-text)", border: "none", borderRadius: 8,
-            padding: "8px 14px", fontSize: 12, fontWeight: 700, cursor: "pointer",
-            boxShadow: "0 2px 8px rgba(0,0,0,0.4)", display: "flex", alignItems: "center", gap: 4,
-          }}>+ Pin</button>
           {corridors.length > 0 && (
             <button onClick={() => setCorridors([])} style={{
               background: "rgba(15,23,42,0.85)", color: "var(--text-sec)", border: "1px solid var(--border)", borderRadius: 8,
@@ -281,11 +272,16 @@ export function Intelligence() {
           )}
         </div>
 
-        {/* ── STATS BADGES (bottom-right) ── */}
+        {/* ── STATS + HINT (bottom) ── */}
         <div style={{
           position: "absolute", bottom: temporalBuckets.length > 0 ? 56 : 12, right: 12, zIndex: 1000,
-          display: "flex", gap: 6,
+          display: "flex", gap: 6, alignItems: "center",
         }}>
+          <span style={{
+            padding: "4px 10px", borderRadius: 20, fontSize: 10,
+            background: "rgba(15,23,42,0.7)", color: "var(--text-muted)",
+            backdropFilter: "blur(8px)",
+          }}>Right-click map to drop a pin</span>
           <span style={{
             padding: "4px 10px", borderRadius: 20, fontSize: 10, fontWeight: 600,
             background: "rgba(15,23,42,0.85)", color: "var(--text-muted)", border: "1px solid var(--border)",
@@ -390,10 +386,20 @@ export function Intelligence() {
               try {
                 await api.createDispatch({ ...data, lat: placingPin.lat, lng: placingPin.lng });
                 setPlacingPin(null);
+                // Remove temp pin marker
+                const mapEl = document.querySelector(".leaflet-container") as any;
+                const map = mapEl?._leaflet_map;
+                if (map?._tempPin) { map._tempPin.remove(); map._tempPin = null; }
                 loadDispatchPins();
               } catch {}
             }}
-            onCancel={() => { setPlacingPin(null); setDispatchPins(p => [...p]); }}
+            onCancel={() => {
+              setPlacingPin(null);
+              // Remove temp pin marker from map
+              const mapEl = document.querySelector(".leaflet-container") as any;
+              const map = mapEl?._leaflet_map;
+              if (map?._tempPin) { map._tempPin.remove(); map._tempPin = null; }
+            }}
           />
         </div>
       )}

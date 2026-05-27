@@ -278,13 +278,27 @@ export function IntelMap({
     layer.clearLayers();
 
     heatmapData.forEach((p) => {
-      L.circleMarker([p.lat, p.lng], {
+      const cm = L.circleMarker([p.lat, p.lng], {
         radius: 15 + p.weight * 20,
         fillColor: weightToColor(p.weight),
         color: "transparent",
         fillOpacity: 0.15 + p.weight * 0.2,
-        interactive: false,
-      }).addTo(layer);
+      });
+      cm.bindTooltip(`<div style="font-family:system-ui;font-size:11px;">
+        <div style="font-weight:600;">Activity cluster</div>
+        <div style="color:#999;">${p.lat.toFixed(4)}, ${p.lng.toFixed(4)}</div>
+        <div style="color:#999;">Density: ${Math.round(p.weight * 100)}%</div>
+      </div>`, { direction: "top" });
+      cm.on("click", () => {
+        if (onMarkerClickRef.current) {
+          onMarkerClickRef.current({
+            lat: p.lat, lng: p.lng, color: weightToColor(p.weight),
+            label: "Cluster",
+            data: { activityDescription: `Activity cluster (${Math.round(p.weight * 100)}% density)`, observedAt: null },
+          });
+        }
+      });
+      cm.addTo(layer);
     });
   }, [heatmapData]);
 
