@@ -37,7 +37,7 @@ export function PinSetup({ onComplete }: PinSetupProps) {
     <div class="auth-screen">
       <div class="auth-card">
         <div class="wordmark-wrap" style={{ marginBottom: "var(--sp-2)" }}>
-          <span class="wordmark wordmark-md">TRACE</span>
+          <span class="wordmark wordmark-lg">TRACE</span>
           <span class="wordmark-rule"></span>
           <span class="wordmark-expansion">Tracking · Reporting · Analysis · Community Evidence</span>
           <span class="wordmark-subtitle">Field Reporter</span>
