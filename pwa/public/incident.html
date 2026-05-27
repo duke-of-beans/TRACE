@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TRACE - Submit Observation</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0F172A;--surface:#1E293B;--border:#334155;--text:#F1F5F9;--text-sec:#94A3B8;--text-muted:#64748B;--accent:#818CF8;--danger:#EF4444;--success:#22C55E;--radius:8px}
+body{background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:24px 16px}
+.container{max-width:480px;width:100%}
+.wordmark{font-family:'Exo 2',system-ui;font-weight:100;font-size:24px;letter-spacing:0.22em;color:var(--accent);text-align:center;margin-bottom:4px}
+.subtitle{font-size:10px;text-transform:uppercase;letter-spacing:0.15em;color:var(--text-muted);text-align:center;margin-bottom:24px}
+.disclaimer{font-size:11px;color:var(--text-muted);background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px;margin-bottom:20px;line-height:1.5}
+.form-group{margin-bottom:16px}
+label{display:block;font-size:12px;font-weight:500;color:var(--text-sec);margin-bottom:4px}
+input,textarea,select{width:100%;padding:10px 12px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-size:14px;font-family:inherit}
+input:focus,textarea:focus,select:focus{outline:none;border-color:var(--accent)}
+textarea{resize:vertical;min-height:100px}
+select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394A3B8' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center}
+</style>
+</head>
+<body>
+<div class="container">
+<div class="wordmark">TRACE</div>
+<div class="subtitle">Community observation report</div>
+<div class="disclaimer">
+You have been given this link by a TRACE operator to submit an observation about an incident.
+Your submission is recorded with a timestamp. Providing contact information is optional but
+helps the operator follow up if needed. Do not include information you are not comfortable sharing.
+</div>
+<div id="form-area">
+<div class="form-group">
+<label>What happened *</label>
+<textarea id="description" placeholder="Describe what you observed. Include details about people, vehicles, timing, and location." rows="5"></textarea>
+</div>
+<div class="form-group">
+<label>When did this happen?</label>
+<input type="datetime-local" id="occurred">
+</div>
+</div>
+</div>
+<link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@100&display=swap" rel="stylesheet">
+</body>
+</html>
+<div class="form-group">
+<label>Where did this happen?</label>
+<input type="text" id="location" placeholder="Address, intersection, or description of location">
+</div>
+<div class="form-group">
+<label>Contact information (optional)</label>
+<input type="text" id="contact" placeholder="Phone, email, or name - so the operator can follow up">
+</div>
+<button id="submit-btn" onclick="submitReport()" style="width:100%;padding:12px;background:var(--accent);color:#fff;border:none;border-radius:var(--radius);font-size:14px;font-weight:600;cursor:pointer;margin-top:8px">
+Submit Observation
+</button>
+</div>
+<div id="success-area" style="display:none;text-align:center;padding:32px 0">
+<div style="color:var(--success);font-size:32px;margin-bottom:12px">&#10003;</div>
+<h3 style="margin-bottom:8px">Observation submitted</h3>
+<p style="font-size:13px;color:var(--text-sec)">Your report has been recorded. The operator will review it. You can close this page.</p>
+</div>
+<div id="error-area" style="display:none;text-align:center;padding:32px 0">
+<div style="color:var(--danger);font-size:32px;margin-bottom:12px">&#10007;</div>
+<h3 id="error-title" style="margin-bottom:8px">Unable to submit</h3>
+<p id="error-msg" style="font-size:13px;color:var(--text-sec)"></p>
+</div>
+</div>
+<script>
+function getToken(){const p=window.location.pathname.split('/');return p[p.length-1]||new URLSearchParams(window.location.search).get('token')||''}
+async function submitReport(){
+const btn=document.getElementById('submit-btn');
+const desc=document.getElementById('description').value.trim();
+if(!desc){document.getElementById('description').style.borderColor='var(--danger)';return}
+btn.disabled=true;btn.textContent='Submitting...';
+const token=getToken();
+const body={description:desc,locationDescription:document.getElementById('location').value.trim()||undefined,occurredAt:document.getElementById('occurred').value?new Date(document.getElementById('occurred').value).toISOString():undefined,contactInfo:document.getElementById('contact').value.trim()||undefined};
+try{
+const r=await fetch('/api/v1/incidents/public/'+token,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+const d=await r.json();
+if(!r.ok){showError(r.status===410?'Link expired':r.status===429?'Submission limit reached':d.error||'Submission failed',r.status===410?'Contact the operator for a new link.':r.status===429?'This link has reached its maximum number of submissions.':'Check your connection and try again.');return}
+document.getElementById('form-area').style.display='none';
+document.getElementById('success-area').style.display='block';
+}catch(e){showError('Connection failed','Check your internet connection and try again.')}
+finally{btn.disabled=false;btn.textContent='Submit Observation'}
+}
+function showError(title,msg){
+document.getElementById('form-area').style.display='none';
+document.getElementById('error-area').style.display='block';
+document.getElementById('error-title').textContent=title;
+document.getElementById('error-msg').textContent=msg;
+}
+// Auto-fill current time
+document.getElementById('occurred').value=new Date().toISOString().slice(0,16);
+// Validate token on load
+if(!getToken()){showError('Invalid link','This page requires a valid incident report link from a TRACE operator.')}
+</script>

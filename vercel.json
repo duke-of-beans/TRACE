@@ -5,8 +5,9 @@
   "framework": null,
   "rewrites": [
     { "source": "/api/v1/:path*", "destination": "/api/index.ts" },
+    { "source": "/incident/public/:token", "destination": "/incident.html" },
     { "source": "/operator/:path*", "destination": "/operator/index.html" },
-    { "source": "/((?!api|operator|_next|favicon).*)", "destination": "/index.html" }
+    { "source": "/((?!api|operator|incident|_next|favicon).*)", "destination": "/index.html" }
   ],
   "headers": [
     {

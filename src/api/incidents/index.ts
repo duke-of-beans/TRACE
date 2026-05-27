@@ -282,6 +282,99 @@ incidentsRouter.get("/:id/record", async (c) => {
 });
 
 // ============================================================
+// CORRELATION: Find overlapping reports for the same event
+// Auto-detects incidents near the same time/location.
+// Surfaces agreements and discrepancies between reporters.
+// ============================================================
+incidentsRouter.get("/:id/correlate", async (c) => {
+  const id = c.req.param("id");
+
+  const [incident] = await opsDb.select().from(incidents)
+    .where(eq(incidents.id, id)).limit(1);
+  if (!incident) return c.json({ error: "Not found" }, 404);
+
+  // Find incidents in the same chapter within 2 hours and ~1km
+  const timeWindow = 2 * 60 * 60 * 1000; // 2 hours
+  const latRange = 0.009; // ~1km
+  const lngRange = 0.012; // ~1km at mid-latitudes
+
+  const conditions = [
+    eq(incidents.chapterId, incident.chapterId),
+    sql`${incidents.id} != ${id}`,
+  ];
+
+  if (incident.occurredAt) {
+    const before = new Date(new Date(incident.occurredAt).getTime() - timeWindow);
+    const after = new Date(new Date(incident.occurredAt).getTime() + timeWindow);
+    conditions.push(sql`${incidents.occurredAt} BETWEEN ${before.toISOString()} AND ${after.toISOString()}`);
+  }
+
+  if (incident.lat && incident.lng) {
+    conditions.push(sql`${incidents.lat} BETWEEN ${incident.lat - latRange} AND ${incident.lat + latRange}`);
+    conditions.push(sql`${incidents.lng} BETWEEN ${incident.lng - lngRange} AND ${incident.lng + lngRange}`);
+  }
+
+  const overlapping = await opsDb.select().from(incidents)
+    .where(and(...conditions))
+    .orderBy(incidents.reportedAt)
+    .limit(10);
+
+  if (overlapping.length === 0) {
+    return c.json({ incident_id: id, overlapping_count: 0, correlations: [], note: "No overlapping reports found for this time and location." });
+  }
+
+  // Get linked actors/vehicles for all overlapping incidents
+  const allIds = [id, ...overlapping.map(o => o.id)];
+  const allActorLinks = await opsDb.select({ incidentId: incidentActors.incidentId, actorId: incidentActors.actorId })
+    .from(incidentActors).where(sql`${incidentActors.incidentId} IN (${sql.join(allIds.map(i => sql`${i}`), sql`, `)})`);
+  const allVehicleLinks = await opsDb.select({ incidentId: incidentVehicles.incidentId, vehicleId: incidentVehicles.vehicleId })
+    .from(incidentVehicles).where(sql`${incidentVehicles.incidentId} IN (${sql.join(allIds.map(i => sql`${i}`), sql`, `)})`);
+
+  // Build correlation data
+  const primaryActors = new Set(allActorLinks.filter(l => l.incidentId === id).map(l => l.actorId));
+  const primaryVehicles = new Set(allVehicleLinks.filter(l => l.incidentId === id).map(l => l.vehicleId));
+
+  const correlations = overlapping.map(o => {
+    const oActors = new Set(allActorLinks.filter(l => l.incidentId === o.id).map(l => l.actorId));
+    const oVehicles = new Set(allVehicleLinks.filter(l => l.incidentId === o.id).map(l => l.vehicleId));
+
+    const sharedActors = [...primaryActors].filter(a => oActors.has(a));
+    const sharedVehicles = [...primaryVehicles].filter(v => oVehicles.has(v));
+    const uniqueActors = [...oActors].filter(a => !primaryActors.has(a));
+    const uniqueVehicles = [...oVehicles].filter(v => !primaryVehicles.has(v));
+
+    return {
+      incident_id: o.id,
+      title: o.title,
+      reporter_id: o.reporterId,
+      reported_at: o.reportedAt,
+      description_excerpt: o.description?.slice(0, 200),
+      agreements: {
+        shared_actors: sharedActors.length,
+        shared_vehicles: sharedVehicles.length,
+      },
+      discrepancies: {
+        unique_actors: uniqueActors.length,
+        unique_vehicles: uniqueVehicles.length,
+        different_type: o.incidentTypeId !== incident.incidentTypeId,
+        different_severity: o.severity !== incident.severity,
+      },
+    };
+  });
+
+  return c.json({
+    incident_id: id,
+    overlapping_count: overlapping.length,
+    correlations,
+    summary: {
+      total_reporters: new Set([incident.reporterId, ...overlapping.map(o => o.reporterId)].filter(Boolean)).size,
+      total_actors_across_all: new Set(allActorLinks.map(l => l.actorId)).size,
+      total_vehicles_across_all: new Set(allVehicleLinks.map(l => l.vehicleId)).size,
+    },
+  });
+});
+
+// ============================================================
 // CLOSE INCIDENT
 // ============================================================
 incidentsRouter.post("/:id/close", async (c) => {

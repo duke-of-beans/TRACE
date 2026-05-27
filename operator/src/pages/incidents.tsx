@@ -275,7 +275,48 @@ function CreateIncident({ types, onBack, onCreated }: { types: any[]; onBack: ()
 function IncidentDetail({ incident, typeMap, onBack, onRefresh }: { incident: any; typeMap: Map<string, any>; onBack: () => void; onRefresh: () => void }) {
   const toast = useToast();
   const [publicLink, setPublicLink] = useState<string | null>(null);
+  const [actorSearch, setActorSearch] = useState("");
+  const [actorResults, setActorResults] = useState<any[]>([]);
+  const [vehicleSearch, setVehicleSearch] = useState("");
+  const [vehicleResults, setVehicleResults] = useState<any[]>([]);
   const iType = incident.incidentTypeId ? typeMap.get(incident.incidentTypeId) : null;
+
+  const searchActors = async (q: string) => {
+    setActorSearch(q);
+    if (q.length < 2) { setActorResults([]); return; }
+    try {
+      const all = await api.getActors();
+      const filtered = all.filter((a: any) => a.alias?.toLowerCase().includes(q.toLowerCase()));
+      const linkedIds = new Set(incident.actors?.map((a: any) => a.id) || []);
+      setActorResults(filtered.filter((a: any) => !linkedIds.has(a.id)).slice(0, 5));
+    } catch { setActorResults([]); }
+  };
+
+  const searchVehicles = async (q: string) => {
+    setVehicleSearch(q);
+    if (q.length < 2) { setVehicleResults([]); return; }
+    try {
+      const all = await api.searchVehicles(q);
+      const linkedIds = new Set(incident.vehicles?.map((v: any) => v.id) || []);
+      setVehicleResults((Array.isArray(all) ? all : []).filter((v: any) => !linkedIds.has(v.id)).slice(0, 5));
+    } catch { setVehicleResults([]); }
+  };
+
+  const linkActor = async (actorId: string) => {
+    try {
+      await api.linkActorToIncident(incident.id, actorId);
+      setActorSearch(""); setActorResults([]);
+      onRefresh();
+    } catch { toast("Failed to link actor", "error"); }
+  };
+
+  const linkVehicle = async (vehicleId: string) => {
+    try {
+      await api.linkVehicleToIncident(incident.id, vehicleId);
+      setVehicleSearch(""); setVehicleResults([]);
+      onRefresh();
+    } catch { toast("Failed to link vehicle", "error"); }
+  };
 
   const handleClose = async () => {
     try {
@@ -425,6 +466,24 @@ function IncidentDetail({ incident, typeMap, onBack, onRefresh }: { incident: an
           ) : (
             <p className="text-xs" style={{ color: "var(--text-muted)" }}>No actors linked yet.</p>
           )}
+          {isActive && (
+            <div className="mt-2">
+              <input value={actorSearch} onChange={(e: any) => searchActors(e.target.value)}
+                placeholder="Search actors by alias..."
+                className="w-full rounded px-2 py-1.5 text-xs" style={{ background: "var(--bg)", border: "1px solid var(--border)", color: "var(--text)" }} />
+              {actorResults.length > 0 && (
+                <div className="mt-1 space-y-1">
+                  {actorResults.map((a: any) => (
+                    <button key={a.id} onClick={() => linkActor(a.id)}
+                      className="w-full text-left px-2 py-1.5 rounded text-xs flex items-center gap-2 hover:opacity-80"
+                      style={{ background: "var(--bg)", border: "1px solid var(--border)" }}>
+                      <Icon name="plus" size={10} /> {a.alias || "Unknown"} <span style={{ color: "var(--text-muted)" }}>{a.physicalDescription?.slice(0, 40)}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Vehicles */}
@@ -453,6 +512,24 @@ function IncidentDetail({ incident, typeMap, onBack, onRefresh }: { incident: an
             </div>
           ) : (
             <p className="text-xs" style={{ color: "var(--text-muted)" }}>No vehicles linked yet.</p>
+          )}
+          {isActive && (
+            <div className="mt-2">
+              <input value={vehicleSearch} onChange={(e: any) => searchVehicles(e.target.value)}
+                placeholder="Search by plate, make, model..."
+                className="w-full rounded px-2 py-1.5 text-xs" style={{ background: "var(--bg)", border: "1px solid var(--border)", color: "var(--text)" }} />
+              {vehicleResults.length > 0 && (
+                <div className="mt-1 space-y-1">
+                  {vehicleResults.map((v: any) => (
+                    <button key={v.id} onClick={() => linkVehicle(v.id)}
+                      className="w-full text-left px-2 py-1.5 rounded text-xs flex items-center gap-2 hover:opacity-80"
+                      style={{ background: "var(--bg)", border: "1px solid var(--border)" }}>
+                      <Icon name="plus" size={10} /> <span className="font-mono">{v.plate || "No plate"}</span> <span style={{ color: "var(--text-muted)" }}>{[v.color, v.make, v.model].filter(Boolean).join(" ")}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           )}
         </div>
       </div>
