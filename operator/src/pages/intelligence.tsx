@@ -226,13 +226,13 @@ export function Intelligence() {
         onMarkerClick={(marker) => { setSelectedMarker(marker); setSelectedPin(null); setPlacingPin(null); }}
         height="100%"
       >
-        {/* ── FLOATING FILTER BAR (responsive) ── */}
+        {/* ── FLOATING FILTER BAR (below zoom controls) ── */}
         <div style={{
-          position: "absolute", top: 12, left: 50, right: 12, zIndex: 1000,
+          position: "absolute", top: 8, left: 48, right: 8, zIndex: 1000,
           background: "rgba(15,23,42,0.85)", backdropFilter: "blur(8px)",
           border: "1px solid var(--border)", borderRadius: 10,
           padding: "6px 10px", display: "flex", alignItems: "center", gap: 6,
-          flexWrap: "wrap", maxWidth: "calc(100% - 62px)",
+          flexWrap: "wrap",
         }}>
           {presets.map((p) => (
             <button key={p.key} onClick={() => { setRangePreset(p.key); }}

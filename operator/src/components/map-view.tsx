@@ -154,11 +154,11 @@ export function IntelMap({
     tileRef.current = L.tileLayer(t.url, { attribution: t.attr, maxZoom: 19 }).addTo(map);
 
     const layers: LayerRefs = {
-      markers: L.layerGroup().addTo(map),
-      highlighted: L.layerGroup().addTo(map),
       heatmap: L.layerGroup().addTo(map),
       corridors: L.layerGroup().addTo(map),
       coOccurrences: L.layerGroup().addTo(map),
+      markers: L.layerGroup().addTo(map),
+      highlighted: L.layerGroup().addTo(map),
       dispatchPins: L.layerGroup().addTo(map),
     };
 
@@ -282,7 +282,8 @@ export function IntelMap({
         radius: 15 + p.weight * 20,
         fillColor: weightToColor(p.weight),
         color: "transparent",
-        fillOpacity: 0.3 + p.weight * 0.4,
+        fillOpacity: 0.15 + p.weight * 0.2,
+        interactive: false,
       }).addTo(layer);
     });
   }, [heatmapData]);
@@ -420,17 +421,17 @@ export function IntelMap({
       />
       {/* Overlay content (panels, floating buttons) */}
       {children}
-      {/* Tile mode toggle */}
+      {/* Tile mode toggle - left side below action buttons */}
       <div style={{
-        position: "absolute", bottom: 54, left: 8, zIndex: 1000,
-        display: "flex", gap: 2, background: "rgba(15,23,42,0.9)",
+        position: "absolute", top: 160, left: 8, zIndex: 1000,
+        display: "flex", flexDirection: "column", gap: 2, background: "rgba(15,23,42,0.9)",
         borderRadius: 6, padding: 2, backdropFilter: "blur(8px)",
         border: "1px solid rgba(255,255,255,0.06)",
       }}>
-        {(["light", "dark", "satellite"] as TileMode[]).map((m) => (
+        {(["satellite", "dark", "light"] as TileMode[]).map((m) => (
           <button key={m} onClick={() => switchTiles(m)}
             style={{
-              padding: "4px 10px", fontSize: 11, border: "none", borderRadius: 4,
+              padding: "4px 10px", fontSize: 10, border: "none", borderRadius: 4,
               cursor: "pointer", fontWeight: tileMode === m ? 700 : 400,
               background: tileMode === m ? "#818CF8" : "transparent",
               color: tileMode === m ? "#0f0f1a" : "#888",
