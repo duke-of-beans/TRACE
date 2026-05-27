@@ -1608,6 +1608,32 @@ function ImportAdmin() {
         </div>
       )}
 
+      {/* Demo timestamp refresh (always visible) */}
+      <div className="rounded-lg p-4 mb-4" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+        <div className="text-xs font-medium mb-2" style={{ color: "var(--text-sec)" }}>Demo Data</div>
+        <p className="text-xs mb-3" style={{ color: "var(--text-muted)" }}>
+          Refresh moves all DEMO/FAKE/TEST sighting timestamps to the last 72 hours so they appear on the Intel Map. Clear removes all demo records permanently.
+        </p>
+        <div className="flex gap-2">
+          <button onClick={async () => {
+            try {
+              const res = await fetch(`${API_BASE}/import/refresh-demo`, { method: "POST", headers: authHeaders() });
+              const data = await res.json();
+              toast.success(`Refreshed ${data.refreshed} sightings`);
+            } catch { toast.error("Refresh failed"); }
+          }}
+            className="px-3 py-1.5 rounded text-xs font-medium"
+            style={{ background: "var(--accent)", color: "var(--accent-text)" }}>
+            Refresh Timestamps
+          </button>
+          <button onClick={handleClearDemo} disabled={clearing}
+            className="px-3 py-1.5 rounded text-xs font-medium"
+            style={{ background: "rgba(217,119,6,0.15)", color: "#D97706", border: "1px solid rgba(217,119,6,0.3)" }}>
+            {clearing ? "Clearing..." : "Clear All Demo Data"}
+          </button>
+        </div>
+      </div>
+
       {/* File upload */}
       <div className="rounded-lg p-4 mb-4" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
         <label className="text-xs font-medium block mb-2" style={{ color: "var(--text-sec)" }}>Select file</label>
