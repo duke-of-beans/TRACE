@@ -18,6 +18,8 @@ export function Dashboard() {
       api.getVehicles().then((v) => setStats((s) => ({ ...s, vehicles: v.length }))).catch(() => {}),
       api.getSightings(true).then((s) => setStats((st) => ({ ...st, pending: s.length }))).catch(() => {}),
       api.getActors().then((a) => setStats((s) => ({ ...s, actors: a.length }))).catch(() => {}),
+      api.getActiveDispatches().then((d) => setStats((s) => ({ ...s, dispatches: Array.isArray(d) ? d.length : 0 }))).catch(() => {}),
+      api.getIncidents("open").then((i) => setStats((s) => ({ ...s, incidents: Array.isArray(i) ? i.length : 0 }))).catch(() => {}),
       api.getSuspicionLevels().then((l) => setLevels(Array.isArray(l) ? l : [])).catch(() => {}),
       api.getVehicleTypes().then((t) => setTypes(Array.isArray(t) ? t : [])).catch(() => {}),
     ]).finally(() => setLoading(false));
@@ -31,10 +33,12 @@ export function Dashboard() {
       {/* helptext-dashboard */}
       <p className="text-xs mb-4" style={{ color: "var(--text-muted)" }}>At-a-glance status for your chapter. Active vehicles, pending sightings, open dispatches, and recent activity.</p>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
         <StatCard icon="zap" label="Pending Triage" value={stats.pending} color="var(--warning)" help="Sightings awaiting operator review" />
         <StatCard icon="car" label="Active Vehicles" value={stats.vehicles} color="var(--accent)" help="Vehicles currently being tracked" />
         <StatCard icon="user" label="Known Actors" value={stats.actors} color="var(--danger)" help="Identified individuals linked to vehicles" />
+        <StatCard icon="radio" label="Active Dispatches" value={stats.dispatches} color="var(--success, #22c55e)" help="Open dispatch pins in the field" />
+        <StatCard icon="alert-octagon" label="Open Incidents" value={stats.incidents} color="#f59e0b" help="Incidents currently under investigation" />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
