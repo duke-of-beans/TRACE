@@ -172,7 +172,6 @@ export function Intelligence() {
   // temporal markers for current slider position
   const temporalMarkers = useMemo(() => {
     return (temporalBuckets[sliderIndex]?.points || []).map((p: any) => {
-      const timeStr = p.observedAt ? new Date(p.observedAt).toLocaleTimeString() : "";
       return {
         lat: p.lat, lng: p.lng,
         color: "#f1c40f",
@@ -180,8 +179,10 @@ export function Intelligence() {
         data: {
           plate: p.plate,
           activityDescription: p.activityDescription,
-          observedAt: p.observedAt,
+          vehicleDescription: p.vehicleDescription,
+          locationDescription: p.locationDescription,
           direction: p.direction,
+          observedAt: p.observedAt,
           vehicleId: p.vehicleId,
           sightingId: p.id,
         },
@@ -321,19 +322,55 @@ export function Intelligence() {
           boxShadow: "-4px 0 20px rgba(0,0,0,0.3)",
         }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-            <span style={{ fontSize: 10, padding: "2px 8px", borderRadius: 4, fontWeight: 700, background: "#f1c40f", color: "#000" }}>Sighting</span>
+            <span style={{ fontSize: 10, padding: "2px 8px", borderRadius: 4, fontWeight: 700,
+              background: selectedMarker.label === "Cluster" ? "#e74c3c" : "#f1c40f",
+              color: "#000" }}>{selectedMarker.label === "Cluster" ? "Activity Zone" : "Sighting"}</span>
             <button onClick={() => setSelectedMarker(null)} style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", fontSize: 16 }}>✕</button>
           </div>
           {selectedMarker.data?.plate && (
             <div style={{ fontFamily: "var(--font-mono)", fontWeight: 700, letterSpacing: "0.1em", fontSize: 18, marginBottom: 8 }}>{selectedMarker.data.plate}</div>
           )}
           {selectedMarker.data?.activityDescription && <p style={{ fontSize: 13, color: "var(--text-sec)", marginBottom: 8, lineHeight: 1.5 }}>{selectedMarker.data.activityDescription}</p>}
-          {selectedMarker.data?.vehicleDescription && <p style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 8 }}>{selectedMarker.data.vehicleDescription}</p>}
-          <div style={{ fontSize: 11, color: "var(--text-muted)", marginBottom: 16, display: "flex", flexDirection: "column", gap: 4 }}>
-            {selectedMarker.data?.observedAt && <span>{new Date(selectedMarker.data.observedAt).toLocaleString()}</span>}
-            {selectedMarker.data?.direction && <span>Heading {selectedMarker.data.direction}</span>}
-            <span>{selectedMarker.lat.toFixed(5)}, {selectedMarker.lng.toFixed(5)}</span>
+          {selectedMarker.data?.vehicleDescription && (
+            <div style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 8, padding: "6px 10px", background: "var(--surface-alt)", borderRadius: 6 }}>
+              {selectedMarker.data.vehicleDescription}
+            </div>
+          )}
+          {selectedMarker.data?.locationDescription && (
+            <div style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 8, display: "flex", alignItems: "center", gap: 4 }}>
+              <span style={{ opacity: 0.6 }}>📍</span> {selectedMarker.data.locationDescription}
+            </div>
+          )}
+          <div style={{ fontSize: 11, color: "var(--text-muted)", marginBottom: 12, display: "flex", flexDirection: "column", gap: 4 }}>
+            {selectedMarker.data?.observedAt && <span>Observed: {new Date(selectedMarker.data.observedAt).toLocaleString()}</span>}
+            {selectedMarker.data?.direction && <span>Heading: {selectedMarker.data.direction}</span>}
+            <span>Coordinates: {selectedMarker.lat.toFixed(5)}, {selectedMarker.lng.toFixed(5)}</span>
+            {selectedMarker.data?.reporterCallsign && <span>Reporter: {selectedMarker.data.reporterCallsign}</span>}
           </div>
+
+          {/* Nearby sightings for cluster clicks */}
+          {selectedMarker.label === "Cluster" && temporalMarkers.length > 0 && (() => {
+            const nearby = temporalMarkers.filter(m => {
+              const d = Math.sqrt(Math.pow(m.lat - selectedMarker.lat, 2) + Math.pow(m.lng - selectedMarker.lng, 2));
+              return d < 0.005; // ~500m radius
+            });
+            if (nearby.length === 0) return null;
+            return (
+              <div style={{ marginBottom: 12 }}>
+                <div style={{ fontSize: 11, fontWeight: 600, marginBottom: 6, color: "var(--text-sec)" }}>{nearby.length} sighting{nearby.length !== 1 ? "s" : ""} in this area</div>
+                {nearby.slice(0, 8).map((n, i) => (
+                  <div key={i} onClick={() => setSelectedMarker(n)} style={{
+                    fontSize: 11, padding: "6px 8px", marginBottom: 4, borderRadius: 6, cursor: "pointer",
+                    background: "var(--surface-alt)", border: "1px solid var(--border)",
+                  }}>
+                    {n.data?.plate && <span style={{ fontFamily: "var(--font-mono)", fontWeight: 600, marginRight: 6 }}>{n.data.plate}</span>}
+                    <span style={{ color: "var(--text-muted)" }}>{n.data?.activityDescription?.slice(0, 60)}...</span>
+                  </div>
+                ))}
+              </div>
+            );
+          })()}
+
           <button onClick={() => { setPlacingPin({ lat: selectedMarker.lat, lng: selectedMarker.lng }); setSelectedMarker(null); }}
             style={{ width: "100%", background: "var(--accent)", color: "var(--accent-text)", border: "none", borderRadius: 8, padding: "10px 16px", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
             Dispatch here

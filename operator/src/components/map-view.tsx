@@ -170,7 +170,7 @@ export function IntelMap({
       "Corridors": layers.corridors,
       "Co-occurrence": layers.coOccurrences,
       "Dispatch Pins": layers.dispatchPins,
-    }, { collapsed: false, position: "topright" }).addTo(map);
+    }, { collapsed: true, position: "topright" }).addTo(map);
 
     leafletRef.current = map;
     layersRef.current = layers;
@@ -212,11 +212,11 @@ export function IntelMap({
 
     markers.forEach((m) => {
       const cm = L.circleMarker([m.lat, m.lng], {
-        radius: 9,
+        radius: 12,
         fillColor: m.color || "#818CF8",
-        color: "#fff", weight: 1.5, opacity: 1, fillOpacity: 0.85,
+        color: "#fff", weight: 2, opacity: 1, fillOpacity: 0.9,
       })
-        .bindTooltip(m.label || "", { permanent: false })
+        .bindTooltip(m.label ? `<b>${m.label}</b>` : `${m.lat.toFixed(4)}, ${m.lng.toFixed(4)}`, { permanent: false })
         .addTo(layer);
 
       cm.on("click", () => {

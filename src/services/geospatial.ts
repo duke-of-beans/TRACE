@@ -217,7 +217,15 @@ export async function getCoOccurrences(opts: {
 export type TemporalBucket = {
   startTime: string;
   endTime: string;
-  points: Array<{ lat: number; lng: number; vehicleId: string | null; plate: string | null; activityDescription: string | null; observedAt: string }>;
+  points: Array<{
+    lat: number; lng: number;
+    vehicleId: string | null; plate: string | null;
+    activityDescription: string | null;
+    vehicleDescription: string | null;
+    locationDescription: string | null;
+    direction: string | null;
+    observedAt: string;
+  }>;
 };
 
 /**
@@ -247,6 +255,9 @@ export async function getTemporalData(opts: {
       vehicleId: sightings.vehicleId,
       plate: sightings.plate,
       activityDescription: sightings.activityDescription,
+      vehicleDescription: sightings.vehicleDescription,
+      locationDescription: sightings.locationDescription,
+      direction: sightings.direction,
       observedAt: sightings.observedAt,
     })
     .from(sightings)
@@ -267,6 +278,9 @@ export async function getTemporalData(opts: {
         vehicleId: s.vehicleId,
         plate: s.plate,
         activityDescription: s.activityDescription,
+        vehicleDescription: s.vehicleDescription,
+        locationDescription: s.locationDescription,
+        direction: s.direction,
         observedAt: s.observedAt.toISOString(),
       }));
 

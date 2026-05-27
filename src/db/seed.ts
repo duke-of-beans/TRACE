@@ -9,7 +9,7 @@ import { opsDb, identDb } from "./connection.js";
 import {
   chapters, vehicleTypes, suspicionLevels, suspicionPredicates,
   actorSuspicionLevels, actorIdentifierTypes, actorIdentifiers,
-  reporters, vehicles, vehicleTypeAssignments, actors, sightings,
+  reporters, vehicles, vehicleTypeAssignments, actors, actorVehicles, sightings,
   dispatchEventTypes, tagDefinitions,
 } from "./schema/vault-a.js";
 import { reporterIdentities } from "./schema/vault-b.js";
@@ -193,29 +193,120 @@ async function seed() {
   }
   console.log(`+ Demo identifiers seeded`);
 
-  // DEMO SIGHTINGS
+  // DEMO SIGHTINGS — rich, varied data across all vehicles and reporters
   if (reporterIds.length > 0) {
     const now = Date.now();
     const sightingData = [
-      { plate: "FAKE-001", lat: 38.9340, lng: -77.1770, desc: "DEMO: Circling the block near Old Dominion Dr, stopped twice",  hoursAgo: 2,  dir: "N" },
-      { plate: "FAKE-001", lat: 38.9285, lng: -77.1690, desc: "DEMO: Parked outside coffee shop on Chain Bridge Rd for 45 min", hoursAgo: 26, dir: "E" },
-      { plate: "FAKE-001", lat: 38.9410, lng: -77.1880, desc: "DEMO: Driving slowly through residential area at 1am",          hoursAgo: 50, dir: "S" },
-      { plate: "FAKE-002", lat: 38.9220, lng: -77.1720, desc: "DEMO: Following another vehicle on Elm St",                     hoursAgo: 5,  dir: "W" },
-      { plate: "FAKE-002", lat: 38.9370, lng: -77.1830, desc: "DEMO: Parked with engine running near Lewinsville Park",        hoursAgo: 30, dir: "NE" },
-      { plate: "FAKE-003", lat: 38.9180, lng: -77.1650, desc: "DEMO: Loading boxes from garage into truck bed",                hoursAgo: 12, dir: "SW" },
-      { plate: "FAKE-003", lat: 38.9310, lng: -77.1750, desc: "DEMO: Speeding through school zone on Kirby Rd",                hoursAgo: 72, dir: "E" },
-      { plate: "TEST-004", lat: 38.9260, lng: -77.1810, desc: "DEMO: Parked near park entrance, driver on phone",              hoursAgo: 8,  dir: "N" },
+      // FAKE-001 (Red Honda Civic) — pattern: circling residential at night
+      { plate: "FAKE-001", lat: 38.9340, lng: -77.1770, locDesc: "Old Dominion Dr near Pimmit Hills",
+        desc: "DEMO: Circling the block three times. Stopped twice, driver checked phone, then drove on.",
+        vehDesc: "Red Honda Civic, tinted rear windows, dent on driver door", dir: "N", hoursAgo: 2, reporter: 0 },
+      { plate: "FAKE-001", lat: 38.9285, lng: -77.1690, locDesc: "Chain Bridge Rd, near Starbucks plaza",
+        desc: "DEMO: Parked outside coffee shop for 45 min with engine running. Driver appeared to be watching foot traffic.",
+        vehDesc: "Red Honda Civic, tinted rear windows", dir: "E", hoursAgo: 8, reporter: 1 },
+      { plate: "FAKE-001", lat: 38.9410, lng: -77.1880, locDesc: "Residential area off Great Falls St",
+        desc: "DEMO: Driving slowly (5-10mph) through residential area at 1:15am. No headlights on.",
+        vehDesc: "Red sedan, possible Honda", dir: "S", hoursAgo: 18, reporter: 2 },
+      { plate: "FAKE-001", lat: 38.9355, lng: -77.1800, locDesc: "Intersection of Kirby Rd and Randolph Rd",
+        desc: "DEMO: Pulled over on shoulder, passenger got out and walked into wooded area. Returned after 3 min.",
+        vehDesc: "Red Honda Civic, VA plates", dir: "W", hoursAgo: 28, reporter: 0 },
+      { plate: "FAKE-001", lat: 38.9300, lng: -77.1730, locDesc: "McLean Baptist Church parking lot",
+        desc: "DEMO: Parked in empty church lot at 11pm. Interior light on, two occupants visible.",
+        vehDesc: "Red Honda Civic, dent on driver door", dir: "N", hoursAgo: 44, reporter: 1 },
+
+      // FAKE-002 (Black Toyota Camry) — pattern: following, surveillance
+      { plate: "FAKE-002", lat: 38.9220, lng: -77.1720, locDesc: "Elm St near Dolley Madison Library",
+        desc: "DEMO: Followed a silver minivan for 6 blocks, matching every turn. Broke off when minivan pulled into driveway.",
+        vehDesc: "Black Toyota Camry, tinted windows, aftermarket chrome rims", dir: "W", hoursAgo: 5, reporter: 0 },
+      { plate: "FAKE-002", lat: 38.9370, lng: -77.1830, locDesc: "Lewinsville Park main entrance",
+        desc: "DEMO: Parked facing playground with engine running for 30+ min. Left when school bus arrived.",
+        vehDesc: "Black Camry, very dark tint all around", dir: "NE", hoursAgo: 15, reporter: 2 },
+      { plate: "FAKE-002", lat: 38.9315, lng: -77.1755, locDesc: "Beverly Rd near Spring Hill Elementary",
+        desc: "DEMO: Slow-rolling past school during pickup. Circled block twice. No children picked up.",
+        vehDesc: "Black Toyota Camry with chrome rims", dir: "E", hoursAgo: 22, reporter: 1 },
+      { plate: "FAKE-002", lat: 38.9250, lng: -77.1680, locDesc: "Corner of Ingleside Ave and Elm St",
+        desc: "DEMO: Double-parked, driver appeared to be photographing house at 1432 Ingleside.",
+        vehDesc: "Black sedan, Toyota, tinted windows", dir: "S", hoursAgo: 36, reporter: 0 },
+
+      // FAKE-003 (White Ford F-150) — pattern: cargo, stash runs
+      { plate: "FAKE-003", lat: 38.9180, lng: -77.1650, locDesc: "Industrial area off Leesburg Pike",
+        desc: "DEMO: Loading heavy boxes from garage into truck bed. Three people involved. Garage door closed immediately after.",
+        vehDesc: "White Ford F-150, lifted, mud tires, no front plate", dir: "SW", hoursAgo: 12, reporter: 2 },
+      { plate: "FAKE-003", lat: 38.9310, lng: -77.1750, locDesc: "Kirby Rd near McLean High School",
+        desc: "DEMO: Speeding through school zone at estimated 45mph. Almost hit pedestrian in crosswalk.",
+        vehDesc: "White pickup, Ford F-150, very loud exhaust", dir: "E", hoursAgo: 24, reporter: 0 },
+      { plate: "FAKE-003", lat: 38.9390, lng: -77.1900, locDesc: "Dead end on Balls Hill Rd",
+        desc: "DEMO: Truck backed into wooded area at dead end. Unloaded 4-5 large black bags. Drove away quickly.",
+        vehDesc: "White F-150, lifted suspension, mud on sides", dir: "N", hoursAgo: 40, reporter: 1 },
+      { plate: "FAKE-003", lat: 38.9265, lng: -77.1790, locDesc: "Parking lot behind McLean Shopping Center",
+        desc: "DEMO: Meeting with driver of FAKE-001 (Red Civic). Exchanged something through windows. Both left in opposite directions.",
+        vehDesc: "White Ford F-150, no front plate", dir: "W", hoursAgo: 52, reporter: 2 },
+
+      // TEST-004 (Silver Chevy Malibu) — pattern: recon, loitering
+      { plate: "TEST-004", lat: 38.9260, lng: -77.1810, locDesc: "Entrance to Clemyjontri Park",
+        desc: "DEMO: Parked near park entrance for 2 hours. Driver on phone entire time. Left when police cruiser passed.",
+        vehDesc: "Silver Chevy Malibu, Uber sticker in rear window", dir: "N", hoursAgo: 8, reporter: 0 },
+      { plate: "TEST-004", lat: 38.9330, lng: -77.1770, locDesc: "Old Dominion Dr near CVS",
+        desc: "DEMO: Idling in CVS lot, facing the street. Appeared to be logging passing vehicles in a notebook.",
+        vehDesc: "Silver Malibu with rideshare sticker", dir: "SE", hoursAgo: 20, reporter: 1 },
+      { plate: "TEST-004", lat: 38.9280, lng: -77.1740, locDesc: "Residential block on Emerson Ave",
+        desc: "DEMO: Parked in front of vacant house for sale. Driver walked around the property, checking doors and windows.",
+        vehDesc: "Silver sedan, Chevy Malibu", dir: "NW", hoursAgo: 48, reporter: 2 },
+
+      // TEST-005 (Blue Nissan Altima) — pattern: erratic, evasion
+      { plate: "TEST-005", lat: 38.9200, lng: -77.1670, locDesc: "Westmoreland St near I-495 ramp",
+        desc: "DEMO: Ran red light at high speed, nearly caused collision. Swerved across two lanes.",
+        vehDesc: "Blue Nissan Altima, cracked windshield, loud exhaust, missing hubcap", dir: "S", hoursAgo: 3, reporter: 0 },
+      { plate: "TEST-005", lat: 38.9350, lng: -77.1850, locDesc: "Georgetown Pike near Madeira School",
+        desc: "DEMO: U-turned three times in 200 yards. Appeared to be checking if being followed.",
+        vehDesc: "Blue Altima, very loud, cracked windshield", dir: "NE", hoursAgo: 14, reporter: 1 },
+      { plate: "TEST-005", lat: 38.9240, lng: -77.1710, locDesc: "Behind Giant grocery, service road",
+        desc: "DEMO: Parked behind dumpsters with lights off. When approached by store employee, peeled out at high speed.",
+        vehDesc: "Blue Nissan, older model, exhaust visible from distance", dir: "W", hoursAgo: 30, reporter: 2 },
+      { plate: "TEST-005", lat: 38.9380, lng: -77.1780, locDesc: "Residential neighborhood off Dolley Madison",
+        desc: "DEMO: Going door to door at 9pm claiming to sell cleaning products. Multiple residents reported feeling intimidated.",
+        vehDesc: "Blue Nissan Altima with cracked windshield", dir: "N", hoursAgo: 56, reporter: 0 },
+
+      // Additional sightings with no vehicle match (unknown plates)
+      { plate: "DEMO-UNK", lat: 38.9320, lng: -77.1760, locDesc: "Langley Fork Park trail head",
+        desc: "DEMO: Dark SUV with no plates parked at trailhead after hours. Flash of light from inside, possibly photography.",
+        vehDesc: "Dark colored SUV, no visible plates, tinted windows", dir: "E", hoursAgo: 6, reporter: 1 },
+      { plate: "DEMO-997", lat: 38.9270, lng: -77.1720, locDesc: "Intersection of Chain Bridge and Dolley Madison",
+        desc: "DEMO: White van with commercial plates circling the block. Slowed near every house with packages on porch.",
+        vehDesc: "White cargo van, commercial plates, no company markings", dir: "N", hoursAgo: 10, reporter: 2 },
     ];
     for (const s of sightingData) {
-      const rid = reporterIds[Math.floor(Math.random() * reporterIds.length)];
+      const rid = reporterIds[s.reporter % reporterIds.length];
       await opsDb.insert(sightings).values({
         chapterId, reporterId: rid, plate: s.plate,
-        lat: s.lat, lng: s.lng, activityDescription: s.desc, direction: s.dir,
+        lat: s.lat, lng: s.lng,
+        locationDescription: s.locDesc,
+        activityDescription: s.desc,
+        vehicleDescription: s.vehDesc,
+        direction: s.dir,
         observedAt: new Date(now - s.hoursAgo * 3600000),
         submittedAt: new Date(now - s.hoursAgo * 3600000 + 60000),
       }).onConflictDoNothing();
     }
     console.log(`+ Demo sightings: ${sightingData.length}`);
+  }
+
+  // ACTOR-VEHICLE LINKS
+  if (actorIds.length > 0 && vehicleIds.length > 0) {
+    const links = [
+      { actor: 0, vehicle: 0, notes: "DEMO: Primary driver of FAKE-001" },
+      { actor: 0, vehicle: 2, notes: "DEMO: Also seen driving FAKE-003 on cargo runs" },
+      { actor: 1, vehicle: 1, notes: "DEMO: Frequent passenger in FAKE-002" },
+      { actor: 2, vehicle: 2, notes: "DEMO: Seen loading FAKE-003 at stash location" },
+    ];
+    for (const l of links) {
+      if (actorIds[l.actor] && vehicleIds[l.vehicle]) {
+        await opsDb.insert(actorVehicles).values({
+          actorId: actorIds[l.actor], vehicleId: vehicleIds[l.vehicle], notes: l.notes,
+        }).onConflictDoNothing();
+      }
+    }
+    console.log(`+ Actor-vehicle links: ${links.length}`);
   }
 
   // OPERATOR IDENTITY
