@@ -1522,6 +1522,9 @@ function IntegrationsAdmin() {
 function ImportAdmin() {
   const [hasDemoData, setHasDemoData] = useState<boolean | null>(null);
   const [clearing, setClearing] = useState(false);
+  const [clearDone, setClearDone] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const [refreshDone, setRefreshDone] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<any>(null);
   const [uploading, setUploading] = useState(false);
@@ -1535,12 +1538,14 @@ function ImportAdmin() {
   }, []);
 
   const handleClearDemo = async () => {
-    setClearing(true);
+    setClearing(true); setClearDone(false);
     try {
       const res = await fetch(`${API_BASE}/import/clear-demo`, { method: "POST", headers: authHeaders() });
       const data = await res.json();
       toast.success(`Cleared ${data.vehiclesCleared} vehicles, ${data.sightingsCleared} sightings, ${data.actorsCleared} actors`);
       setHasDemoData(false);
+      setClearDone(true);
+      setTimeout(() => setClearDone(false), 3000);
     } catch { toast.error("Clear failed"); }
     setClearing(false);
   };
@@ -1608,7 +1613,7 @@ function ImportAdmin() {
         </div>
       )}
 
-      {/* Demo timestamp refresh (always visible) */}
+      {/* Demo data tools (always visible) */}
       <div className="rounded-lg p-4 mb-4" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
         <div className="text-xs font-medium mb-2" style={{ color: "var(--text-sec)" }}>Demo Data</div>
         <p className="text-xs mb-3" style={{ color: "var(--text-muted)" }}>
@@ -1616,22 +1621,48 @@ function ImportAdmin() {
         </p>
         <div className="flex gap-2">
           <button onClick={async () => {
+            setRefreshing(true); setRefreshDone(false);
             try {
               const res = await fetch(`${API_BASE}/import/refresh-demo`, { method: "POST", headers: authHeaders() });
               const data = await res.json();
               toast.success(`Refreshed ${data.refreshed} sightings`);
+              setRefreshDone(true);
+              setTimeout(() => setRefreshDone(false), 3000);
             } catch { toast.error("Refresh failed"); }
+            setRefreshing(false);
           }}
-            className="px-3 py-1.5 rounded text-xs font-medium"
-            style={{ background: "var(--accent)", color: "var(--accent-text)" }}>
-            Refresh Timestamps
+            disabled={refreshing}
+            className="px-3 py-1.5 rounded text-xs font-medium transition-all duration-200"
+            style={{
+              background: refreshDone ? "rgba(22,163,74,0.15)" : "var(--accent)",
+              color: refreshDone ? "#16A34A" : "var(--accent-text)",
+              border: refreshDone ? "1px solid rgba(22,163,74,0.3)" : "1px solid transparent",
+              opacity: refreshing ? 0.7 : 1,
+            }}>
+            {refreshing ? (
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                <span style={{ display: "inline-block", width: 12, height: 12, border: "2px solid currentColor", borderTopColor: "transparent", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
+                Refreshing...
+              </span>
+            ) : refreshDone ? "\u2713 Refreshed" : "Refresh Timestamps"}
           </button>
           <button onClick={handleClearDemo} disabled={clearing}
-            className="px-3 py-1.5 rounded text-xs font-medium"
-            style={{ background: "rgba(217,119,6,0.15)", color: "#D97706", border: "1px solid rgba(217,119,6,0.3)" }}>
-            {clearing ? "Clearing..." : "Clear All Demo Data"}
+            className="px-3 py-1.5 rounded text-xs font-medium transition-all duration-200"
+            style={{
+              background: clearDone ? "rgba(22,163,74,0.15)" : "rgba(217,119,6,0.15)",
+              color: clearDone ? "#16A34A" : "#D97706",
+              border: `1px solid ${clearDone ? "rgba(22,163,74,0.3)" : "rgba(217,119,6,0.3)"}`,
+              opacity: clearing ? 0.7 : 1,
+            }}>
+            {clearing ? (
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                <span style={{ display: "inline-block", width: 12, height: 12, border: "2px solid currentColor", borderTopColor: "transparent", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
+                Clearing...
+              </span>
+            ) : clearDone ? "\u2713 Cleared" : "Clear All Demo Data"}
           </button>
         </div>
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       </div>
 
       {/* File upload */}
