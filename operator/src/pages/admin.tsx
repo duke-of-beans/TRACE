@@ -42,32 +42,69 @@ async function apiFetch(path: string, opts?: RequestInit) {
 export function Admin() {
   const [tab, setTab] = useState<string>("types");
 
-  const TABS = [
-    { key: "types",     label: "Vehicle Types" },
-    { key: "levels",    label: "Vehicle Suspicion" },
-    { key: "actorlevels", label: "Actor Suspicion" },
-    { key: "identifiers", label: "Actor Identifiers" },
-    { key: "dispatch",  label: "Dispatch Types" },
-    { key: "integrations", label: "Integrations" },
-    { key: "import",    label: "Import" },
-    { key: "operators", label: "Operators" },
-    { key: "reporters", label: "Reporters" },
-    { key: "channels",  label: "Notifications" },
-    { key: "feedback",  label: "Feedback" },
+  const GROUPS: { label: string; items: { key: string; label: string }[] }[] = [
+    { label: "Configuration", items: [
+      { key: "types", label: "Vehicle Types" },
+      { key: "levels", label: "Suspicion Levels" },
+      { key: "actorlevels", label: "Actor Levels" },
+      { key: "identifiers", label: "Actor Identifiers" },
+      { key: "dispatch", label: "Dispatch Types" },
+    ]},
+    { label: "Data", items: [
+      { key: "integrations", label: "Integrations" },
+      { key: "import", label: "Import" },
+    ]},
+    { label: "Team", items: [
+      { key: "operators", label: "Operators" },
+      { key: "reporters", label: "Reporters" },
+    ]},
+    { label: "System", items: [
+      { key: "channels", label: "Notifications" },
+      { key: "feedback", label: "Feedback" },
+    ]},
   ];
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-6">Administration</h1>
-      <div className="flex gap-1 mb-6 bg-trace-bg rounded-lg p-1 overflow-x-auto">
-        {TABS.map((t) => (
-          <button key={t.key} onClick={() => setTab(t.key)}
-            className={`px-3 py-2 rounded-md text-sm transition-colors whitespace-nowrap ${
-              tab === t.key ? "bg-trace-surface text-trace-accent font-medium shadow-sm" : "text-gray-500 hover:text-gray-300"
-            }`}
-          >{t.label}</button>
-        ))}
-      </div>
+      <h1 className="text-2xl font-bold mb-5">Administration</h1>
+      <div className="flex gap-6" style={{ minHeight: 500 }}>
+        {/* Sidebar nav */}
+        <div className="flex-shrink-0 hidden md:block" style={{ width: 180 }}>
+          <div className="sticky top-0 space-y-4">
+            {GROUPS.map((g) => (
+              <div key={g.label}>
+                <div className="text-[10px] font-semibold uppercase tracking-wider mb-1.5 px-2" style={{ color: "var(--text-muted)" }}>{g.label}</div>
+                <div className="space-y-0.5">
+                  {g.items.map((t) => (
+                    <button key={t.key} onClick={() => setTab(t.key)}
+                      className="w-full text-left px-2 py-1.5 rounded text-sm transition-colors"
+                      style={{
+                        background: tab === t.key ? "var(--accent-soft, rgba(99,102,241,0.1))" : "transparent",
+                        color: tab === t.key ? "var(--accent)" : "var(--text-sec)",
+                        fontWeight: tab === t.key ? 600 : 400,
+                      }}>
+                      {t.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Mobile: horizontal tabs (compact) */}
+        <div className="md:hidden mb-4 w-full">
+          <select value={tab} onChange={(e) => setTab(e.target.value)}
+            className="w-full rounded-lg px-3 py-2 text-sm"
+            style={{ background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text)", colorScheme: "dark" }}>
+            {GROUPS.flatMap((g) => g.items).map((t) => (
+              <option key={t.key} value={t.key}>{t.label}</option>
+            ))}
+          </select>
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 min-w-0">
       {tab === "types"       && <VehicleTypesAdmin />}
       {tab === "levels"      && <SuspicionLevelsAdmin />}
       {tab === "actorlevels" && <ActorSuspicionLevelsAdmin />}
@@ -79,6 +116,8 @@ export function Admin() {
       {tab === "reporters"   && <ReportersAdmin />}
       {tab === "channels"    && <ChannelsAdmin />}
       {tab === "feedback"    && <FeedbackAdmin />}
+        </div>
+      </div>
     </div>
   );
 }

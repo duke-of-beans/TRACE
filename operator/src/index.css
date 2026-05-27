@@ -9,3 +9,12 @@
 [title]:hover::after {
   z-index: 9990;
 }
+
+
+/* Scrollbar styling */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border, #2a2a3e); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-muted, #64748b); }
+::-webkit-scrollbar-corner { background: transparent; }
+* { scrollbar-width: thin; scrollbar-color: var(--border, #2a2a3e) transparent; }

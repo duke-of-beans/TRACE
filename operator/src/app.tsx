@@ -43,6 +43,7 @@ export function App() {
   const [theme, setThemeState] = useState(() => getTheme("dark"));
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showGuide, setShowGuide] = useState(false);
+  const [showBugReport, setShowBugReport] = useState(false);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -142,6 +143,12 @@ export function App() {
                 <Icon name="eye" size={14} />
                 {theme === "dark" ? "Light Mode" : "Dark Mode"}
               </button>
+              <button onClick={() => setShowBugReport(true)}
+                className="w-full text-left text-xs py-1 flex items-center gap-2 transition-colors"
+                style={{ color: "var(--text-muted)" }}>
+                <Icon name="info" size={14} />
+                Report Bug
+              </button>
               <button onClick={logout}
                 className="w-full text-left text-xs py-1 flex items-center gap-2 transition-colors hover:text-red-400"
                 style={{ color: "var(--text-muted)" }}>
@@ -206,17 +213,85 @@ export function App() {
                 </div>
                 <div className="pt-2" style={{ borderTop: "1px solid var(--border)" }}>
                   <p className="text-xs" style={{ color: "var(--text-muted)" }}>
-                    Press number keys 1-7 to switch pages. Press ? for the keyboard shortcut overlay.
+                    Press number keys 1-9 to switch pages. Press ? for the keyboard shortcut overlay.
                   </p>
                 </div>
               </div>
             </div>
           </div>
         )}
+
+        {/* Bug Report Modal */}
+        {showBugReport && (
+          <BugReportModal onClose={() => setShowBugReport(false)} />
+        )}
         </>
 
         )}
       </ConfirmProvider>
     </ToastProvider>
+  );
+}
+
+
+function BugReportModal({ onClose }: { onClose: () => void }) {
+  const [type, setType] = useState<"bug" | "feature">("bug");
+  const [title, setTitle] = useState("");
+  const [desc, setDesc] = useState("");
+  const [sending, setSending] = useState(false);
+  const [sent, setSent] = useState(false);
+
+  const handleSubmit = async () => {
+    if (!title.trim() || !desc.trim()) return;
+    setSending(true);
+    try {
+      const token = localStorage.getItem("trace_op_token");
+      await fetch(`${import.meta.env.VITE_API_URL || "/api/v1"}/feedback`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+        body: JSON.stringify({ type, title: title.trim(), description: desc.trim(), page: "operator", metadata: { screen: `${window.screen.width}x${window.screen.height}`, timestamp: new Date().toISOString() } }),
+      });
+      setSent(true);
+      setTimeout(() => onClose(), 2000);
+    } catch {}
+    setSending(false);
+  };
+
+  return (
+    <div className="fixed inset-0 flex items-center justify-center" style={{ background: "rgba(0,0,0,0.6)", zIndex: 9999 }} onClick={onClose}>
+      <div className="w-full max-w-md rounded-xl p-6" style={{ background: "var(--surface)", border: "1px solid var(--border)" }} onClick={(e) => e.stopPropagation()}>
+        {sent ? (
+          <div className="text-center py-4">
+            <div className="mb-2" style={{ color: "var(--accent)" }}><Icon name="check" size={28} /></div>
+            <p className="text-sm" style={{ color: "var(--text-sec)" }}>Report received. It will appear in Admin, Feedback.</p>
+          </div>
+        ) : (
+          <>
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-sm font-semibold">Report a Problem</h3>
+              <button onClick={onClose} style={{ color: "var(--text-muted)", background: "none", border: "none", cursor: "pointer" }}><Icon name="x" size={16} /></button>
+            </div>
+            <div className="flex gap-2 mb-4">
+              {(["bug", "feature"] as const).map((t) => (
+                <button key={t} onClick={() => setType(t)}
+                  className="flex-1 px-3 py-2 rounded text-sm font-medium transition"
+                  style={{ background: type === t ? "var(--accent)" : "var(--surface-alt, var(--bg))", color: type === t ? "var(--accent-text)" : "var(--text-sec)", border: `1px solid ${type === t ? "var(--accent)" : "var(--border)"}` }}>
+                  {t === "bug" ? "Bug" : "Suggestion"}
+                </button>
+              ))}
+            </div>
+            <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Short summary"
+              className="w-full rounded px-3 py-2 text-sm mb-3" style={{ background: "var(--surface-alt, var(--bg))", border: "1px solid var(--border)", color: "var(--text)" }} />
+            <textarea value={desc} onChange={(e) => setDesc(e.target.value)} placeholder="What happened? What did you expect?" rows={3}
+              className="w-full rounded px-3 py-2 text-sm" style={{ background: "var(--surface-alt, var(--bg))", border: "1px solid var(--border)", color: "var(--text)", resize: "vertical" }} />
+            <button onClick={handleSubmit} disabled={sending || !title.trim() || !desc.trim()}
+              className="w-full mt-4 px-4 py-2 rounded text-sm font-semibold transition"
+              style={{ background: "var(--accent)", color: "var(--accent-text)", opacity: (sending || !title.trim() || !desc.trim()) ? 0.5 : 1 }}>
+              {sending ? "Sending..." : "Submit"}
+            </button>
+          </>
+        )}
+      </div>
+    </div>
   );
 }
