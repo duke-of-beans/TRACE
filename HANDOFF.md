@@ -1,21 +1,21 @@
 # TRACE — Session Handoff
-# Updated: 2026-05-27 (Session 4 closeout)
-# Status: PHASES 1-8 COMPLETE + P0 INCIDENT SYSTEM CORE SHIPPED
-# Next: P0 sub-features (correlation, dossier export), then P1 Reporter Groups
+# Updated: 2026-05-27 (Session 4 final closeout)
+# Status: P0 INCIDENT SYSTEM COMPLETE + TERMINOLOGY CLEANED + YUMA 17-TEST GATE
+# Next: P0 sub-features (correlation, public form HTML page), then P1 Reporter Groups
 
 ---
 
 ## CRITICAL CONTEXT FOR NEXT SESSION
 
-P0 Unified Incident System CORE is live in production. Schema, API, operator
-console page, migration, seed data all deployed to Neon + Vercel.
+P0 Unified Incident System is live and hardened. Terminology audit complete.
+YUMA expanded to 17 tests across 6 tiers.
 
-**What still needs building for P0 completion:**
+**What still needs building for full P0:**
 - Conflicting Info Correlation (auto-detect overlapping reports, surface discrepancies)
-- Closed Event Dossier / PDF export (court-ready document generation)
-- Public incident form HTML page (standalone URL, currently API-only)
-- Reporter portal incident filing (PWA submit integration)
-- Operator: actor/vehicle search + link UI (currently displays links, no search picker)
+- Public incident form HTML page (standalone, API endpoints exist with hardening)
+- Reporter PWA incident filing UI (rapid capture API exists, needs PWA page integration)
+- Operator actor/vehicle search picker in incident detail (link UI exists, no search widget)
+- PDF export of observation records (JSON endpoint exists at GET /incidents/:id/record)
 
 **Read the transcript:** /mnt/transcripts/ has full session history.
 
@@ -142,6 +142,70 @@ Elm St, Kirby Rd). NOT on or near CIA campus.
 
 **Sidebar:** Incidents at position 5 (shortcut key 5), between Dispatches and Harassment
 **YUMA:** Updated tests 5 (structure), 8 (nav), 11 (shortcuts). 72 checks pass, 0 warnings.
+
+### Terminology Rename (WHETSTONE-driven)
+
+Full audit of 586 instances across 54 files. Tier 1 (blocks deploy) and Tier 2 (warns) terms identified.
+
+**Tier 1 changes shipped:**
+- "criminal profiles" -> "person profiles" (sidebar, guide, onboarding)
+- "Person of Interest" -> "Under Review" (actor concern level label, seed, DB)
+- "Primary Target" -> "High Priority" (actor concern level label, seed, DB)
+- "Active Threat" -> "Active Concern" (tag definition, seed, DB)
+- "Known Threat" -> "Known Concern" (tag definition, seed, DB)
+- "Flagged for LE" -> "Noted for Authorities" (tag definition, seed, DB)
+- "suspect" -> "associated" (incident actor role default, schema, API)
+
+**Tier 2 changes shipped:**
+- "Intel Map" -> "Activity Map" (sidebar label, guide, onboarding)
+- "Geospatial intelligence" -> "Geospatial activity view" (sidebar desc)
+- "dossier" -> "record" (operator guide, onboarding, vehicles, actors, harassment)
+- "suspicion level" -> "concern level" (admin, dashboard, reporter map, onboarding)
+- Production DB labels updated via _update_terminology.ts
+
+### Public Form Hardening
+
+- Token expiry: 48-hour TTL on public form links (publicTokenExpiresAt column)
+- Rate limiting: max 20 submissions per token (publicSubmissionCount column)
+- Token validation: shared validatePublicToken() helper checks expiry + rate limit
+- HTTP 410 for expired tokens, 429 for rate-limited tokens
+- Migration 0007 applied to Neon
+
+### Crisis Workflow — Rapid Capture
+
+- POST /incidents/rapid: one-tap incident filing with auto-GPS, minimal fields
+- Auto-sets severity to "urgent", timestamps to now
+- Accepts optional inline evidence (photo/audio) in the same request
+- Reporter PWA API client wired (api.rapidCapture())
+- Operator API client wired (api.rapidCapture())
+
+### Observation Record / Dossier Generator
+
+- GET /incidents/:id/record: structured JSON observation record
+- Includes WHETSTONE-informed disclaimer about civilian observation status
+- Full incident detail, persons, vehicles, evidence with provenance metadata
+- Every evidence item marked "authenticated_reporter" or "public_form"
+- Metadata: total counts, public submission count, public form evidence flag
+- Operator UI: "Download Record" button on incident detail (downloads JSON)
+- Next step: PDF rendering from this JSON structure
+
+### YUMA Expansion (4 new test tiers)
+
+- Test 14 YUMA-C: Terminology compliance. Tier 1 terms block deploy, Tier 2 warn.
+  Banned: "criminal profile", "Primary Target", "Person of Interest"
+- Test 15 YUMA-B: API contract patterns. Validates await on DB calls,
+  HTTP status codes on error responses (literal + dynamic variable).
+- Test 16 YUMA-E: Dependency blast radius. Verifies shared modules have consumers.
+- Test 17 YUMA-F: Evidence chain integrity. 5 provenance checks (uploadedBy,
+  addedAt, submittedViaPublic, phase, evidenceType).
+- Total: 17 tests, 84 checks, 0 warnings, 0 failures.
+
+### WHETSTONE Adversarial Audit
+
+5 challenges across liability, UX, security, code, and meta-architecture lenses.
+All findings actioned: terminology renamed, public form hardened, crisis workflow
+added, dossier framed with disclaimers, behavioral tests added to YUMA.
+Full audit results and YUMA enhancement architecture documented in brain.db.
 
 ---
 
