@@ -75,12 +75,13 @@ export function Dispatches() {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex justify-between items-center mb-2">
         <h1 className="text-2xl font-bold">Dispatches</h1>
         <button onClick={load} className="text-xs" style={{ color: "var(--accent)" }}>
           <Icon name="clock" size={14} /> Refresh
         </button>
       </div>
+      <p className="text-xs mb-6" style={{ color: "var(--text-muted)" }}>Active alerts sent to the field. Create dispatches from triage or the Activity Map (right-click to drop a pin). Dispatches auto-close after the configured time period.</p>
 
       {/* Stats row */}
       <div className="grid grid-cols-4 gap-3 mb-6">

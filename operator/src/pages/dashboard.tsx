@@ -28,6 +28,8 @@ export function Dashboard() {
   return (
     <div>
       <h1 className="text-2xl font-bold mb-6" style={{ color: "var(--text)" }}>Dashboard</h1>
+      {/* helptext-dashboard */}
+      <p className="text-xs mb-4" style={{ color: "var(--text-muted)" }}>At-a-glance status for your chapter. Active vehicles, pending sightings, open dispatches, and recent activity.</p>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
         <StatCard icon="zap" label="Pending Triage" value={stats.pending} color="var(--warning)" help="Sightings awaiting operator review" />

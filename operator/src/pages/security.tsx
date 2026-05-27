@@ -19,7 +19,8 @@ export function Security() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-6">Security Operations</h1>
+      <h1 className="text-2xl font-bold mb-2">Security Operations</h1>
+      <p className="text-xs mb-6" style={{ color: "var(--text-muted)" }}>Monitor connected reporter devices. Suspend access (reversible) or kill (permanent data wipe on next check-in). The kill signal triggers automatically when the reporter's device connects.</p>
 
       <div className="flex gap-1 mb-6 bg-trace-bg rounded-lg p-1">
         <TabBtn label="Overview" active={tab === "overview"} onClick={() => setTab("overview")} />

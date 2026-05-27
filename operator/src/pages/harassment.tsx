@@ -120,10 +120,11 @@ export function Harassment() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-2">
         <h1 className="text-xl font-bold">Harassment Reports</h1>
         <span className="text-xs" style={{ color: "var(--text-muted)" }}>{numbers.length} number{numbers.length !== 1 ? "s" : ""}</span>
       </div>
+      <p className="text-xs mb-4" style={{ color: "var(--text-muted)" }}>Phone numbers reported by field reporters as harassing or threatening. Review reports, tag known numbers, and respond to reporters. Configure Spokeo in Admin for caller ID lookup.</p>
 
       {/* Filter pills */}
       <div className="flex gap-2 mb-4 flex-wrap">

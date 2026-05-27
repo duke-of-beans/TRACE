@@ -52,6 +52,7 @@ export function Actors() {
         <div className="flex justify-between items-center mb-4">
           <div className="flex items-center gap-2">
             <h2 className="text-lg font-semibold">Actors</h2>
+        <p className="text-xs mb-3" style={{ color: "var(--text-muted)" }}>Persons observed in connection with tracked vehicles or incidents. Click a name to view their full record. Use aliases only.</p>
             <HelpTip text="Known individuals linked to tracked vehicles. Profiles persist across vehicle retirements." />
           </div>
         </div>

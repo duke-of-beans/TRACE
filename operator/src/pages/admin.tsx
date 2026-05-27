@@ -191,6 +191,8 @@ function VehicleTypesAdmin() {
 
   return (
     <div className="max-w-2xl">
+      {/* helptext-vehicletypesadmin */}
+      <p className="text-xs mb-4" style={{ color: "var(--text-muted)" }}>Vehicle types categorize the vehicles your chapter tracks. Create types like "Runner," "Scout," or "Delivery" to organize sightings. Each type gets a color for map markers and list badges.</p>
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <h2 className="font-semibold">Vehicle Types</h2>
@@ -322,6 +324,8 @@ function SuspicionLevelsAdmin() {
 
   return (
     <div className="max-w-2xl">
+      {/* helptext-suspicionlevelsadmin */}
+      <p className="text-xs mb-4" style={{ color: "var(--text-muted)" }}>Concern levels define the escalation ladder for vehicles. As sightings accumulate, vehicles promote through these levels. Configure auto-promotion rules below each level to set thresholds.</p>
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <h2 className="font-semibold">Suspicion Ladder</h2>
@@ -582,6 +586,8 @@ function ActorSuspicionLevelsAdmin() {
 
   return (
     <div className="max-w-2xl">
+      {/* helptext-actorsuspicionlevelsadmin */}
+      <p className="text-xs mb-4" style={{ color: "var(--text-muted)" }}>Actor concern levels work like vehicle levels but for people. Assign levels to tracked individuals based on their observed activity.</p>
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <h2 className="font-semibold">Actor Suspicion Ladder</h2>
@@ -788,6 +794,8 @@ function ActorIdentifierTypesAdmin() {
 
   return (
     <div className="max-w-2xl">
+      {/* helptext-actoridentifiertypesadmin */}
+      <p className="text-xs mb-4" style={{ color: "var(--text-muted)" }}>Identifier types define the physical markers your reporters can record for actors. Common types: tattoos, scars, birthmarks, piercings. These help confirm identity across sightings.</p>
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <h2 className="font-semibold">Actor Identifier Types</h2>
@@ -912,6 +920,8 @@ function OperatorsAdmin() {
 
   return (
     <div className="max-w-lg">
+      {/* helptext-operatorsadmin */}
+      <p className="text-xs mb-4" style={{ color: "var(--text-muted)" }}>Manage who has access to this console. Operators can triage sightings, manage dispatches, and configure the chapter. Remove access immediately if a device is compromised.</p>
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <h2 className="font-semibold">Operators</h2>
@@ -995,6 +1005,8 @@ function ReportersAdmin() {
 
   return (
     <div className="max-w-lg">
+      {/* helptext-reportersadmin */}
+      <p className="text-xs mb-4" style={{ color: "var(--text-muted)" }}>View connected field reporters and their devices. Generate invite codes to onboard new reporters. Suspend or remove reporters who are no longer active.</p>
       <div className="flex items-center gap-2 mb-4">
         <h2 className="font-semibold">Invite Reporter</h2>
         <HelpTip text="Generate an invite code to give to a reporter in person. No email needed. Code expires in 7 days." />
@@ -1063,6 +1075,8 @@ function ChannelsAdmin() {
 
   return (
     <div className="max-w-xl">
+      {/* helptext-channelsadmin */}
+      <p className="text-xs mb-4" style={{ color: "var(--text-muted)" }}>Configure how your chapter receives notifications. Channels can be webhook URLs, email addresses, or push endpoints. Set rules to route specific event types to specific channels.</p>
       <div className="flex items-center gap-2 mb-4">
         <h2 className="font-semibold">Notification Channels</h2>
         <HelpTip text="Push notification topology. Admin assigns reporters to channels and sets trigger conditions." />
@@ -1152,6 +1166,8 @@ function FeedbackAdmin() {
 
   return (
     <div>
+      {/* helptext-feedbackadmin */}
+      <p className="text-xs mb-4" style={{ color: "var(--text-muted)" }}>Bug reports and feature suggestions from operators appear here. Bug reports are also filed as GitHub Issues for tracking. Review and respond to keep your team informed.</p>
       <div className="flex items-center justify-between mb-4">
         <p className="text-sm" style={{ color: "var(--text-sec)" }}>
           Bug reports and suggestions from reporters. Review, acknowledge, and resolve.
@@ -1273,6 +1289,8 @@ function DispatchTypesAdmin() {
 
   return (
     <div>
+      {/* helptext-dispatchtypesadmin */}
+      <p className="text-xs mb-4" style={{ color: "var(--text-muted)" }}>Dispatch types define the categories of alerts you can send to the field. Each type has a default priority and auto-close timer. Customize these based on how your chapter operates.</p>
       <div className="flex justify-between items-center mb-4">
         <div>
           <h2 className="text-lg font-semibold">Dispatch Event Types</h2>
@@ -1453,6 +1471,8 @@ function IntegrationsAdmin() {
 
   return (
     <div>
+      {/* helptext-integrationsadmin */}
+      <p className="text-xs mb-4" style={{ color: "var(--text-muted)" }}>Connect external services to enhance your data. CarAPI resolves license plates to vehicle details. Spokeo identifies phone numbers for harassment reports. API keys are encrypted and stored server-side.</p>
       <p className="text-sm mb-4" style={{ color: "var(--text-sec)" }}>
         TRACE works without external services. Integrations add automatic vehicle identification and caller lookup. Each requires an API key from the respective service.
       </p>
@@ -1583,6 +1603,8 @@ function ImportAdmin() {
 
   return (
     <div>
+      {/* helptext-importadmin */}
+      <p className="text-xs mb-4" style={{ color: "var(--text-muted)" }}>Bulk import vehicles, actors, or sightings from CSV files. Download a template, fill in your data, and upload. Existing records are matched by plate or alias to avoid duplicates.</p>
       <p className="text-sm mb-4" style={{ color: "var(--text-sec)" }}>
         Bring in vehicle records from a spreadsheet. Upload a file, review the preview, then confirm.
       </p>

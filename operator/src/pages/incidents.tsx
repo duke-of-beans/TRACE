@@ -96,6 +96,8 @@ export function Incidents() {
     <div>
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Incidents</h1>
+      {/* helptext-incidents */}
+      <p className="text-xs mb-4" style={{ color: "var(--text-muted)" }}>Structured reports for events beyond routine sightings. File incidents, link actors and vehicles, collect evidence, and generate observation records for authorities. Share public witness forms for community input.</p>
         <div className="flex gap-2">
           <button onClick={load} className="text-xs flex items-center gap-1" style={{ color: "var(--accent)" }}>
             <Icon name="clock" size={14} /> Refresh
