@@ -60,6 +60,8 @@ export function Harassment() {
   const [response, setResponse] = useState("");
   const [status, setStatus] = useState("");
   const [saving, setSaving] = useState(false);
+  const [spokeoData, setSpokeoData] = useState<any>(null);
+  const [identifying, setIdentifying] = useState(false);
   const toast = useToast();
 
   useEffect(() => {
@@ -90,6 +92,17 @@ export function Harassment() {
       toast.success("Saved");
     } catch { toast.error("Save failed"); }
     setSaving(false);
+  };
+
+  const handleIdentify = async () => {
+    if (!selected) return;
+    setIdentifying(true);
+    try {
+      const data = await apiFetch(`/harassment-reports/number/${selected.id}/identify`, { method: "POST" });
+      setSpokeoData(data);
+      if (!data.found) toast.info("No records found.");
+    } catch { toast.error("Lookup failed. Check Spokeo key in Admin."); }
+    setIdentifying(false);
   };
 
   const formatPhone = (d: string) => d.length === 10 ? `(${d.slice(0,3)}) ${d.slice(3,6)}-${d.slice(6)}` : d;
@@ -193,6 +206,37 @@ export function Harassment() {
                   <Icon name="x" size={18} />
                 </button>
               </div>
+
+              {/* Spokeo Identify */}
+              {!selected.spokeoResult && (
+                <button onClick={handleIdentify} disabled={identifying}
+                  className="w-full mb-4 px-3 py-2 rounded text-sm font-medium transition"
+                  style={{ background: "var(--accent-soft)", color: "var(--accent)", border: "1px solid var(--accent)" }}>
+                  {identifying ? "Looking up..." : "Identify Caller"}
+                </button>
+              )}
+              {(spokeoData?.found || selected.spokeoResult) && (
+                <div className="rounded-lg p-3 mb-4" style={{ background: "var(--surface-alt)", border: "1px solid var(--border)" }}>
+                  <div className="text-xs font-medium mb-2" style={{ color: "var(--text-sec)" }}>Caller Identification</div>
+                  {(() => {
+                    const d = spokeoData?.found ? spokeoData : selected.spokeoResult;
+                    return d ? (
+                      <div className="text-xs space-y-1" style={{ color: "var(--text)" }}>
+                        {(d.name || d.full_name) && <div><span style={{ color: "var(--text-muted)" }}>Name:</span> {d.name || d.full_name}</div>}
+                        {d.carrier && <div><span style={{ color: "var(--text-muted)" }}>Carrier:</span> {d.carrier}</div>}
+                        {(d.lineType || d.line_type || d.phone_type) && <div><span style={{ color: "var(--text-muted)" }}>Type:</span> {d.lineType || d.line_type || d.phone_type}</div>}
+                        {(d.spamRisk || d.spam_risk) && <div><span style={{ color: "var(--text-muted)" }}>Spam:</span> {d.spamRisk || d.spam_risk}</div>}
+                        {(d.address || d.current_address) && <div><span style={{ color: "var(--text-muted)" }}>Address:</span> {d.address || d.current_address}</div>}
+                        {d.age && <div><span style={{ color: "var(--text-muted)" }}>Age:</span> {d.age}</div>}
+                      </div>
+                    ) : null;
+                  })()}
+                  <button onClick={handleIdentify} disabled={identifying}
+                    className="mt-2 text-[10px]" style={{ color: "var(--accent)" }}>
+                    {identifying ? "Refreshing..." : "Re-check"}
+                  </button>
+                </div>
+              )}
 
               {/* Tag + Response */}
               <div className="mb-4">

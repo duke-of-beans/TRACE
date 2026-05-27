@@ -9,6 +9,8 @@ import { Hono } from "hono";
 import { opsDb } from "../../db/connection.js";
 import { harassmentReports, knownNumbers } from "../../db/schema/vault-a.js";
 import { eq, and, desc, sql } from "drizzle-orm";
+import { lookupPhoneSpokeo } from "../../services/spokeo.js";
+import { isIntegrationEnabled } from "../integrations/index.js";
 
 export const harassmentRouter = new Hono();
 
@@ -236,11 +238,61 @@ harassmentRouter.post("/phone-lookup", async (c) => {
     });
   }
 
-  // Tier 2: Spokeo (placeholder, implemented in Phase 6)
+  // Tier 2: Spokeo (if configured)
+  const spokeoEnabled = await isIntegrationEnabled(chapterId, "spokeo");
+  if (spokeoEnabled) {
+    const spokeoResult = await lookupPhoneSpokeo(normalized, chapterId);
+    if (spokeoResult && spokeoResult.found) {
+      return c.json({
+        tier: 2,
+        status: "found",
+        phoneNumber: normalized,
+        name: spokeoResult.name,
+        carrier: spokeoResult.carrier,
+        lineType: spokeoResult.lineType,
+      });
+    }
+  }
+
   return c.json({
-    tier: 1,
+    tier: spokeoEnabled ? 2 : 1,
     status: "unknown",
     phoneNumber: normalized,
     message: "Number not in chapter database.",
   });
+});
+
+
+// POST /number/:numberId/identify — operator triggers Spokeo lookup (full data)
+harassmentRouter.post("/number/:numberId/identify", async (c) => {
+  const chapterId = c.req.header("x-chapter-id");
+  if (!chapterId) return c.json({ error: "Missing chapter" }, 400);
+
+  const numberId = c.req.param("numberId");
+  const [num] = await opsDb
+    .select()
+    .from(knownNumbers)
+    .where(eq(knownNumbers.id, numberId))
+    .limit(1);
+
+  if (!num) return c.json({ error: "Number not found" }, 404);
+
+  const result = await lookupPhoneSpokeo(num.phoneNumber, chapterId, numberId);
+  if (!result) return c.json({ error: "Spokeo not configured. Set up in Admin, Integrations." }, 400);
+
+  if (result.found) {
+    return c.json({
+      found: true,
+      name: result.name,
+      age: result.age,
+      address: result.address,
+      carrier: result.carrier,
+      lineType: result.lineType,
+      spamRisk: result.spamRisk,
+      socialProfiles: result.socialProfiles,
+      source: result.source,
+    });
+  }
+
+  return c.json({ found: false, message: "No records found for this number." });
 });
