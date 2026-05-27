@@ -22,3 +22,4 @@ _*.bat
 HANDOFF.md
 docs/FEATURE_DESIGN.md
 _commitmsg.txt
+deploy.bat

@@ -435,6 +435,7 @@ applyTheme(getTheme());
   <a class="scroll-nav-dot" href="#step-4"><span class="scroll-nav-label">Operator</span><span class="scroll-nav-pip"></span></a>
   <a class="scroll-nav-dot" href="#step-5"><span class="scroll-nav-label">Reporters</span><span class="scroll-nav-pip"></span></a>
   <a class="scroll-nav-dot" href="#step-6"><span class="scroll-nav-label">Install</span><span class="scroll-nav-pip"></span></a>
+  <a class="scroll-nav-dot" href="#step-7"><span class="scroll-nav-label">Integrations</span><span class="scroll-nav-pip"></span></a>
   <a class="scroll-nav-dot" href="#complete"><span class="scroll-nav-label">Done</span><span class="scroll-nav-pip"></span></a>
 </nav>
 
@@ -732,6 +733,36 @@ applyTheme(getTheme());
       Add it to your home screen.<br>
       Your invite code is: <strong style="color:var(--accent);font-family:var(--font-mono);">KXMP-7VNQ</strong>
     </div>
+  </div>
+</div>
+
+<!-- STEP 7 (OPTIONAL) -->
+<div class="step" id="step-7">
+  <div class="step-header"><span class="step-number">07</span><div class="step-rule"></div></div>
+  <h2>Optional: Configure integrations</h2>
+  <p>TRACE works without external services. These integrations are optional and add automatic vehicle identification and caller lookup. Skip this step if you do not need them. You can return to this later.</p>
+
+  <h3 style="font-size:14px;margin-top:24px;margin-bottom:8px;">CarAPI (plate lookup)</h3>
+  <p>When a reporter enters a license plate, TRACE checks the chapter database for free. With a CarAPI key, plates that are not in the database are resolved to a year, make, model, and color. This costs approximately $0.30 per lookup. Reporters see the result immediately in the field.</p>
+  <ol class="instructions">
+    <li>Create an account at <strong><a href="https://carapi.app" target="_blank">carapi.app</a></strong></li>
+    <li>Get an API token from the dashboard.</li>
+    <li>In the operator console, go to <strong>Admin</strong>, then the <strong>Integrations</strong> tab.</li>
+    <li>Click <strong>Configure</strong> on the CarAPI card, paste the token, and click <strong>Save</strong>.</li>
+    <li>Click <strong>Test</strong> to verify the connection.</li>
+  </ol>
+
+  <h3 style="font-size:14px;margin-top:24px;margin-bottom:8px;">Spokeo (caller identification)</h3>
+  <p>When reporters submit harassing phone numbers through the Alert tab, the operator reviews them in the Harassment section. With a Spokeo API key, the operator can click <strong>Identify Caller</strong> to look up the name, carrier, address, and spam risk for a phone number. Without Spokeo, operators review and tag reports manually.</p>
+  <ol class="instructions">
+    <li>Create an account at <strong><a href="https://www.spokeo.com" target="_blank">spokeo.com</a></strong> and obtain API access.</li>
+    <li>In the operator console, go to <strong>Admin</strong>, then the <strong>Integrations</strong> tab.</li>
+    <li>Click <strong>Configure</strong> on the Spokeo card, paste the key, and click <strong>Save</strong>.</li>
+    <li>Click <strong>Test</strong> to verify the connection.</li>
+  </ol>
+
+  <div class="callout">
+    <strong>All integrations are metered.</strong> The Integrations tab shows how many lookups have been used this month. API keys are encrypted at rest on the server. Each chapter has its own keys. Removing a key stops all lookups for that service immediately.
   </div>
 </div>
 

@@ -108,6 +108,7 @@ export function App() {
             onShowJoin={() => setPage("submit")}
             onSignOut={handleSignOut}
             onToggleTheme={handleToggleTheme}
+            onReplayTour={() => { localStorage.removeItem("trace_reporter_briefed"); setBriefed(false); }}
           />
         )}
       </main>
@@ -223,10 +224,10 @@ function SubmitGate({ authed, onJoin }: { authed: boolean; onJoin: () => void })
   );
 }
 
-function SettingsPage({ authed, ttlHours, theme, onShowSecurity, onShowJoin, onSignOut, onToggleTheme }: {
+function SettingsPage({ authed, ttlHours, theme, onShowSecurity, onShowJoin, onSignOut, onToggleTheme, onReplayTour }: {
   authed: boolean; ttlHours: number; theme: string;
   onShowSecurity: () => void; onShowJoin: () => void;
-  onSignOut: () => void; onToggleTheme: () => void;
+  onSignOut: () => void; onToggleTheme: () => void; onReplayTour: () => void;
 }) {
   const [queueCount, setQueueCount] = useState(0);
   useEffect(() => { getQueueCount().then(setQueueCount); }, []);
@@ -299,6 +300,12 @@ function SettingsPage({ authed, ttlHours, theme, onShowSecurity, onShowJoin, onS
       <button class="btn btn-secondary btn-full" onClick={onToggleTheme} style={{ marginBottom: "var(--sp-3)", justifyContent: "flex-start" }}>
         <Icon name="eye" size={16} /> {theme === "light" ? "Dark Mode" : "Light Mode"}
       </button>
+
+      {authed && (
+        <button class="btn btn-secondary btn-full" onClick={onReplayTour} style={{ marginBottom: "var(--sp-3)", justifyContent: "flex-start" }}>
+          <Icon name="info" size={16} /> Replay Tour
+        </button>
+      )}
 
       {authed && (
         <button class="btn btn-ghost btn-full" onClick={onSignOut} style={{ marginBottom: "var(--sp-3)", justifyContent: "flex-start" }}>
