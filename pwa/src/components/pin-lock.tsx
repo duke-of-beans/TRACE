@@ -49,6 +49,9 @@ export function PinLock({ onUnlock }: PinLockProps) {
           <span class="wordmark-subtitle">Field Reporter</span>
         </div>
         <p class="auth-subtitle">Enter your PIN to unlock</p>
+        <p style={{ fontSize: "var(--text-xs)", color: "var(--text-muted)", marginTop: "var(--sp-1)", marginBottom: "var(--sp-3)" }}>
+          Your PIN stays on this device. It is not sent to the server.
+        </p>
 
         <input
           type="password"

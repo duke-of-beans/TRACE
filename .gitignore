@@ -19,3 +19,6 @@ _*.py
 _*.ts  
 _*.bat  
 .env.neon  
+HANDOFF.md
+docs/FEATURE_DESIGN.md
+_commitmsg.txt

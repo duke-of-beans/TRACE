@@ -48,6 +48,8 @@ export function Admin() {
     { key: "actorlevels", label: "Actor Suspicion" },
     { key: "identifiers", label: "Actor Identifiers" },
     { key: "dispatch",  label: "Dispatch Types" },
+    { key: "integrations", label: "Integrations" },
+    { key: "import",    label: "Import" },
     { key: "operators", label: "Operators" },
     { key: "reporters", label: "Reporters" },
     { key: "channels",  label: "Notifications" },
@@ -71,6 +73,8 @@ export function Admin() {
       {tab === "actorlevels" && <ActorSuspicionLevelsAdmin />}
       {tab === "identifiers" && <ActorIdentifierTypesAdmin />}
       {tab === "dispatch"    && <DispatchTypesAdmin />}
+      {tab === "integrations" && <IntegrationsAdmin />}
+      {tab === "import"      && <ImportAdmin />}
       {tab === "operators"   && <OperatorsAdmin />}
       {tab === "reporters"   && <ReportersAdmin />}
       {tab === "channels"    && <ChannelsAdmin />}
@@ -1341,6 +1345,263 @@ function DispatchTypesAdmin() {
             </button>
             <button onClick={() => { setEditing(null); setAdding(false); }}
               className="px-4 py-2 rounded text-sm" style={{ color: "var(--text-sec)" }}>Cancel</button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+
+// ============ Integrations — API key management ============
+function IntegrationsAdmin() {
+  const [integrations, setIntegrations] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [editingKey, setEditingKey] = useState<string | null>(null);
+  const [newKey, setNewKey] = useState("");
+  const [testing, setTesting] = useState<string | null>(null);
+  const toast = useToast();
+
+  const load = () => {
+    setLoading(true);
+    fetch(`${API_BASE}/integrations`, { headers: authHeaders() })
+      .then((r) => r.json()).then(setIntegrations).catch(() => {})
+      .finally(() => setLoading(false));
+  };
+  useEffect(load, []);
+
+  const SERVICES: Record<string, { name: string; desc: string }> = {
+    carapi: { name: "CarAPI", desc: "Resolve plates to VIN, make, model, year, color." },
+    spokeo: { name: "Spokeo", desc: "Identify callers by phone number." },
+    bumper: { name: "Bumper", desc: "Vehicle history reports (future)." },
+  };
+
+  const handleSaveKey = async (service: string) => {
+    if (!newKey.trim()) return;
+    try {
+      await fetch(`${API_BASE}/integrations/${service}`, {
+        method: "PUT", headers: authHeaders(),
+        body: JSON.stringify({ apiKey: newKey, enabled: true }),
+      });
+      toast.success("Key saved");
+      setEditingKey(null); setNewKey(""); load();
+    } catch { toast.error("Save failed"); }
+  };
+
+  const handleTest = async (service: string) => {
+    setTesting(service);
+    try {
+      const res = await fetch(`${API_BASE}/integrations/${service}/test`, {
+        method: "POST", headers: authHeaders(),
+      });
+      const data = await res.json();
+      if (data.result === "success") toast.success(data.message || "Connected");
+      else toast.error(data.message || "Test failed");
+      load();
+    } catch { toast.error("Test failed"); }
+    setTesting(null);
+  };
+
+  const handleDelete = async (service: string) => {
+    try {
+      await fetch(`${API_BASE}/integrations/${service}`, { method: "DELETE", headers: authHeaders() });
+      toast.success("Removed");
+      load();
+    } catch { toast.error("Remove failed"); }
+  };
+
+  if (loading) return <div className="text-sm" style={{ color: "var(--text-muted)" }}>Loading...</div>;
+
+  return (
+    <div>
+      <p className="text-sm mb-4" style={{ color: "var(--text-sec)" }}>
+        TRACE works without external services. Integrations add automatic vehicle identification and caller lookup. Each requires an API key from the respective service.
+      </p>
+      <div className="grid gap-4">
+        {Object.entries(SERVICES).map(([key, svc]) => {
+          const cfg = integrations.find((i: any) => i.serviceName === key);
+          return (
+            <div key={key} className="rounded-lg p-4" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+              <div className="flex items-center justify-between mb-2">
+                <div>
+                  <div className="font-semibold text-sm">{svc.name}</div>
+                  <div className="text-xs" style={{ color: "var(--text-muted)" }}>{svc.desc}</div>
+                </div>
+                {cfg?.configured && (
+                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded" style={{
+                    background: cfg.enabled ? "rgba(22,163,74,0.1)" : "rgba(148,163,184,0.1)",
+                    color: cfg.enabled ? "#16A34A" : "var(--text-muted)",
+                  }}>{cfg.enabled ? "Active" : "Disabled"}</span>
+                )}
+              </div>
+
+              {cfg?.configured ? (
+                <div className="flex items-center gap-2 mt-3">
+                  <button onClick={() => handleTest(key)} disabled={testing === key}
+                    className="px-3 py-1.5 rounded text-xs font-medium transition"
+                    style={{ background: "var(--surface-alt)", border: "1px solid var(--border)", color: "var(--text-sec)" }}>
+                    {testing === key ? "Testing..." : "Test"}
+                  </button>
+                  {cfg.lastTestResult && (
+                    <span className="text-[10px]" style={{ color: cfg.lastTestResult === "success" ? "#16A34A" : "#DC2626" }}>
+                      {cfg.lastTestResult}
+                    </span>
+                  )}
+                  <span className="text-[10px]" style={{ color: "var(--text-muted)" }}>
+                    {cfg.lookupsThisMonth} lookups this month
+                  </span>
+                  <button onClick={() => handleDelete(key)} className="ml-auto text-xs" style={{ color: "var(--text-muted)" }}>Remove</button>
+                </div>
+              ) : editingKey === key ? (
+                <div className="flex gap-2 mt-3">
+                  <input value={newKey} onChange={(e) => setNewKey(e.target.value)} placeholder="Paste API key"
+                    className="flex-1 rounded px-3 py-2 text-sm" type="password"
+                    style={{ background: "var(--surface-alt)", border: "1px solid var(--border)", color: "var(--text)" }} />
+                  <button onClick={() => handleSaveKey(key)}
+                    className="px-3 py-2 rounded text-sm font-semibold"
+                    style={{ background: "var(--accent)", color: "var(--accent-text)" }}>Save</button>
+                  <button onClick={() => { setEditingKey(null); setNewKey(""); }}
+                    className="px-3 py-2 rounded text-sm" style={{ color: "var(--text-muted)" }}>Cancel</button>
+                </div>
+              ) : (
+                <button onClick={() => setEditingKey(key)}
+                  className="mt-3 px-3 py-1.5 rounded text-xs font-medium transition"
+                  style={{ background: "var(--accent-soft)", color: "var(--accent)", border: "1px solid var(--accent)" }}>
+                  Configure
+                </button>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+
+// ============ Import — data import from spreadsheets ============
+function ImportAdmin() {
+  const [hasDemoData, setHasDemoData] = useState<boolean | null>(null);
+  const [clearing, setClearing] = useState(false);
+  const [file, setFile] = useState<File | null>(null);
+  const [preview, setPreview] = useState<any>(null);
+  const [uploading, setUploading] = useState(false);
+  const [importing, setImporting] = useState(false);
+  const [result, setResult] = useState<any>(null);
+  const toast = useToast();
+
+  useEffect(() => {
+    fetch(`${API_BASE}/import/status`, { headers: authHeaders() })
+      .then((r) => r.json()).then((d) => setHasDemoData(d.hasDemoData)).catch(() => {});
+  }, []);
+
+  const handleClearDemo = async () => {
+    setClearing(true);
+    try {
+      const res = await fetch(`${API_BASE}/import/clear-demo`, { method: "POST", headers: authHeaders() });
+      const data = await res.json();
+      toast.success(`Cleared ${data.vehiclesCleared} vehicles, ${data.sightingsCleared} sightings, ${data.actorsCleared} actors`);
+      setHasDemoData(false);
+    } catch { toast.error("Clear failed"); }
+    setClearing(false);
+  };
+
+  const handleUpload = async () => {
+    if (!file) return;
+    setUploading(true); setPreview(null); setResult(null);
+    try {
+      const form = new FormData();
+      form.append("file", file);
+      const token = localStorage.getItem("trace_op_token");
+      const res = await fetch(`${API_BASE}/import/preview`, {
+        method: "POST", headers: { Authorization: `Bearer ${token}` }, body: form,
+      });
+      const data = await res.json();
+      setPreview(data);
+    } catch { toast.error("Upload failed"); }
+    setUploading(false);
+  };
+
+  const handleImport = async () => {
+    if (!preview?.tempFile) return;
+    setImporting(true);
+    try {
+      const res = await fetch(`${API_BASE}/import/run`, {
+        method: "POST", headers: authHeaders(),
+        body: JSON.stringify({ tempFile: preview.tempFile }),
+      });
+      const data = await res.json();
+      setResult(data);
+      toast.success("Import complete");
+    } catch { toast.error("Import failed"); }
+    setImporting(false);
+  };
+
+  return (
+    <div>
+      <p className="text-sm mb-4" style={{ color: "var(--text-sec)" }}>
+        Import existing vehicle data from Excel (.xlsx) or CSV files. The system auto-maps columns, previews the import, and lets you confirm before writing to the database.
+      </p>
+
+      {/* Demo data warning */}
+      {hasDemoData && (
+        <div className="rounded-lg p-4 mb-4" style={{ background: "rgba(217,119,6,0.06)", border: "1px solid rgba(217,119,6,0.3)" }}>
+          <div className="text-sm font-medium mb-1" style={{ color: "#D97706" }}>Demo data detected</div>
+          <p className="text-xs mb-3" style={{ color: "var(--text-sec)" }}>
+            Your database contains seed data (DEMO/FAKE/TEST records). Clear it before importing real data to avoid mixing test records with real intelligence.
+          </p>
+          <button onClick={handleClearDemo} disabled={clearing}
+            className="px-3 py-1.5 rounded text-xs font-medium"
+            style={{ background: "#D97706", color: "#fff" }}>
+            {clearing ? "Clearing..." : "Clear Demo Data"}
+          </button>
+        </div>
+      )}
+
+      {/* File upload */}
+      <div className="rounded-lg p-4 mb-4" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+        <label className="text-xs font-medium block mb-2" style={{ color: "var(--text-sec)" }}>Select file</label>
+        <input type="file" accept=".xlsx,.xls,.csv,.tsv"
+          onChange={(e) => { setFile(e.target.files?.[0] || null); setPreview(null); setResult(null); }}
+          className="text-sm" style={{ color: "var(--text)" }} />
+        {file && (
+          <button onClick={handleUpload} disabled={uploading}
+            className="ml-3 px-3 py-1.5 rounded text-xs font-semibold"
+            style={{ background: "var(--accent)", color: "var(--accent-text)" }}>
+            {uploading ? "Analyzing..." : "Preview Import"}
+          </button>
+        )}
+      </div>
+
+      {/* Preview */}
+      {preview && !result && (
+        <div className="rounded-lg p-4 mb-4" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+          <div className="text-sm font-medium mb-2">Import Preview: {preview.fileName}</div>
+          <div className="grid grid-cols-4 gap-3 text-center mb-3">
+            <div><div className="text-lg font-bold">{preview.totalRows}</div><div className="text-[10px]" style={{ color: "var(--text-muted)" }}>Total rows</div></div>
+            <div><div className="text-lg font-bold" style={{ color: "#16A34A" }}>{preview.validRows}</div><div className="text-[10px]" style={{ color: "var(--text-muted)" }}>Valid</div></div>
+            <div><div className="text-lg font-bold" style={{ color: "#DC2626" }}>{preview.errorRows}</div><div className="text-[10px]" style={{ color: "var(--text-muted)" }}>Errors</div></div>
+            <div><div className="text-lg font-bold" style={{ color: "var(--text-muted)" }}>{preview.duplicates}</div><div className="text-[10px]" style={{ color: "var(--text-muted)" }}>Duplicates</div></div>
+          </div>
+          {preview.unmappedColumns?.length > 0 && (
+            <p className="text-xs mb-2" style={{ color: "var(--text-muted)" }}>
+              Unmapped columns (skipped): {preview.unmappedColumns.join(", ")}
+            </p>
+          )}
+          <button onClick={handleImport} disabled={importing || preview.validRows === 0}
+            className="px-4 py-2 rounded text-sm font-semibold"
+            style={{ background: "var(--accent)", color: "var(--accent-text)" }}>
+            {importing ? "Importing..." : `Import ${preview.validRows} rows`}
+          </button>
+        </div>
+      )}
+
+      {/* Result */}
+      {result && (
+        <div className="rounded-lg p-4" style={{ background: "rgba(22,163,74,0.06)", border: "1px solid rgba(22,163,74,0.3)" }}>
+          <div className="text-sm font-medium mb-1" style={{ color: "#16A34A" }}>Import complete</div>
+          <div className="text-xs" style={{ color: "var(--text-sec)" }}>
+            {result.totalRows} rows processed. {result.validRows} imported, {result.errorRows} errors, {result.duplicates} duplicates skipped.
           </div>
         </div>
       )}
