@@ -72,7 +72,7 @@ Inherited from Forme's "Invisible Armor" doctrine, adapted for TRACE:
 **Two-vault architecture** — operational data and identity data are physically separate:
 
 **Vault A — Operational Database (PostgreSQL + PostGIS)**
-- Contains: vehicles, sightings, actors, types, suspicion levels, patterns, case packages, audit logs
+- Contains: vehicles, sightings, actors, types, concern levels, patterns, case packages, audit logs
 - Encryption: AES-256 full-disk encryption (LUKS on Linux) + PostgreSQL TDE where available
 - Reporter references: pseudonymous IDs only (`reporter_7f3a2b`). No names, no real contact info, no device identifiers.
 - Sighting photos: stored on encrypted filesystem, referenced by hash. EXIF stripped of device-identifying info (camera model, serial number) but GPS and timestamp preserved (operational value).
@@ -118,9 +118,9 @@ Inherited from Forme's "Invisible Armor" doctrine, adapted for TRACE:
 | View own submissions | ✓ | ✓ | ✓ |
 | Search vehicles (read-only) | ✓ (limited) | ✓ | ✓ |
 | Triage queue | ✗ | ✓ | ✓ |
-| Vehicle dossier (full) | ✗ | ✓ | ✓ |
+| Vehicle record (full) | ✗ | ✓ | ✓ |
 | Actor profiles | ✗ | ✓ | ✓ |
-| Suspicion level changes | ✗ | ✓ | ✓ |
+| Concern level changes | ✗ | ✓ | ✓ |
 | Case package generation | ✗ | ✓ | ✓ |
 | Map / geospatial intelligence | ✗ | ✓ | ✓ |
 | Notification rule management | ✗ | ✗ | ✓ |
@@ -209,7 +209,7 @@ When multiple cells connect via the National Mesh:
 |------|---------|--------|
 | Anonymized vehicle profile | ✓ | Make, model, color, body type, distinguishing features. No photos. |
 | Plate history | ✓ | Known plates associated with the vehicle (for cross-cell matching). |
-| Suspicion level | ✓ | Current level only, no promotion history or criteria. |
+| Concern level | ✓ | Current level only, no promotion history or criteria. |
 | Sighting locations | ✓ | GPS coordinates and timestamps (aggregated, not raw). |
 | Vehicle type tags | ✓ | Runner, Scout, etc. (if chapter shares its taxonomy). |
 | Actor profiles | ✗ | Stay in originating cell. Too sensitive for mesh. |
@@ -261,7 +261,7 @@ If a cell is compromised:
 
 **What the attacker gets:**
 - Vault A (operational database) — encrypted at rest, but if they have root access, they may access decrypted data in memory
-- Vehicle dossiers, sighting records, patterns, actor profiles
+- Vehicle records, sighting records, patterns, actor profiles
 - Audit logs
 
 **What the attacker does NOT get (if architecture is followed):**
@@ -325,7 +325,7 @@ Chapter admins can enable a warrant canary page — a signed statement updated r
 
 ### Intelligence Layer
 
-- [ ] Suspicion level change audit trail (who, when, why, evidence hash at time)
+- [ ] Concern level change audit trail (who, when, why, evidence hash at time)
 - [ ] Actor profile access logging (every view logged)
 - [ ] Case package hash manifest + Merkle tree
 - [ ] Case package signing

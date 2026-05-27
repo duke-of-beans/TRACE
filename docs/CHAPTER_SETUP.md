@@ -100,7 +100,7 @@ VALUES (
   'operator'
 );
 
--- 4. Seed default configuration (vehicle types, suspicion levels, etc.)
+-- 4. Seed default configuration (vehicle types, concern levels, etc.)
 -- These are starting defaults. You can customize everything in Admin later.
 INSERT INTO ops.vehicle_types (id, label, color, description, sort_order, chapter_id) VALUES
   (gen_random_uuid(), 'Runner',  '#DC2626', 'Transports product between locations', 4, (SELECT id FROM ops.chapters LIMIT 1)),
@@ -215,7 +215,7 @@ Go to the Security page in the operator console. You can suspend a reporter, whi
 
 Everything in Admin is configurable:
 - **Vehicle Types:** Runner, Scout, Stash, etc. Add your own.
-- **Suspicion Levels:** The evidence ladder. Configure promotion rules (how many sightings before a vehicle moves up).
+- **Concern Levels:** The evidence ladder. Configure promotion rules (how many sightings before a vehicle moves up).
 - **Dispatch Types:** Event categories for dispatch pins. Set icons, colors, and auto-close timers.
 - **Actor Identifiers:** What physical identifiers your chapter tracks (tattoos, clothing, etc).
 

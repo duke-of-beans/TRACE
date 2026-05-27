@@ -199,7 +199,7 @@ No emoji anywhere. Every icon is geometric, clean, monochrome.
 | x | Close/dismiss | X |
 | chevron-right | Navigation | Right-pointing chevron |
 | plus | Add/create | Plus sign |
-| eye | View/dossier | Eye outline |
+| eye | View/record | Eye outline |
 | trash | Delete | Trash can |
 | send | Submit | Paper plane |
 | compass | Direction picker | Compass rose |
@@ -252,7 +252,7 @@ No emoji anywhere. Every icon is geometric, clean, monochrome.
 ### Color Independence
 - Status colors always paired with icons AND text labels ✅
 - Direction buttons use arrow icons + text, not color alone ✅
-- Suspicion levels have color + label + rank number ✅
+- Concern levels have color + label + rank number ✅
 
 ### Semantic HTML
 - Proper heading hierarchy (h1 → h2 → h3) ✅
@@ -349,17 +349,17 @@ Tags use the existing status palette. Each context has a default set:
 ### Vehicle Tags
 | Label | Color | Use |
 |-------|-------|-----|
-| Active Threat | #DC2626 | Confirmed operational |
+| Active Concern | #DC2626 | Confirmed operational |
 | Monitoring | #D97706 | Watch list |
 | Cleared | #16A34A | No longer suspicious |
-| Flagged for LE | #7C3AED | Referred to authorities |
+| Noted for Authorities | #7C3AED | Referred to authorities |
 | Known Resident | #64748B | Identified, benign |
 | Rental/Fleet | #94A3B8 | Commercial vehicle |
 
 ### Harassment Tags
 | Label | Color | Use |
 |-------|-------|-----|
-| Known Threat | #DC2626 | Identified harasser |
+| Known Concern | #DC2626 | Identified harasser |
 | Spam | #94A3B8 | Robocall, not targeted |
 | Under Investigation | #D97706 | Being looked into |
 | Cleared | #16A34A | Resolved |

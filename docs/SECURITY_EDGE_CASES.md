@@ -106,7 +106,7 @@ Even with pseudonymity, patterns can unmask a reporter without ever touching the
 
 **Counter-measures:**
 - **The PWA shows minimal data by default.** The submission view shows only the reporter's own sightings — not vehicles, not patterns, not other reporters. There's nothing valuable to capture.
-- **No sensitive data on reporter screens.** The reporter never sees actor profiles, suspicion levels, pattern analysis, or any intelligence product. They see: camera, submit, their own history. That's it.
+- **No sensitive data on reporter screens.** The reporter never sees actor profiles, concern levels, pattern analysis, or any intelligence product. They see: camera, submit, their own history. That's it.
 - **Operator/admin interfaces display a watermark overlay** with the session ID and timestamp. If a screenshot leaks, the watermark identifies the source session. The watermark is rendered via CSS overlay (not embedded in images) so it doesn't appear in data exports.
 
 ### 3.3 Lock Screen Notification Exposure
@@ -153,7 +153,7 @@ When a canary credential is used, the system enters Theater Mode. The experience
 |---------|----------------|
 | Login | Appears to succeed normally. No delay, no warning, nothing unusual. |
 | Dashboard | Shows plausible statistics — vehicle counts, sighting numbers, activity graphs. All synthetic. |
-| Vehicle dossiers | Populated with 20-50 realistic but entirely fabricated vehicle records. Real makes/models/colors, fake plates, fake sighting histories. |
+| Vehicle records | Populated with 20-50 realistic but entirely fabricated vehicle records. Real makes/models/colors, fake plates, fake sighting histories. |
 | Actor profiles | 5-10 fabricated actor profiles with generic descriptions. No photos. |
 | Map | Shows sighting pins distributed realistically across the chapter's operating area. All fabricated locations. |
 | Triage queue | A few pending sightings that look real. Fabricated. |
@@ -264,7 +264,7 @@ NIST SP 800-38G standardizes FPE modes (FF1, FF3-1) that encrypt data while pres
 | Actor names | Keyed dictionary substitution. | Name format, associate count | Every specific name. "Big Mike" → "Tall Steve." |
 | Addresses | FPE on number + keyed street substitution. | City, general area, format | Specific street and number. |
 | Counts & statistics | Pass-through. Real numbers. | Everything | Nothing. Aggregate data is genuine. |
-| Suspicion levels | Pass-through. | Level distribution | Nothing. Intelligence structure is real. |
+| Concern levels | Pass-through. | Level distribution | Nothing. Intelligence structure is real. |
 | Photos | Replaced with reference images matching distorted vehicle description. | Photo presence, approximate appearance | Every specific image. |
 
 **Why the coordinate rotation is critical:**
@@ -273,7 +273,7 @@ Random noise on each GPS point would destroy clustering and be statistically det
 
 **Why this is nearly undetectable:**
 
-An insider sees the right number of vehicles, the right activity patterns, the right suspicion distribution, realistic clustering, recent timestamps, real-time updates. Every aggregate metric matches reality. But every specific detail is wrong. To detect it, the attacker needs to already know specific real data points AND notice they're different AND rule out misremembering or legitimate data changes. If they know plate "ABC 1234" should exist and see "DEF 5678" instead — the GPS is also shifted, the names are also different, the timeline is also offset. Everything is consistently shifted. It reads as a different version of reality, not an obvious fake.
+An insider sees the right number of vehicles, the right activity patterns, the right concern distribution, realistic clustering, recent timestamps, real-time updates. Every aggregate metric matches reality. But every specific detail is wrong. To detect it, the attacker needs to already know specific real data points AND notice they're different AND rule out misremembering or legitimate data changes. If they know plate "ABC 1234" should exist and see "DEF 5678" instead — the GPS is also shifted, the names are also different, the timeline is also offset. Everything is consistently shifted. It reads as a different version of reality, not an obvious fake.
 
 **Cryptographic attribution chain:**
 
@@ -322,7 +322,7 @@ The distortion layer does NOT touch: application logic, UI rendering, session ma
 - **Evidence locker is write-once.** Even if the operational database record is soft-deleted, the original photo/video in Vault C remains permanently. It can be recovered and re-linked.
 - **Admin review of deletion patterns.** If an operator's deletion rate exceeds a configurable threshold, the admin is alerted.
 
-### 4.3 Suspicion Level Manipulation
+### 4.3 Concern Level Manipulation
 
 **Attack:** A compromised operator demotes a confirmed criminal vehicle back to "Noticed" to protect them, or promotes an innocent vehicle to "Active Criminal" to harass the owner.
 

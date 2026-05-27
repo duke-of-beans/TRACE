@@ -18,7 +18,7 @@ The questionnaire responses confirm the core TRACE architecture (federated cells
 
 ### 1.1 Daily Workflow → Architectural Implications
 
-**What they said:** Spotters monitor chat groups. They collect data on changed license plates on commonly seen vehicles. Different vehicles serve different crime types. Spotters can send notifications on active suspicious vehicles. Need graduated suspicion levels and associated driver/criminal profiles.
+**What they said:** Spotters monitor chat groups. They collect data on changed license plates on commonly seen vehicles. Different vehicles serve different crime types. Spotters can send notifications on active suspicious vehicles. Need graduated concern levels and associated driver/person profiles.
 
 **New subsystems required:**
 
@@ -34,7 +34,7 @@ The system needs a generalizable, chapter-editable classification system for veh
 
 **Implementation:** `vehicle_types` table with many-to-many join to `vehicles`. Types are chapter-scoped with optional mesh sharing. Admin UI for CRUD on type definitions. Each type carries a user-defined description and optional icon/color for map rendering.
 
-#### B. Suspicion Level Engine (NEW — CRITICAL)
+#### B. Concern Level Engine (NEW — CRITICAL)
 
 Graduated, criteria-based escalation system for vehicles. This is the core intelligence layer.
 
@@ -77,7 +77,7 @@ Vehicles need associated driver profiles. Known criminals have varying aggressio
 | Risk classification | Generalizable, chapter-editable labels — **confirmed seed categories: Aggressive, Stalker (will follow spotters)**. System must support admin-defined additions without code changes. |
 | Criminal database | Persistent across vehicle retirements — a driver persists even when their vehicles sunset |
 
-**Implementation:** `actors` table with `actor_vehicles` join. `actor_risk_levels` chapter-scoped config. Actor dossier view in operator UI linked from vehicle dossiers. Actor profiles participate in pattern engine (co-occurrence of actors across vehicles strengthens suspicion).
+**Implementation:** `actors` table with `actor_vehicles` join. `actor_risk_levels` chapter-scoped config. Actor record view in operator UI linked from vehicle records. Actor profiles participate in pattern engine (co-occurrence of actors across vehicles strengthens concern levels).
 
 #### D. Spotter Notification System (NEW)
 
@@ -104,7 +104,7 @@ Spotters can push real-time alerts when they identify active suspicious vehicles
 
 - **Vehicle sunset engine:** Configurable inactivity timer (default 90 days). When a vehicle has no new sightings within the window, it auto-transitions to "Retired" status. Retired vehicles remain in the database (searchable, linkable) but drop out of active dashboards, maps, and pattern engine.
 - **Sunset is soft:** Operator can reactivate a retired vehicle with one click if it reappears. Reactivation logs to audit trail.
-- **Spotter-side search:** The reporter PWA needs a lightweight vehicle lookup — even if spotters don't formally "access the database," they need to be able to check "has this vehicle been seen before?" from their phone before submitting. This is a read-only search by plate, description, or photo similarity. Prevents duplicate dossiers and connects new sightings to existing intelligence.
+- **Spotter-side search:** The reporter PWA needs a lightweight vehicle lookup — even if spotters don't formally "access the database," they need to be able to check "has this vehicle been seen before?" from their phone before submitting. This is a read-only search by plate, description, or photo similarity. Prevents duplicate records and connects new sightings to existing data.
 
 ### 1.4 Case Packages → Legal-Grade Evidence
 
@@ -114,7 +114,7 @@ Spotters can push real-time alerts when they identify active suspicious vehicles
 
 - Case packages must be designed as if they'll be submitted to a court, even if early use is informal.
 - **Chain of custody:** Every piece of evidence (photo, sighting record, operator note) carries cryptographic hash from point of capture, immutable timestamp, and access log.
-- **Package format:** PDF with evidence index, timeline visualization, map of sightings, vehicle dossier summary, actor profiles, plate history, and integrity verification page (hash manifest).
+- **Package format:** PDF with evidence index, timeline visualization, map of sightings, vehicle record summary, actor profiles, plate history, and integrity verification page (hash manifest).
 - **Audience-agnostic:** Same package works for attorneys, law enforcement, partner organizations, or internal review. No audience-specific formatting needed yet.
 
 ### 1.5 Communication Channels → System Replaces Chat
@@ -132,7 +132,7 @@ Spotters can push real-time alerts when they identify active suspicious vehicles
 **Implications:**
 
 - **WebSocket/SSE for operator interface** — new sightings appear in triage queue without refresh.
-- **Push notifications:** Admin-controlled alert configuration. Admin defines notification rules per team, per individual, per vehicle watch list, per suspicion level. Operators and spotters do not self-configure alerts — the admin sets the alert topology for the chapter.
+- **Push notifications:** Admin-controlled alert configuration. Admin defines notification rules per team, per individual, per vehicle watch list, per concern level. Operators and spotters do not self-configure alerts — the admin sets the alert topology for the chapter.
 - **Team channels:** Admin-defined notification groups (e.g., "North sector team," "Plate swap alert," "High-priority vehicles"). Admin assigns members to channels and sets trigger conditions.
 - **Latency target:** Sighting submission → operator notification < 5 seconds on reasonable connectivity.
 
@@ -148,7 +148,7 @@ Spotters can push real-time alerts when they identify active suspicious vehicles
 
 - Build single-tenant MVP but with multi-tenant data model from day one.
 - Chapter isolation: all data is chapter-scoped. No cross-chapter data leakage without explicit mesh participation.
-- **Tenant 0** is the reference implementation. All configuration, type taxonomies, suspicion ladders, and notification rules created for tenant 0 become the default template for new tenants.
+- **Tenant 0** is the reference implementation. All configuration, type taxonomies, concern ladders, and notification rules created for tenant 0 become the default template for new tenants.
 - Open-source consideration: licensing, documentation, and deployment tooling need to be part of the build plan, not afterthought.
 
 ### 2.2 Reporters → ~20, Overbuild
@@ -170,7 +170,7 @@ Spotters can push real-time alerts when they identify active suspicious vehicles
 
 - The operator interface must be a **power-user single-pane-of-glass.** One person managing all incoming data, pattern review, and case building.
 - Keyboard-driven workflows confirmed essential. Triage queue with hotkeys (approve/flag/dismiss/escalate).
-- Dashboard must surface: new sightings since last session, active vehicle count by suspicion level, pattern alerts, notification queue.
+- Dashboard must surface: new sightings since last session, active vehicle count by concern level, pattern alerts, notification queue.
 - **Single operator = single point of failure.** System needs to be self-documenting enough that a backup operator can step in with minimal ramp. Audit logs and activity feed serve this purpose.
 
 ---
@@ -180,7 +180,7 @@ Spotters can push real-time alerts when they identify active suspicious vehicles
 | Component | Status in README | Status After Questionnaire |
 |-----------|-----------------|---------------------------|
 | Vehicle Type Taxonomy | Not scoped | **NEW — Required** |
-| Suspicion Level Engine | Not scoped | **NEW — Critical path** |
+| Concern Level Engine | Not scoped | **NEW — Critical path** |
 | Driver/Actor Database | Not scoped | **NEW — Required** |
 | Vehicle Sunset Engine | Not scoped | **NEW — Required** |
 | Spotter Notification System | Not scoped | **NEW — Required** |
@@ -205,19 +205,19 @@ Spotters can push real-time alerts when they identify active suspicious vehicles
 The system ships when it's done, not when an arbitrary phase gate is hit. That said, the build has a natural dependency order — you can't build the pattern engine before the data model exists. The sequence below reflects dependency, not scope cuts.
 
 **Foundation (must exist before anything else)**
-- Data model: vehicles, sightings, actors, types, suspicion levels, sunset engine, audit log
+- Data model: vehicles, sightings, actors, types, concern levels, sunset engine, audit log
 - Excel migration/normalization tool (dirty data → clean dossiers)
 - Reporter PWA: camera → submit → offline queue → sync
 - Spotter-side vehicle search (read-only lookup in PWA)
 - Operator triage queue with real-time WebSocket updates
-- Vehicle dossier view with suspicion level management + actor linking
+- Vehicle record view with concern level management + actor linking
 - Map view (sighting locations, vehicle heatmaps)
 - Admin-controlled notification system (teams, individuals, trigger rules)
 - Push notifications (PWA service worker)
 
 **Intelligence (depends on foundation data flowing)**
 - Pattern engine: plate swaps, spatiotemporal clustering, co-occurrence, actor correlation
-- Suspicion level auto-promotion (predicate engine evaluating criteria)
+- Concern level auto-promotion (predicate engine evaluating criteria)
 - Vehicle sunset engine (90-day default, soft retirement, one-click reactivation)
 
 **Evidence & Federation (depends on intelligence producing actionable output)**

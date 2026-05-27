@@ -95,7 +95,7 @@ needs to decide in one glance:
 │  Reporter: FALCON-7                          │
 │  ─────────────────────────────────────────── │
 │  [Confirm & Dispatch]  [Dismiss & Notify]    │
-│  [Add Note]            [View Dossier]        │
+│  [Add Note]            [View Record]        │
 └─────────────────────────────────────────────┘
 ```
 
@@ -140,7 +140,7 @@ Tapping this:
 
 ### "Add to Tracking"
 For new plates the operator wants to watch:
-1. Creates a vehicle entry with the plate, description, and initial suspicion level
+1. Creates a vehicle entry with the plate, description, and initial concern level
 2. Optionally dispatches (same flow as Confirm & Dispatch)
 3. Future sightings of this plate will auto-match
 
@@ -256,7 +256,7 @@ A toggle or separate mode on the Report screen:
 │  ● MATCH                    │
 │  ABC-1234                   │
 │  Silver Honda Civic         │
-│  Suspicion: Confirmed       │
+│  Concern: Confirmed       │
 │  Last seen: 2 days ago      │
 │                             │
 │  [Submit Full Report →]     │
@@ -283,7 +283,7 @@ This replaces texting dispatch "can you run this plate?"
 ### What it does NOT show
 - Heatmaps, corridors, co-occurrence zones (operator-level intelligence)
 - Other reporters' sightings (reporter-to-reporter invisibility)
-- Vehicle suspicion levels or full dossiers
+- Vehicle concern levels or full records
 - Actor profiles
 
 If a reporter's device is taken, the adversary sees dispatch pins
