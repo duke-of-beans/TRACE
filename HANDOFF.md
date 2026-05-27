@@ -363,20 +363,59 @@ Incidents are a PARALLEL system for documenting harm.
 A sighting can be LINKED to an incident ("this sighting is part of incident X").
 Over time, the incident type taxonomy absorbs what sightings currently do.
 
-### P1: Reporter Portal Design Refresh
+### P1: Reporter Groups / Organizational Layer
+Chapter-configurable grouping of reporters within a chapter.
+
+**Schema: `reporter_groups` table**
+Same chapter-configurable pattern as all other taxonomies:
+- Label, color, icon, description, sortOrder
+- `permissions`: JSON config (visibility, actions, access tiers)
+- `areaRestriction`: optional geo-bounds (group only sees their zone)
+- `notificationPolicy`: how this group gets alerted
+
+**Schema: `reporter_group_memberships` table (M2M)**
+- `reporterId` FK, `groupId` FK
+- `role`: member | lead | coordinator
+- A reporter can be in MULTIPLE groups (e.g., "Night Shift" + "Zone A")
+
+**What groups unlock:**
+- Dispatch routing: send dispatch to specific group(s)
+- Notification filtering: group-scoped alerts
+- Incident assignment: assign incidents to groups that were on scene
+- Reporting dashboards: operator sees activity by group
+- Access tiers: certain incident types visible only to certain groups
+- Shift management: groups can represent shifts, zones, skills, anything
+
+**Operator UI:**
+- Admin > Team > Groups: create/edit groups, assign members
+- Dispatch creation: optional group selector
+- Incident review: "Assign to group" action
+- Dashboard: group activity breakdown
+
+**Reporter UI:**
+- Settings shows group membership(s)
+- Dispatch list filtered by group assignment
+- Group badge on profile
+
+**Integration with P0 (Incidents):**
+- Incidents link to responding group(s)
+- Group leads get incident notifications for their group
+- Evidence tagged with which group member captured it
+
+### P2: Reporter Portal Design Refresh
 - Settings page: grouped sections with visual hierarchy
 - Submit page: modern card-based layout, micro-interactions
 - Alert page: integrate with incident system, media upload
 - All pages: elevated design matching operator console quality
 - Bottom nav: subtle animations, incident reporting prominent
 
-### P2: Donate Button
+### P3: Donate Button
 - Crypto wallet addresses (separate per project)
 - Buried in reporter Settings + guide.html footer
 
-### P3: Self-Hosting Path
+### P4: Self-Hosting Path
 - Dockerfile + docker-compose.yml
 - Self-host guide appendix for chapters with own servers
 
-### P4: Public Repo History Squash
+### P5: Public Repo History Squash
 - Periodic squash to clean public commit log
