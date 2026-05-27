@@ -67,8 +67,30 @@ export function Submit() {
   const [lookupResult, setLookupResult] = useState<any>(null);
   const [hasCarApi, setHasCarApi] = useState(false);
   const [plateSuggestions, setPlateSuggestions] = useState<any[]>([]);
+  const [rapidSending, setRapidSending] = useState(false);
+  const [rapidDone, setRapidDone] = useState(false);
   const suggestTimer = useRef<any>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  // Rapid incident capture — one tap, auto-GPS, no form
+  const handleRapidCapture = async () => {
+    setRapidSending(true);
+    try {
+      let lat: number | undefined;
+      let lng: number | undefined;
+      try {
+        const pos = await new Promise<GeolocationPosition>((resolve, reject) =>
+          navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 5000 })
+        );
+        lat = pos.coords.latitude;
+        lng = pos.coords.longitude;
+      } catch { /* GPS not available */ }
+      await api.rapidCapture({ lat, lng, description: "Rapid capture from field reporter." });
+      setRapidDone(true);
+      if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+    } catch {}
+    setRapidSending(false);
+  };
 
   // Debounced plate auto-suggest
   const handlePlateInput = (val: string) => {
@@ -276,6 +298,32 @@ export function Submit() {
       </div>
 
       {/* Mode toggle */}
+      {/* Rapid incident capture button */}
+      {!rapidDone && (
+        <button onClick={handleRapidCapture} disabled={rapidSending}
+          style={{
+            width: "100%", padding: "var(--sp-3)", borderRadius: "var(--radius)",
+            fontSize: "var(--text-sm)", fontWeight: 600, cursor: "pointer",
+            background: "rgba(220,38,38,0.12)", border: "1px solid rgba(220,38,38,0.3)",
+            color: "#DC2626", display: "flex", alignItems: "center", justifyContent: "center",
+            gap: "8px", marginBottom: "var(--sp-3)", minHeight: 44,
+            opacity: rapidSending ? 0.6 : 1,
+          }}>
+          <Icon name="alert-octagon" size={16} /> {rapidSending ? "Filing..." : "Report Incident"}
+        </button>
+      )}
+      {rapidDone && (
+        <div style={{
+          padding: "var(--sp-3)", borderRadius: "var(--radius)", marginBottom: "var(--sp-3)",
+          background: "rgba(34,197,94,0.1)", border: "1px solid rgba(34,197,94,0.3)",
+          fontSize: "var(--text-xs)", color: "var(--text-sec)", textAlign: "center",
+        }}>
+          Incident filed. Add details from the operator console, or add evidence from History.
+          <button onClick={() => setRapidDone(false)} style={{ display: "block", margin: "8px auto 0", color: "var(--accent)", background: "none", border: "none", cursor: "pointer", fontSize: "var(--text-xs)" }}>
+            Dismiss
+          </button>
+        </div>
+      )}
       <div style={{ marginBottom: "var(--sp-4)" }}>
         <div style={{ display: "flex", gap: "var(--sp-2)", marginBottom: "var(--sp-2)" }}>
           <button onClick={() => { setMode("report"); setCheckResult(null); }}
