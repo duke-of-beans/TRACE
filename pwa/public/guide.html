@@ -136,19 +136,25 @@
     color: var(--accent);
   }
 
-  .step { margin-bottom: 56px; position: relative; padding-left: 56px; }
+  .step { margin-bottom: 56px; }
+  .step-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
   .step-number {
-    position: absolute;
-    left: 0;
-    top: 0;
-    font-family: 'Exo 2', system-ui, sans-serif;
-    font-weight: 100;
-    font-size: 36px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 600;
     color: var(--accent);
-    opacity: 0.25;
-    line-height: 1;
-    width: 44px;
-    text-align: center;
+    flex-shrink: 0;
+    letter-spacing: 0.05em;
+  }
+  .step-rule {
+    flex: 1;
+    height: 1px;
+    background: var(--border);
   }
   .step h2 { font-size: 20px; font-weight: 700; margin-bottom: 10px; }
   .step p { font-size: 14px; color: var(--text-sec); margin-bottom: 14px; line-height: 1.7; }
@@ -226,8 +232,6 @@
   }
   @media (max-width: 900px) {
     .scroll-nav { display: none; }
-    .step { padding-left: 48px; }
-    .step-number { font-size: 28px; width: 36px; }
   }
 
   .mockup {
@@ -474,7 +478,7 @@ applyTheme(getTheme());
 
 <!-- STEP 1 -->
 <div class="step" id="step-1">
-  <div class="step-number">1</div>
+  <div class="step-header"><span class="step-number">01</span><div class="step-rule"></div></div>
   <h2>Create the database</h2>
   <p>The database stores all sighting records, vehicle profiles, dispatch events, and accounts. Neon hosts PostgreSQL databases with encryption at rest (AES-256) and in transit (TLS 1.3). SOC 2 Type II certified. Free tier covers chapters with up to 50 reporters. Your database is isolated to your account. Neon staff cannot read your data without your connection credentials.</p>
 
@@ -510,7 +514,7 @@ applyTheme(getTheme());
 
 <!-- STEP 2 -->
 <div class="step" id="step-2">
-  <div class="step-number">2</div>
+  <div class="step-header"><span class="step-number">02</span><div class="step-rule"></div></div>
   <h2>Deploy the application</h2>
   <p>The Deploy button below does three things automatically: it copies the TRACE code to your GitHub account, connects it to Vercel, and builds your website. You do not need to download or install anything. The entire application runs in the cloud on your accounts.</p>
   <p>Vercel serves the application over HTTPS. Each request runs in an isolated serverless function. Free tier supports thousands of daily requests.</p>
@@ -551,7 +555,7 @@ applyTheme(getTheme());
 
 <!-- STEP 3 -->
 <div class="step" id="step-3">
-  <div class="step-number">3</div>
+  <div class="step-header"><span class="step-number">03</span><div class="step-rule"></div></div>
   <h2>Create the database tables</h2>
   <p>The database from Step 1 is empty. This creates the table structure for sightings, vehicles, dispatches, and accounts. Paste one file into the Neon SQL editor and run it. One time only. Takes 30 seconds.</p>
 
@@ -586,7 +590,7 @@ applyTheme(getTheme());
 
 <!-- STEP 4 -->
 <div class="step" id="step-4">
-  <div class="step-number">4</div>
+  <div class="step-header"><span class="step-number">04</span><div class="step-rule"></div></div>
   <h2>Create the operator account</h2>
   <p>The operator console is a website, not installed software. Open it in any browser on any computer. Nothing is stored on your machine. All data lives in the database from Step 1.</p>
   <p>TRACE does not use email addresses or real names for accounts. Operators authenticate with a <strong>callsign</strong> (a code name) and an <strong>access code</strong> (a passphrase, 6+ characters). No identifying information enters the system. If the database were compromised, an attacker would find callsigns, not people.</p>
@@ -628,7 +632,7 @@ applyTheme(getTheme());
 
 <!-- STEP 5 -->
 <div class="step" id="step-5">
-  <div class="step-number">5</div>
+  <div class="step-header"><span class="step-number">05</span><div class="step-rule"></div></div>
   <h2>Invite reporters</h2>
   <p>Reporters do not create accounts with email or phone numbers. The operator generates a one-time invite code and delivers it directly (in person or via encrypted channel). The code is single-use and expires in 7 days. No email, phone number, or real name enters the system at any point.</p>
 
@@ -664,7 +668,7 @@ applyTheme(getTheme());
 
 <!-- STEP 6 -->
 <div class="step" id="step-6">
-  <div class="step-number">6</div>
+  <div class="step-header"><span class="step-number">06</span><div class="step-rule"></div></div>
   <h2>Reporter app installation</h2>
   <p>TRACE is a Progressive Web App. It installs from the browser directly to the home screen. No App Store. No Google Play. No download history. No app purchase record. Once installed, it runs full-screen with push notifications.</p>
 
