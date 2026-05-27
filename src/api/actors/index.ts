@@ -46,7 +46,7 @@ actorsRouter.get("/:id", async (c) => {
     .where(eq(actorVehicles.actorId, id));
   const photos = await opsDb.select().from(actorPhotos).where(eq(actorPhotos.actorId, id)).orderBy(desc(actorPhotos.createdAt));
   const identifiers = await opsDb.select({ id: actorIdentifiers.id, value: actorIdentifiers.value, typeLabel: actorIdentifierTypes.label })
-    .from(actorIdentifiers).leftJoin(actorIdentifierTypes, eq(actorIdentifiers.typeId, actorIdentifierTypes.id))
+    .from(actorIdentifiers).leftJoin(actorIdentifierTypes, eq(actorIdentifiers.identifierTypeId, actorIdentifierTypes.id))
     .where(eq(actorIdentifiers.actorId, id));
 
   return c.json({ ...actor, linkedVehicles, photos, identifiers });
