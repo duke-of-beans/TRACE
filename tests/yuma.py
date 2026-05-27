@@ -407,6 +407,37 @@ def test_css_vars():
 
 
 # ============================================================
+# TEST 13: TOAST API CONSISTENCY
+# ============================================================
+def test_toast_api():
+    print("\n[13] TOAST API (correct calling convention)")
+    # useToast() returns a function: toast(msg, type)
+    # NOT toast.success(msg) or toast.error(msg)
+    bad_patterns = ["toast.success", "toast.error", "toast.info", "toast.warning"]
+    skip = {"node_modules", "dist", ".git", "tests"}
+    found = 0
+
+    for dirpath, dirnames, files in os.walk(os.path.join(ROOT, "operator", "src")):
+        dirnames[:] = [d for d in dirnames if d not in skip]
+        for f in files:
+            if not f.endswith(".tsx"):
+                continue
+            fpath = os.path.join(dirpath, f)
+            rel = os.path.relpath(fpath, ROOT)
+            try:
+                content_lines = open(fpath, "r", encoding="utf-8").readlines()
+            except:
+                continue
+            for i, line in enumerate(content_lines, 1):
+                for bp in bad_patterns:
+                    if bp in line:
+                        fail("TOAST_API", f"{rel}:{i} Use toast(msg, 'type') not {bp}(msg)")
+                        found += 1
+    if found == 0:
+        ok("TOAST_API", "All toast calls use correct API")
+
+
+# ============================================================
 # RUNNER
 # ============================================================
 def main():
@@ -426,6 +457,7 @@ def main():
     test_guide_nav()
     test_shortcuts()
     test_css_vars()
+    test_toast_api()
 
     print("\n" + "=" * 60)
     total = PASS + FAIL + WARN

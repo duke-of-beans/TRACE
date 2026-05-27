@@ -1422,9 +1422,9 @@ function IntegrationsAdmin() {
         method: "PUT", headers: authHeaders(),
         body: JSON.stringify({ apiKey: newKey, enabled: true }),
       });
-      toast.success("Key saved");
+      toast("Key saved", "success");
       setEditingKey(null); setNewKey(""); load();
-    } catch { toast.error("Save failed"); }
+    } catch { toast("Save failed", "error"); }
   };
 
   const handleTest = async (service: string) => {
@@ -1434,19 +1434,19 @@ function IntegrationsAdmin() {
         method: "POST", headers: authHeaders(),
       });
       const data = await res.json();
-      if (data.result === "success") toast.success(data.message || "Connected");
-      else toast.error(data.message || "Test failed");
+      if (data.result === "success") toast(data.message || "Connected", "success");
+      else toast(data.message || "Test failed", "error");
       load();
-    } catch { toast.error("Test failed"); }
+    } catch { toast("Test failed", "error"); }
     setTesting(null);
   };
 
   const handleDelete = async (service: string) => {
     try {
       await fetch(`${API_BASE}/integrations/${service}`, { method: "DELETE", headers: authHeaders() });
-      toast.success("Removed");
+      toast("Removed", "success");
       load();
-    } catch { toast.error("Remove failed"); }
+    } catch { toast("Remove failed", "error"); }
   };
 
   if (loading) return <div className="text-sm" style={{ color: "var(--text-muted)" }}>Loading...</div>;
@@ -1542,11 +1542,11 @@ function ImportAdmin() {
     try {
       const res = await fetch(`${API_BASE}/import/clear-demo`, { method: "POST", headers: authHeaders() });
       const data = await res.json();
-      toast.success(`Cleared ${data.vehiclesCleared} vehicles, ${data.sightingsCleared} sightings, ${data.actorsCleared} actors`);
+      toast(`Cleared ${data.vehiclesCleared} vehicles, ${data.sightingsCleared} sightings, ${data.actorsCleared} actors`, "success");
       setHasDemoData(false);
       setClearDone(true);
       setTimeout(() => setClearDone(false), 3000);
-    } catch { toast.error("Clear failed"); }
+    } catch { toast("Clear failed", "error"); }
     setClearing(false);
   };
 
@@ -1562,7 +1562,7 @@ function ImportAdmin() {
       });
       const data = await res.json();
       setPreview(data);
-    } catch { toast.error("Upload failed"); }
+    } catch { toast("Upload failed", "error"); }
     setUploading(false);
   };
 
@@ -1576,8 +1576,8 @@ function ImportAdmin() {
       });
       const data = await res.json();
       setResult(data);
-      toast.success("Import complete");
-    } catch { toast.error("Import failed"); }
+      toast("Import complete", "success");
+    } catch { toast("Import failed", "error"); }
     setImporting(false);
   };
 
@@ -1600,10 +1600,10 @@ function ImportAdmin() {
               const res = await fetch(`${API_BASE}/import/refresh-demo`, { method: "POST", headers: authHeaders() });
               if (!res.ok) throw new Error(res.statusText);
               const data = await res.json();
-              toast.success(`Updated ${data.refreshed} sample sightings`);
+              toast(`Updated ${data.refreshed} sample sightings`, "success");
               setRefreshDone(true);
               setTimeout(() => setRefreshDone(false), 3000);
-            } catch (e) { toast.error("Could not refresh. Try again."); }
+            } catch (e) { toast("Could not refresh. Try again.", "error"); }
             setRefreshing(false);
           }}
             disabled={refreshing}
@@ -1627,11 +1627,11 @@ function ImportAdmin() {
               const res = await fetch(`${API_BASE}/import/clear-demo`, { method: "POST", headers: authHeaders() });
               if (!res.ok) throw new Error(res.statusText);
               const data = await res.json();
-              toast.success(`Removed ${data.vehiclesCleared} vehicles, ${data.sightingsCleared} sightings`);
+              toast(`Removed ${data.vehiclesCleared} vehicles, ${data.sightingsCleared} sightings`, "success");
               setHasDemoData(false);
               setClearDone(true);
               setTimeout(() => setClearDone(false), 3000);
-            } catch (e) { toast.error("Could not clear. Try again."); }
+            } catch (e) { toast("Could not clear. Try again.", "error"); }
             setClearing(false);
           }}
             disabled={clearing}

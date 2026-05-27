@@ -89,8 +89,8 @@ export function Harassment() {
       });
       setSelected(updated);
       setNumbers((prev) => prev.map((n) => n.id === updated.id ? updated : n));
-      toast.success("Saved");
-    } catch { toast.error("Save failed"); }
+      toast("Saved", "success");
+    } catch { toast("Save failed", "error"); }
     setSaving(false);
   };
 
@@ -100,8 +100,8 @@ export function Harassment() {
     try {
       const data = await apiFetch(`/harassment-reports/number/${selected.id}/identify`, { method: "POST" });
       setSpokeoData(data);
-      if (!data.found) toast.info("No records found.");
-    } catch { toast.error("Lookup failed. Check Spokeo key in Admin."); }
+      if (!data.found) toast("No records found.", "info");
+    } catch { toast("Lookup failed. Check Spokeo key in Admin.", "error"); }
     setIdentifying(false);
   };
 
