@@ -413,7 +413,7 @@ function DispatchPanel({ sighting, reporters, eventTypes, onSend, onCancel }: {
       {/* Event type */}
       {eventTypes.length > 0 && (
         <div className="mb-4">
-          <label className="text-xs mb-1.5 block" style={{ color: "var(--text-muted)" }}>What type of event is this?</label>
+          <label className="text-xs mb-1.5 block" style={{ color: "var(--text-muted)" }}>What type of event is this? <HelpTip text="Selects the dispatch event type. Controls the icon, color, and auto-close timer. Configure types in Admin." /></label>
           <select value={eventTypeId} onChange={(e) => setEventTypeId(e.target.value)}
             className="w-full bg-trace-bg border border-trace-border rounded-lg px-3 py-2 text-sm"
             style={{ colorScheme: "dark" }}>
@@ -426,7 +426,7 @@ function DispatchPanel({ sighting, reporters, eventTypes, onSend, onCancel }: {
 
       {/* Priority */}
       <div className="mb-4">
-        <label className="text-xs mb-1.5 block" style={{ color: "var(--text-muted)" }}>How urgent is this?</label>
+        <label className="text-xs mb-1.5 block" style={{ color: "var(--text-muted)" }}>How urgent is this? <HelpTip text="Urgent dispatches alert reporters immediately. Routine dispatches appear in the queue without push notification." /></label>
         <div className="flex gap-2">
           {[
             { key: "urgent", label: "Urgent", color: "#DC2626" },
@@ -448,7 +448,7 @@ function DispatchPanel({ sighting, reporters, eventTypes, onSend, onCancel }: {
 
       {/* Notes */}
       <div className="mb-4">
-        <label className="text-xs mb-1.5 block" style={{ color: "var(--text-muted)" }}>What should patrollers look for?</label>
+        <label className="text-xs mb-1.5 block" style={{ color: "var(--text-muted)" }}>What should patrollers look for? <HelpTip text="Brief note sent to field reporters. They see this on their dispatch map pin." /></label>
         <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2}
           className="w-full bg-trace-bg border border-trace-border rounded-lg px-3 py-2 text-sm"
           placeholder="Vehicle description, location details, what to look for..." />

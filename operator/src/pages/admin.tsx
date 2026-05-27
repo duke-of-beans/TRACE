@@ -868,7 +868,7 @@ function IdentifierTypeForm({ form, setForm, onSave, onCancel }: { form: any; se
       </div>
       {(form.fieldType === "select" || form.fieldType === "multiselect") && (
         <div>
-          <label className="text-xs text-gray-500 uppercase tracking-wider mb-1 block">Options (JSON array)</label>
+          <label className="text-xs text-gray-500 uppercase tracking-wider mb-1 block">Options (JSON array) <HelpTip text="For dropdown-type identifiers. Enter choices as a JSON array like [&quot;left arm&quot;, &quot;right arm&quot;, &quot;back&quot;]." /></label>
           <input value={form.options} onChange={(e) => setForm((f: any) => ({ ...f, options: e.target.value }))} className={inputCls} placeholder='["Option A", "Option B", "Option C"]' />
         </div>
       )}
@@ -958,7 +958,7 @@ function OperatorsAdmin() {
               className={inputCls} placeholder="OPERATOR-2" style={{ textTransform: "uppercase", letterSpacing: "1px" }} />
           </div>
           <div>
-            <label className="text-xs text-gray-500 uppercase tracking-wider mb-1 block">Access Code</label>
+            <label className="text-xs text-gray-500 uppercase tracking-wider mb-1 block">Access Code <HelpTip text="Operators use this instead of a password. At least 6 characters. Share securely via Signal or in person." /></label>
             <input type="password" value={newCode} onChange={(e) => setNewCode(e.target.value)}
               className={inputCls} placeholder="6+ characters" />
             <p className="text-[10px] mt-1" style={{ color: "var(--text-muted)" }}>Give this to the operator in person or via encrypted channel.</p>

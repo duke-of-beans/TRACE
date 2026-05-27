@@ -7,7 +7,7 @@
  */
 import { useState, useEffect, useCallback } from "react";
 import { api } from "../lib/api.js";
-import { useToast, EmptyState, SkeletonList } from "../components/ux/index.js";
+import { useToast, EmptyState, SkeletonList, HelpTip } from "../components/ux/index.js";
 import { Icon } from "../components/icon.js";
 
 type View = "list" | "detail" | "create";
@@ -256,7 +256,7 @@ function CreateIncident({ types, onBack, onCreated }: { types: any[]; onBack: ()
         </div>
 
         <div>
-          <label className="block text-xs font-medium mb-1" style={{ color: "var(--text-sec)" }}>Filed on behalf of (optional)</label>
+          <label className="block text-xs font-medium mb-1" style={{ color: "var(--text-sec)" }}>Filed on behalf of (optional) <HelpTip text="If someone else reported this to you, note who. Use callsigns, not real names." /></label>
           <input value={filedOnBehalf} onChange={(e) => setFiledOnBehalf(e.target.value)} placeholder="If someone else reported this to you, note who"
             className="w-full rounded px-3 py-2 text-sm" style={{ background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text)" }} />
         </div>

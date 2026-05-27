@@ -7,7 +7,7 @@
  */
 import { useState, useEffect } from "react";
 import { Icon } from "../components/icon.js";
-import { useToast, useConfirm, EmptyState } from "../components/ux/index.js";
+import { useToast, useConfirm, EmptyState, HelpTip } from "../components/ux/index.js";
 
 const API = import.meta.env.VITE_API_URL || "/api/v1";
 const token = () => localStorage.getItem("trace_op_token") || "";
@@ -239,12 +239,12 @@ export function Harassment() {
 
               {/* Tag + Response */}
               <div className="mb-4">
-                <label className="text-xs font-medium block mb-1" style={{ color: "var(--text-sec)" }}>Tag</label>
+                <label className="text-xs font-medium block mb-1" style={{ color: "var(--text-sec)" }}>Tag <HelpTip text="Categorize this number for quick filtering. Tags are chapter-specific." /></label>
                 <input value={tag} onChange={(e) => setTag(e.target.value)} placeholder="e.g. Known Concern, Spam"
                   className="w-full rounded px-3 py-2 text-sm" style={{ background: "var(--surface-alt)", border: "1px solid var(--border)", color: "var(--text)" }} />
               </div>
               <div className="mb-4">
-                <label className="text-xs font-medium block mb-1" style={{ color: "var(--text-sec)" }}>Response (visible to reporters)</label>
+                <label className="text-xs font-medium block mb-1" style={{ color: "var(--text-sec)" }}>Response (visible to reporters) <HelpTip text="Your reply is visible to all reporters who reported this number. Max 280 characters." /></label>
                 <textarea value={response} onChange={(e) => setResponse(e.target.value)} maxLength={280}
                   placeholder="Visible to all reporters who look up this number"
                   className="w-full rounded px-3 py-2 text-sm" rows={2}
