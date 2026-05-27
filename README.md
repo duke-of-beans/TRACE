@@ -96,11 +96,11 @@ The operator console is a desktop application at `/operator/`.
 
 **Triage.** Incoming sightings appear in a queue. Each one shows whether the plate matches a known vehicle (MATCH badge) or is new (NEW PLATE). Confirm and dispatch, dismiss with feedback to the reporter, or add the vehicle to tracking.
 
-**Intel Map.** All sightings on a satellite map. Right-click to drop a dispatch pin. Click any sighting marker to see details. Time playback shows sighting patterns hour by hour. Corridor overlays trace vehicle movement paths.
+**Activity Map.** All sightings on a satellite map. Right-click to drop a dispatch pin. Click any sighting marker to see details. Time playback shows sighting patterns hour by hour. Corridor overlays trace vehicle movement paths.
 
-**Vehicles and Actors.** Dossier pages for tracked vehicles and persons of interest. Photos, suspicion levels, sighting history, identifier records.
+**Vehicles and Actors.** Record pages for tracked vehicles and observed persons. Photos, concern levels, sighting history, identifier records.
 
-**Admin.** Configure vehicle types, suspicion ladders, dispatch event types, actor identifiers. Generate reporter invite codes.
+**Admin.** Configure vehicle types, concern levels, dispatch event types, actor identifiers. Generate reporter invite codes.
 
 ## Architecture
 
@@ -132,7 +132,7 @@ src/
   api/            Hono route handlers
     auth/         Invite-code and dev-login auth
     sightings/    Sighting intake + plate matching
-    vehicles/     Vehicle dossier CRUD
+    vehicles/     Vehicle record CRUD
     actors/       Actor profile management
     dispatch/     Dispatch event lifecycle
     geo/          Heatmap, corridors, co-occurrence, temporal
@@ -177,7 +177,7 @@ Before giving anyone access to your TRACE instance:
 
 | Role | Sees | Does not see |
 |------|------|-------------|
-| Reporter | Their own submissions, active dispatch pins, plate check results | Other reporters, operator actions, vehicle dossiers, actor profiles |
+| Reporter | Their own submissions, active dispatch pins, plate check results | Other reporters, operator actions, vehicle records, actor profiles |
 | Operator | All sightings (by callsign, not real name), vehicles, actors, dispatches | Reporter real identities, Vault B data |
 | Database admin | All three schemas | Nothing is hidden from the database admin |
 
@@ -274,9 +274,9 @@ If the chapter is running with demo data from the initial seed, the import tool 
 
 ## Harassment Reporting
 
-Reporters can submit harassing phone numbers through the Alert tab. Each number becomes an entity in the system, similar to a vehicle dossier. Multiple reporters can report the same number. The operator sees cross-reporter patterns: how many reporters are affected, time clustering, and escalation flags.
+Reporters can submit harassing phone numbers through the Alert tab. Each number becomes an entity in the system, similar to a vehicle record. Multiple reporters can report the same number. The operator sees cross-reporter patterns: how many reporters are affected, time clustering, and escalation flags.
 
-If Spokeo is configured, operators can identify callers directly from the number dossier. Otherwise, they tag and respond to reports manually. Reporters see the operator's tag and response in their history. They also see how many other reporters have reported the same number (count only, not callsigns).
+If Spokeo is configured, operators can identify callers directly from the number record. Otherwise, they tag and respond to reports manually. Reporters see the operator's tag and response in their history. They also see how many other reporters have reported the same number (count only, not callsigns).
 
 ## Tags and Responses
 
@@ -284,9 +284,9 @@ Operators can tag sightings, vehicles, and harassment reports with configurable 
 
 Sighting tags: Confirmed Suspicious, Cleared (Resident), Known Delivery Vehicle, Under Active Tracking, Duplicate Report, Requires Follow-Up.
 
-Vehicle tags: Active Threat, Monitoring, Cleared, Flagged for LE, Known Resident, Rental/Fleet.
+Vehicle tags: Active Concern, Monitoring, Cleared, Noted for Authorities, Known Resident, Rental/Fleet.
 
-Harassment tags: Known Threat, Spam, Under Investigation, Cleared, Reported to Authorities, Unknown.
+Harassment tags: Known Concern, Spam, Under Investigation, Cleared, Reported to Authorities, Unknown.
 
 Operators can also write a short response (280 characters) that the reporter sees in their history. Tags and responses close the feedback loop between field reporters and the operator.
 
