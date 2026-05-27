@@ -448,7 +448,7 @@ ${linkedVehicles.map(r => `<tr><td style="font-family:monospace">${r.vehicle.pla
 
 ${evidence.length > 0 ? `<h2>Evidence (${evidence.length})</h2>
 ${evidence.map(ev => `<div class="evidence-item">
-<strong>${ev.evidenceType}</strong> — ${ev.caption || "No caption"}<br>
+<strong>${ev.evidenceType}</strong> - ${ev.caption || "No caption"}<br>
 <span style="color:#888;font-size:11px">Phase: ${ev.phase} | Captured: ${fmtDate(ev.capturedAt)} | Added: ${fmtDate(ev.addedAt)} | Source: ${ev.uploadedBy ? "authenticated reporter" : "public form"}</span>
 </div>`).join("")}` : ""}
 

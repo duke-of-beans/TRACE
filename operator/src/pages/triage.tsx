@@ -162,6 +162,7 @@ export function Triage() {
     <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
       {/* Queue list */}
       <div className="w-full lg:w-80 space-y-2 max-h-[50vh] lg:max-h-[calc(100vh-3rem)] overflow-auto">
+        <p className="text-xs mb-2" style={{ color: "var(--text-muted)" }}>Incoming sightings from field reporters. Review each report, then confirm, dismiss, or flag. Keyboard: C/D/F/N/P.</p>
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-lg font-semibold">
             {sightings.length} pending

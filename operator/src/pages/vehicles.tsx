@@ -60,6 +60,7 @@ export function Vehicles() {
   return (
     <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
       <div className="w-full lg:w-80 lg:flex-shrink-0">
+        <p className="text-xs mb-3" style={{ color: "var(--text-muted)" }}>Every vehicle your chapter tracks. Search by plate, make, or model. Click to view full record with sighting history and linked actors.</p>
         <div className="flex gap-2 mb-3">
           <input placeholder="Search plate or description..." value={search}
             onChange={(e) => setSearch(e.target.value.toUpperCase())}
