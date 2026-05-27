@@ -174,7 +174,7 @@ authRouter.post("/magic-link", async (c) => {
   // TODO: send email via SMTP/Resend with link containing rawToken
   // Token logged server-side only in development
   if (process.env.NODE_ENV !== "production") {
-    console.log(`Magic link token for ${email}: ${rawToken}`);
+    console.log(`Magic link requested for ${email} (token hash: ${tokenHash.slice(0, 8)}...)`);
   }
 
   return c.json({ status: "sent" });
