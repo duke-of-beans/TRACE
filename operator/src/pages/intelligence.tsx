@@ -208,148 +208,8 @@ export function Intelligence() {
   ];
 
   return (
-    <div>
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-4">
-        <h1 className="text-2xl font-bold">Intelligence Map</h1>
-        <div className="flex flex-wrap gap-2 text-xs">
-          <span className="px-2 py-1 rounded bg-trace-surface" style={{ color: "var(--text-muted)" }}>
-            {totalSightings} sightings
-          </span>
-          <span className="px-2 py-1 rounded bg-trace-surface" style={{ color: "var(--text-muted)" }}>
-            {corridors.length} corridors
-          </span>
-        </div>
-      </div>
-
-      {/* Filter controls */}
-      <div className="bg-trace-surface rounded-lg p-4 border border-trace-border mb-4">
-        <div className="flex flex-wrap items-end gap-4">
-          {/* Date range presets */}
-          <div>
-            <label className="text-xs uppercase tracking-wider block mb-1.5" style={{ color: "var(--text-muted)" }}>
-              Date Range
-            </label>
-            <div className="flex gap-1">
-              {presets.map((p) => (
-                <button
-                  key={p.key}
-                  onClick={() => setRangePreset(p.key)}
-                  className="px-2.5 py-1.5 rounded text-xs font-medium transition-colors"
-                  style={{
-                    background: rangePreset === p.key ? "var(--accent)" : "var(--bg)",
-                    color: rangePreset === p.key ? "var(--accent-text)" : "var(--text-sec)",
-                    border: `1px solid ${rangePreset === p.key ? "var(--accent)" : "var(--border)"}`,
-                  }}
-                >
-                  {p.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Custom date inputs */}
-          {rangePreset === "custom" && (
-            <div className="flex gap-2 items-end">
-              <div>
-                <label className="text-xs uppercase tracking-wider block mb-1.5" style={{ color: "var(--text-muted)" }}>From</label>
-                <input
-                  type="date"
-                  value={customStart}
-                  onChange={(e) => setCustomStart(e.target.value)}
-                  className="bg-trace-bg border border-trace-border rounded px-2 py-1.5 text-xs"
-                  style={{ colorScheme: "dark" }}
-                />
-              </div>
-              <div>
-                <label className="text-xs uppercase tracking-wider block mb-1.5" style={{ color: "var(--text-muted)" }}>To</label>
-                <input
-                  type="date"
-                  value={customEnd}
-                  onChange={(e) => setCustomEnd(e.target.value)}
-                  className="bg-trace-bg border border-trace-border rounded px-2 py-1.5 text-xs"
-                  style={{ colorScheme: "dark" }}
-                />
-              </div>
-            </div>
-          )}
-
-          {/* Vehicle filter */}
-          <div>
-            <label className="text-xs uppercase tracking-wider block mb-1.5" style={{ color: "var(--text-muted)" }}>
-              Vehicle
-            </label>
-            <select
-              value={vehicleFilter}
-              onChange={(e) => setVehicleFilter(e.target.value)}
-              className="bg-trace-bg border border-trace-border rounded px-2 py-1.5 text-xs min-w-[160px]"
-              style={{ colorScheme: "dark" }}
-            >
-              <option value="">All vehicles</option>
-              {vehicles.map((v) => (
-                <option key={v.id} value={v.id}>
-                  {v.plate || v.id.slice(0, 8)} {v.make ? `(${v.color || ""} ${v.make} ${v.model || ""})`.trim() : ""}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Apply */}
-          <button
-            onClick={loadData}
-            disabled={loading}
-            className="px-4 py-1.5 rounded text-xs font-semibold transition-opacity"
-            style={{ background: "var(--accent)", color: "var(--accent-text)", opacity: loading ? 0.6 : 1 }}
-          >
-            {loading ? "Loading..." : "Apply"}
-          </button>
-        </div>
-      </div>
-
-      {/* Corridor overlay */}
-      <div className="mb-4">
-        <div className="flex items-center gap-2 mb-2">
-          <label className="text-xs uppercase tracking-wider font-semibold" style={{ color: "var(--text-muted)" }}>
-            Movement Corridors
-          </label>
-        </div>
-        <p className="text-xs mb-2" style={{ color: "var(--text-sec)" }}>
-          Select a vehicle to draw its movement path on the map. Each line connects sighting locations in chronological order. Multiple corridors can be overlaid to compare routes.
-        </p>
-        <div className="flex flex-col sm:flex-row gap-2">
-        <select
-          value={corridorVehicleId}
-          onChange={(e) => setCorridorVehicleId(e.target.value)}
-          className="flex-1 bg-trace-bg border border-trace-border rounded-lg px-3 py-2 text-sm"
-          style={{ colorScheme: "dark" }}
-        >
-          <option value="">Select vehicle for corridor overlay...</option>
-          {vehicles.map((v) => (
-            <option key={v.id} value={v.id}>
-              {v.plate || v.id.slice(0, 8)} {v.make ? `(${v.color || ""} ${v.make} ${v.model || ""})`.trim() : ""}
-            </option>
-          ))}
-        </select>
-        <button
-          onClick={() => { if (corridorVehicleId) { loadCorridor(corridorVehicleId); setCorridorVehicleId(""); } }}
-          className="px-4 rounded-lg text-sm font-semibold"
-          style={{ background: "var(--accent)", color: "var(--accent-text)" }}
-        >
-          Add Corridor
-        </button>
-        {corridors.length > 0 && (
-          <button
-            onClick={() => setCorridors([])}
-            className="px-4 rounded-lg text-sm"
-            style={{ background: "var(--surface-alt, var(--bg))", color: "var(--text-muted)" }}
-          >
-            Clear
-          </button>
-        )}
-        </div>
-      </div>
-
-      {/* Map */}
+    <div style={{ position: "relative", height: "calc(100vh - 48px)", overflow: "hidden" }}>
+      {/* FULL-BLEED MAP */}
       <IntelMap
         markers={temporalMarkers}
         heatmapData={heatmap}
@@ -357,147 +217,194 @@ export function Intelligence() {
         coOccurrences={coOccurrences}
         dispatchPins={dispatchPins}
         onPlacePin={(lat, lng) => { setPlacingPin({ lat, lng }); setSelectedPin(null); setSelectedMarker(null); }}
-        onPinClick={(pin) => { setSelectedPin(pin); setPlacingPin(null); setSelectedMarker(null); setDispatchPins(p => [...p]); }}
+        onPinClick={(pin) => { setSelectedPin(pin); setPlacingPin(null); setSelectedMarker(null); }}
         onMarkerClick={(marker) => { setSelectedMarker(marker); setSelectedPin(null); setPlacingPin(null); }}
-        height="calc(100vh - 220px)"
+        height="100%"
       >
-        {/* Floating Drop Pin button — below layer control */}
-        <button
-          onClick={() => {
+        {/* ── FLOATING FILTER BAR (top-left) ── */}
+        <div style={{
+          position: "absolute", top: 12, left: 50, zIndex: 1000,
+          background: "rgba(15,23,42,0.85)", backdropFilter: "blur(8px)",
+          border: "1px solid var(--border)", borderRadius: 10,
+          padding: "8px 12px", display: "flex", alignItems: "center", gap: 8,
+        }}>
+          {presets.map((p) => (
+            <button key={p.key} onClick={() => { setRangePreset(p.key); }}
+              style={{
+                padding: "4px 10px", borderRadius: 6, fontSize: 11, fontWeight: 600, cursor: "pointer",
+                background: rangePreset === p.key ? "var(--accent)" : "transparent",
+                color: rangePreset === p.key ? "var(--accent-text)" : "var(--text-muted)",
+                border: rangePreset === p.key ? "1px solid var(--accent)" : "1px solid transparent",
+              }}>
+              {p.label}
+            </button>
+          ))}
+          <select value={vehicleFilter} onChange={(e) => setVehicleFilter(e.target.value)}
+            style={{ background: "transparent", border: "1px solid var(--border)", borderRadius: 6, padding: "4px 8px", fontSize: 11, color: "var(--text-sec)", minWidth: 120, colorScheme: "dark" }}>
+            <option value="">All vehicles</option>
+            {vehicles.map((v) => (
+              <option key={v.id} value={v.id}>{v.plate || v.id.slice(0, 8)}</option>
+            ))}
+          </select>
+          <button onClick={loadData} disabled={loading}
+            style={{ padding: "4px 12px", borderRadius: 6, fontSize: 11, fontWeight: 600, background: "var(--accent)", color: "var(--accent-text)", border: "none", cursor: "pointer", opacity: loading ? 0.6 : 1 }}>
+            {loading ? "..." : "Apply"}
+          </button>
+        </div>
+
+        {/* ── FLOATING ACTION BUTTONS (left side, below zoom) ── */}
+        <div style={{
+          position: "absolute", top: 90, left: 12, zIndex: 1000,
+          display: "flex", flexDirection: "column", gap: 6,
+        }}>
+          <button onClick={() => {
             const mapEl = document.querySelector(".leaflet-container") as any;
             const center = mapEl?._leaflet_map?.getCenter?.() || { lat: 38.9310, lng: -77.1770 };
-            setPlacingPin({ lat: center.lat, lng: center.lng });
-            setSelectedPin(null);
-            setSelectedMarker(null);
-          }}
-          style={{
-            position: "absolute", top: 12, left: 50, zIndex: 1000,
-            background: "var(--accent)", color: "var(--accent-text)",
-            border: "none", borderRadius: 8, padding: "10px 18px",
-            fontSize: 13, fontWeight: 700, cursor: "pointer",
-            boxShadow: "0 2px 12px rgba(0,0,0,0.4)",
-            display: "flex", alignItems: "center", gap: 6,
-          }}
-        >
-          + Drop Pin
-        </button>
+            setPlacingPin({ lat: center.lat, lng: center.lng }); setSelectedPin(null); setSelectedMarker(null);
+          }} style={{
+            background: "var(--accent)", color: "var(--accent-text)", border: "none", borderRadius: 8,
+            padding: "8px 14px", fontSize: 12, fontWeight: 700, cursor: "pointer",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.4)", display: "flex", alignItems: "center", gap: 4,
+          }}>+ Pin</button>
+          {corridors.length > 0 && (
+            <button onClick={() => setCorridors([])} style={{
+              background: "rgba(15,23,42,0.85)", color: "var(--text-sec)", border: "1px solid var(--border)", borderRadius: 8,
+              padding: "6px 12px", fontSize: 11, cursor: "pointer", backdropFilter: "blur(8px)",
+            }}>Clear corridors</button>
+          )}
+        </div>
 
-        {/* Sighting detail overlay */}
-        {selectedMarker && (
-          <div data-trace-panel style={{
-            position: "absolute", bottom: 12, left: 12, right: 12, zIndex: 1000,
-            background: "var(--surface)", border: "1px solid var(--border)",
-            borderRadius: 10, padding: 16, maxWidth: 480,
-            boxShadow: "0 4px 20px rgba(0,0,0,0.5)",
+        {/* ── STATS BADGES (bottom-right) ── */}
+        <div style={{
+          position: "absolute", bottom: temporalBuckets.length > 0 ? 56 : 12, right: 12, zIndex: 1000,
+          display: "flex", gap: 6,
+        }}>
+          <span style={{
+            padding: "4px 10px", borderRadius: 20, fontSize: 10, fontWeight: 600,
+            background: "rgba(15,23,42,0.85)", color: "var(--text-muted)", border: "1px solid var(--border)",
+            backdropFilter: "blur(8px)",
+          }}>{totalSightings} sightings</span>
+          <span style={{
+            padding: "4px 10px", borderRadius: 20, fontSize: 10, fontWeight: 600,
+            background: "rgba(15,23,42,0.85)", color: "var(--text-muted)", border: "1px solid var(--border)",
+            backdropFilter: "blur(8px)",
+          }}>{corridors.length} corridors</span>
+        </div>
+
+        {/* ── BOTTOM TIME SCRUBBER (floating on map) ── */}
+        {temporalBuckets.length > 0 && (
+          <div style={{
+            position: "absolute", bottom: 0, left: 0, right: 0, zIndex: 1000,
+            background: "rgba(15,23,42,0.9)", backdropFilter: "blur(8px)",
+            borderTop: "1px solid var(--border)", padding: "6px 16px",
           }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <span style={{ fontSize: 10, padding: "2px 8px", borderRadius: 4, fontWeight: 700, background: "#f1c40f", color: "#000" }}>Sighting</span>
-                {selectedMarker.data?.plate && <span style={{ fontFamily: "var(--font-mono, monospace)", fontWeight: 700, letterSpacing: "0.1em", fontSize: 14 }}>{selectedMarker.data.plate}</span>}
-              </div>
+            <TimeSlider
+              buckets={temporalBuckets.map((b) => ({ startTime: b.startTime, endTime: b.endTime, pointCount: b.points.length }))}
+              selectedIndex={sliderIndex}
+              onChange={setSliderIndex}
+              playing={playing}
+              onTogglePlay={togglePlay}
+            />
+          </div>
+        )}
+
+        {/* ── RIGHT-SIDE DETAIL PANEL ── */}
+        {selectedMarker && (
+          <div style={{
+            position: "absolute", top: 0, right: 0, bottom: 0, width: 340, zIndex: 1000,
+            background: "var(--surface)", borderLeft: "1px solid var(--border)",
+            padding: 20, overflowY: "auto",
+            boxShadow: "-4px 0 20px rgba(0,0,0,0.3)",
+          }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+              <span style={{ fontSize: 10, padding: "2px 8px", borderRadius: 4, fontWeight: 700, background: "#f1c40f", color: "#000" }}>Sighting</span>
               <button onClick={() => setSelectedMarker(null)} style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", fontSize: 16 }}>✕</button>
             </div>
-            {selectedMarker.data?.activityDescription && <p style={{ fontSize: 13, color: "var(--text-sec)", marginBottom: 6 }}>{selectedMarker.data.activityDescription}</p>}
-            <div style={{ display: "flex", gap: 16, fontSize: 11, color: "var(--text-muted)", marginBottom: 10 }}>
+            {selectedMarker.data?.plate && (
+              <div style={{ fontFamily: "var(--font-mono)", fontWeight: 700, letterSpacing: "0.1em", fontSize: 18, marginBottom: 8 }}>{selectedMarker.data.plate}</div>
+            )}
+            {selectedMarker.data?.activityDescription && <p style={{ fontSize: 13, color: "var(--text-sec)", marginBottom: 8, lineHeight: 1.5 }}>{selectedMarker.data.activityDescription}</p>}
+            {selectedMarker.data?.vehicleDescription && <p style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 8 }}>{selectedMarker.data.vehicleDescription}</p>}
+            <div style={{ fontSize: 11, color: "var(--text-muted)", marginBottom: 16, display: "flex", flexDirection: "column", gap: 4 }}>
               {selectedMarker.data?.observedAt && <span>{new Date(selectedMarker.data.observedAt).toLocaleString()}</span>}
-              {selectedMarker.data?.direction && <span>Heading: {selectedMarker.data.direction}</span>}
+              {selectedMarker.data?.direction && <span>Heading {selectedMarker.data.direction}</span>}
               <span>{selectedMarker.lat.toFixed(5)}, {selectedMarker.lng.toFixed(5)}</span>
             </div>
             <button onClick={() => { setPlacingPin({ lat: selectedMarker.lat, lng: selectedMarker.lng }); setSelectedMarker(null); }}
-              style={{ background: "var(--accent)", color: "var(--accent-text)", border: "none", borderRadius: 6, padding: "8px 16px", fontSize: 12, fontWeight: 600, cursor: "pointer" }}>
+              style={{ width: "100%", background: "var(--accent)", color: "var(--accent-text)", border: "none", borderRadius: 8, padding: "10px 16px", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
               Dispatch here
             </button>
           </div>
         )}
 
-        {/* Dispatch pin detail overlay */}
         {selectedPin && (
-          <div data-trace-panel style={{
-            position: "absolute", bottom: 12, left: 12, right: 12, zIndex: 1000,
-            background: "var(--surface)", border: "1px solid var(--border)",
-            borderRadius: 10, padding: 16, maxWidth: 480,
-            boxShadow: "0 4px 20px rgba(0,0,0,0.5)",
+          <div style={{
+            position: "absolute", top: 0, right: 0, bottom: 0, width: 340, zIndex: 1000,
+            background: "var(--surface)", borderLeft: "1px solid var(--border)",
+            padding: 20, overflowY: "auto",
+            boxShadow: "-4px 0 20px rgba(0,0,0,0.3)",
           }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 <span style={{ fontSize: 10, padding: "2px 8px", borderRadius: 4, fontWeight: 700, background: selectedPin.priority === "urgent" ? "#DC2626" : "#D97706", color: "#fff" }}>{selectedPin.priority}</span>
-                <span style={{ fontSize: 13, fontWeight: 600 }}>{selectedPin.eventTypeLabel || "Dispatch"}</span>
+                <span style={{ fontSize: 14, fontWeight: 600 }}>{selectedPin.eventTypeLabel || "Dispatch"}</span>
               </div>
               <button onClick={() => setSelectedPin(null)} style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", fontSize: 16 }}>✕</button>
             </div>
-            {selectedPin.plate && <div style={{ fontFamily: "var(--font-mono, monospace)", fontWeight: 700, letterSpacing: "0.1em", marginBottom: 4 }}>{selectedPin.plate}</div>}
-            {selectedPin.notes && <p style={{ fontSize: 13, color: "var(--text-sec)", marginBottom: 6 }}>{selectedPin.notes}</p>}
-            <div style={{ fontSize: 11, color: "var(--text-muted)", marginBottom: 10 }}>
+            {selectedPin.plate && <div style={{ fontFamily: "var(--font-mono)", fontWeight: 700, letterSpacing: "0.1em", fontSize: 16, marginBottom: 8 }}>{selectedPin.plate}</div>}
+            {selectedPin.notes && <p style={{ fontSize: 13, color: "var(--text-sec)", marginBottom: 8, lineHeight: 1.5 }}>{selectedPin.notes}</p>}
+            <div style={{ fontSize: 11, color: "var(--text-muted)", marginBottom: 16 }}>
               {(() => { const m = Math.round((Date.now() - new Date(selectedPin.createdAt).getTime()) / 60000); return m < 60 ? `${m}m ago` : `${Math.round(m/60)}h ago`; })()} · {selectedPin.status}
             </div>
             {selectedPin.status !== "closed" && selectedPin.status !== "expired" && (
               <button onClick={async () => { await api.closeDispatch(selectedPin.id, "operator_closed").catch(() => {}); setSelectedPin(null); loadDispatchPins(); }}
-                style={{ background: "var(--bg)", color: "var(--text-sec)", border: "1px solid var(--border)", borderRadius: 6, padding: "8px 16px", fontSize: 12, cursor: "pointer" }}>
-                Close
+                style={{ width: "100%", background: "var(--surface-alt)", color: "var(--text-sec)", border: "1px solid var(--border)", borderRadius: 8, padding: "10px 16px", fontSize: 13, cursor: "pointer" }}>
+                Close Dispatch
               </button>
             )}
           </div>
         )}
       </IntelMap>
 
-      {/* Time Playback */}
-      {temporalBuckets.length > 0 && (
-        <div className="mt-4">
-          <div className="flex items-center gap-2 mb-2">
-            <label className="text-xs uppercase tracking-wider font-semibold" style={{ color: "var(--text-muted)" }}>
-              Time Playback
-            </label>
-          </div>
-          <p className="text-xs mb-2" style={{ color: "var(--text-sec)" }}>
-            Sightings grouped into 1-hour windows. Drag the slider or press play to step through each window. The map shows only the sightings that occurred during the selected hour.
-          </p>
-          <TimeSlider
-            buckets={temporalBuckets.map((b) => ({
-              startTime: b.startTime,
-              endTime: b.endTime,
-              pointCount: b.points.length,
-            }))}
-            selectedIndex={sliderIndex}
-            onChange={setSliderIndex}
-            playing={playing}
-            onTogglePlay={togglePlay}
+      {/* Pin creation form (modal overlay) */}
+      {placingPin && (
+        <div style={{
+          position: "absolute", top: 0, right: 0, bottom: 0, width: 380, zIndex: 1001,
+          background: "var(--surface)", borderLeft: "1px solid var(--border)",
+          padding: 20, overflowY: "auto",
+          boxShadow: "-4px 0 20px rgba(0,0,0,0.3)",
+        }}>
+          <PinCreationForm
+            lat={placingPin.lat}
+            lng={placingPin.lng}
+            eventTypes={eventTypes}
+            reporters={reporters}
+            onSave={async (data) => {
+              try {
+                await api.createDispatch({ ...data, lat: placingPin.lat, lng: placingPin.lng });
+                setPlacingPin(null);
+                loadDispatchPins();
+              } catch {}
+            }}
+            onCancel={() => { setPlacingPin(null); setDispatchPins(p => [...p]); }}
           />
         </div>
       )}
 
+      {/* No data message */}
       {temporalBuckets.length === 0 && !loading && (
-        <div className="mt-4 text-center py-6 text-sm" style={{ color: "var(--text-muted)" }}>
-          No sighting data in this range.{vehicleFilter ? " Try removing the vehicle filter." : " Try expanding the date range."}
+        <div style={{
+          position: "absolute", bottom: 16, left: "50%", transform: "translateX(-50%)", zIndex: 1000,
+          background: "rgba(15,23,42,0.85)", backdropFilter: "blur(8px)", border: "1px solid var(--border)",
+          borderRadius: 8, padding: "8px 20px", fontSize: 12, color: "var(--text-muted)",
+        }}>
+          No sighting data in this range.{vehicleFilter ? " Remove the vehicle filter." : " Expand the date range."}
         </div>
       )}
-
-      {/* Pin creation form (still below map - needs full form space) */}
-      {placingPin && (
-        <PinCreationForm
-          lat={placingPin.lat}
-          lng={placingPin.lng}
-          eventTypes={eventTypes}
-          reporters={reporters}
-          onSave={async (data) => {
-            try {
-              await api.createDispatch({ ...data, lat: placingPin.lat, lng: placingPin.lng });
-              setPlacingPin(null);
-              loadDispatchPins();
-            } catch {}
-          }}
-          onCancel={() => { setPlacingPin(null); setDispatchPins(p => [...p]); }}
-        />
-      )}
-
-      {/* Right-click hint */}
-      <div className="mt-2 mb-2">
-        <span className="text-xs" style={{ color: "var(--text-muted)" }}>
-          Right-click the map to drop a pin at a specific location.
-        </span>
-      </div>
     </div>
   );
 }
+
 
 // --- Pin Creation Form ---
 function PinCreationForm({ lat, lng, eventTypes, reporters, onSave, onCancel }: {
