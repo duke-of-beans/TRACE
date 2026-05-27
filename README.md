@@ -84,23 +84,39 @@ The app icon appears on their home screen and runs full-screen like a native app
 
 Open the app. Enter your invite code. You see a plate input and a map.
 
-**Report mode.** Type a plate, describe the activity, drop the location, submit. Takes 15 seconds. The operator sees it immediately in their triage queue.
+**Report mode.** Type a plate, describe the activity, drop the location, submit. Takes 15 seconds. The operator sees it immediately in their triage queue. Reports queue offline and sync when connectivity returns.
 
 **Check Plate mode.** Type a plate to see if it is already in the database. If it matches, you can escalate to a full report with one tap.
 
-**Map tab.** See active dispatch pins dropped by the operator. Tap a pin to respond. The operator sees your status (responding, on scene).
+**Map tab.** See active dispatch pins dropped by the operator. Tap a pin to respond. The operator sees your status (responding, on scene, completed).
+
+**Alert tab.** Report harassing phone numbers. See operator responses and how many other reporters flagged the same number.
+
+**Safety features.** PIN lock protects the app if your phone is accessed. Panic button (configurable in Settings) triggers an emergency action. Dead man's switch auto-wipes local data after 72 hours of inactivity.
 
 ### For operators
 
 The operator console is a desktop application at `/operator/`.
 
-**Triage.** Incoming sightings appear in a queue. Each one shows whether the plate matches a known vehicle (MATCH badge) or is new (NEW PLATE). Confirm and dispatch, dismiss with feedback to the reporter, or add the vehicle to tracking.
+**Dashboard.** Five stat cards (pending triage, active vehicles, known actors, active dispatches, open incidents), concern level breakdown, and vehicle type distribution.
 
-**Activity Map.** All sightings on a satellite map. Right-click to drop a dispatch pin. Click any sighting marker to see details. Time playback shows sighting patterns hour by hour. Corridor overlays trace vehicle movement paths.
+**Triage.** Incoming sightings appear in a queue. Each one shows whether the plate matches a known vehicle (MATCH badge) or is new (NEW PLATE). Confirm and dispatch, dismiss with feedback to the reporter, or add the vehicle to tracking. Keyboard shortcuts: C (confirm), D (dismiss), F (flag), N (next), P (previous).
 
-**Vehicles and Actors.** Record pages for tracked vehicles and observed persons. Photos, concern levels, sighting history, identifier records.
+**Activity Map.** All sightings on a satellite map. Right-click to drop a dispatch pin. Click any sighting marker to see details. Time playback shows sighting patterns hour by hour. Corridor overlays trace vehicle movement paths. Heatmap mode shows concentration areas. Co-occurrence analysis identifies vehicles appearing together.
 
-**Admin.** Configure vehicle types, concern levels, dispatch event types, actor identifiers. Generate reporter invite codes.
+**Vehicles.** Record pages for tracked vehicles. Concern levels (graduated from Noticed through Active Concern), type assignments, sighting history, linked actors, and corridor analysis. Promote a vehicle to a higher concern level with a logged reason.
+
+**Actors.** Observed person profiles with aliases, physical identifiers (scars, tattoos, etc.), linked vehicles, and photos. Persistent across vehicle retirements — a driver outlives their vehicles.
+
+**Incidents.** Full incident lifecycle: create an incident, link actors and vehicles, attach evidence with phase tracking (collection, processing, analysis, presentation), generate public witness forms (token-gated, rate-limited, 48-hour expiry), and produce printable observation records. Close or escalate with audit trail.
+
+**Dispatches.** Create dispatch events with configurable types, urgency levels, and auto-close timers. Assign reporters to dispatches. Track response status (dispatched, responding, on scene, completed).
+
+**Harassment.** Phone number entities with cross-reporter correlation. Tag numbers, write responses visible to reporters, and optionally identify callers via Spokeo integration.
+
+**Admin.** Configure vehicle types, concern levels and promotion predicates, dispatch event types, actor identifier types, and reporter accounts. Generate invite codes. Manage operator accounts with access codes. Submit bug reports directly to GitHub.
+
+**Security.** Remote suspend, kill, or nuke reporter devices. View connected reporters and their last check-in times.
 
 ## Architecture
 
@@ -167,10 +183,11 @@ Operators authenticate with a callsign and access code. The first operator is cr
 
 Before giving anyone access to your TRACE instance:
 
-- [ ] Set `TRACE_DISABLE_DEV_LOGIN=true` in Vercel env vars
-- [ ] Set `TRACE_DISABLE_TEST_CODE=true` in Vercel env vars
-- [ ] Change the default operator callsign from `OPERATOR` to something unique
-- [ ] Verify the operator console rejects non-operator logins (it does by default)
+- [ ] Set `CORS_ORIGINS=https://your-domain.vercel.app` in Vercel env vars (production only)
+- [ ] Set `TRACE_DISABLE_DEV_LOGIN=true` in Vercel env vars (production only)
+- [ ] Set `EVIDENCE_ENCRYPTION_KEY` in Vercel env vars (64 hex chars for AES-256-GCM evidence encryption)
+- [ ] Change the default operator callsign and access code
+- [ ] Verify the operator console rejects unauthenticated requests
 - [ ] All access is logged to the audit table
 
 ### Who can see what

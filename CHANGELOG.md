@@ -29,14 +29,23 @@ First production release. Full community vehicle tracking platform.
 
 ### API
 - Three-vault database architecture (ops, ident, evidence)
-- CORS lockdown (env-var based)
+- CORS lockdown (env-var based, production-only)
 - Auth: invite codes for reporters, callsign + access code for operators
+- Magic link auth intentionally excluded (would require email, violates pseudonymous architecture)
 - Printable observation record (HTML endpoint for print-to-PDF)
 - Public incident form (token-gated, rate-limited, 48h expiry)
 - Rapid capture endpoint with auto-GPS
+- Evidence encryption at rest (AES-256-GCM, requires EVIDENCE_ENCRYPTION_KEY env var)
+- Enriched vehicle detail (type assignments, concern history, recent sightings, linked actors)
+- Enriched actor detail (linked vehicles, photos, physical identifiers)
+- Vehicle concern promotion with audit trail (from/to level, reason, timestamp)
+- Corridor analysis, heatmap, temporal playback, co-occurrence endpoints
+- Offline sighting queue with sync-on-reconnect
 
 ### Quality
-- YUMA gate: 17 tests, 76+ checks, 0 warnings
+- YUMA gate: 17 tests, 84 checks, 0 warnings, 0 TODOs
 - 6 test tiers: static analysis, behavioral, terminology, visual, dependency, evidence chain
 - Full terminology compliance (concern levels, records, observed persons)
 - Visual regression baseline (10 authenticated screenshots via Puppeteer)
+- Field-level tooltips on 8 complex form fields
+- Empty states with contextual guidance on every page
