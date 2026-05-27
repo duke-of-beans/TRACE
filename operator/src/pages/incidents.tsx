@@ -360,6 +360,10 @@ function IncidentDetail({ incident, typeMap, onBack, onRefresh }: { incident: an
     } catch { toast("Failed to generate record", "error"); }
   };
 
+  const handlePrintRecord = () => {
+    window.open(`${import.meta.env.VITE_API_URL || "/api/v1"}/incidents/${incident.id}/record/print`, "_blank");
+  };
+
   const isActive = ["open", "documenting", "under_review"].includes(incident.status);
 
   return (
@@ -393,7 +397,11 @@ function IncidentDetail({ incident, typeMap, onBack, onRefresh }: { incident: an
         <div className="flex gap-2">
           <button onClick={handleDownloadRecord} className="text-xs px-3 py-1.5 rounded-lg flex items-center gap-1"
             style={{ background: "var(--bg)", border: "1px solid var(--border)", color: "var(--text-sec)" }}>
-            <Icon name="download" size={12} /> Record
+            <Icon name="download" size={12} /> JSON
+          </button>
+          <button onClick={handlePrintRecord} className="text-xs px-3 py-1.5 rounded-lg flex items-center gap-1"
+            style={{ background: "var(--bg)", border: "1px solid var(--border)", color: "var(--text-sec)" }}>
+            <Icon name="file-text" size={12} /> Print
           </button>
           {isActive && (
             <>

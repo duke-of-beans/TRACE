@@ -375,6 +375,92 @@ incidentsRouter.get("/:id/correlate", async (c) => {
 });
 
 // ============================================================
+// PRINTABLE OBSERVATION RECORD (HTML for print-to-PDF)
+// ============================================================
+incidentsRouter.get("/:id/record/print", async (c) => {
+  const id = c.req.param("id");
+  const [incident] = await opsDb.select().from(incidents).where(eq(incidents.id, id)).limit(1);
+  if (!incident) return c.text("Not found", 404);
+
+  let incidentType = null;
+  if (incident.incidentTypeId) {
+    const [t] = await opsDb.select().from(incidentTypes).where(eq(incidentTypes.id, incident.incidentTypeId)).limit(1);
+    incidentType = t || null;
+  }
+
+  const linkedActors = await opsDb.select({ link: incidentActors, actor: actors })
+    .from(incidentActors).innerJoin(actors, eq(incidentActors.actorId, actors.id))
+    .where(eq(incidentActors.incidentId, id));
+
+  const linkedVehicles = await opsDb.select({ link: incidentVehicles, vehicle: vehicles })
+    .from(incidentVehicles).innerJoin(vehicles, eq(incidentVehicles.vehicleId, vehicles.id))
+    .where(eq(incidentVehicles.incidentId, id));
+
+  const evidence = await opsDb.select().from(incidentEvidence)
+    .where(eq(incidentEvidence.incidentId, id)).orderBy(incidentEvidence.addedAt);
+
+  const fmtDate = (d: any) => d ? new Date(d).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" }) : "N/A";
+
+  const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>TRACE Observation Record</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}body{font-family:system-ui;max-width:800px;margin:0 auto;padding:40px;color:#1a1a1a;font-size:13px;line-height:1.6}
+h1{font-size:20px;font-weight:300;letter-spacing:0.2em;text-transform:uppercase;margin-bottom:4px}
+h2{font-size:14px;font-weight:600;margin:24px 0 8px;padding-bottom:4px;border-bottom:1px solid #ddd}
+.disclaimer{background:#f8f8f0;border:1px solid #e0e0d0;padding:12px;font-size:11px;margin:16px 0;line-height:1.5}
+table{width:100%;border-collapse:collapse;margin:8px 0}td,th{text-align:left;padding:4px 8px;border-bottom:1px solid #eee}
+th{font-weight:600;width:140px;color:#666;font-size:11px;text-transform:uppercase}
+.badge{display:inline-block;padding:2px 8px;border-radius:3px;font-size:11px;font-weight:600}
+.evidence-item{padding:8px;margin:4px 0;background:#fafafa;border-left:3px solid #ccc}
+@media print{body{padding:20px}.disclaimer{break-inside:avoid}}
+</style></head><body>
+<h1>TRACE</h1>
+<p style="font-size:11px;color:#888;margin-bottom:16px">Community Observation Record</p>
+<div class="disclaimer">
+COMMUNITY OBSERVATION RECORD. This document contains observations reported by civilian community members.
+Contents have not been verified by law enforcement or legal authorities. Reporter identifiers are pseudonymous.
+Evidence provenance is tracked but chain of custody is civilian-grade. Provided as-is for informational purposes.
+</div>
+
+<h2>Incident Details</h2>
+<table>
+<tr><th>ID</th><td style="font-family:monospace;font-size:11px">${incident.id}</td></tr>
+<tr><th>Type</th><td>${incidentType?.label || "Unclassified"}</td></tr>
+<tr><th>Status</th><td>${incident.status}</td></tr>
+<tr><th>Severity</th><td>${incident.severity}</td></tr>
+<tr><th>Title</th><td>${incident.title || "Untitled"}</td></tr>
+<tr><th>Occurred</th><td>${fmtDate(incident.occurredAt)}</td></tr>
+<tr><th>Reported</th><td>${fmtDate(incident.reportedAt)}</td></tr>
+${incident.closedAt ? `<tr><th>Closed</th><td>${fmtDate(incident.closedAt)}</td></tr>` : ""}
+<tr><th>Location</th><td>${incident.locationDescription || "Not specified"}${incident.lat ? ` (${incident.lat}, ${incident.lng})` : ""}</td></tr>
+</table>
+<p style="margin-top:8px">${incident.description || ""}</p>
+${incident.operatorNotes ? `<p style="margin-top:8px;color:#666"><em>Operator notes: ${incident.operatorNotes}</em></p>` : ""}
+
+${linkedActors.length > 0 ? `<h2>Persons (${linkedActors.length})</h2><table>
+<tr><th>Alias</th><th>Role</th><th>Description</th><th>Notes</th></tr>
+${linkedActors.map(r => `<tr><td>${r.actor.alias || "Unknown"}</td><td>${r.link.role || ""}</td><td>${r.actor.physicalDescription || ""}</td><td>${r.link.notes || ""}</td></tr>`).join("")}
+</table>` : ""}
+
+${linkedVehicles.length > 0 ? `<h2>Vehicles (${linkedVehicles.length})</h2><table>
+<tr><th>Plate</th><th>Vehicle</th><th>Role</th><th>Notes</th></tr>
+${linkedVehicles.map(r => `<tr><td style="font-family:monospace">${r.vehicle.plate || "N/A"}</td><td>${[r.vehicle.color, r.vehicle.year, r.vehicle.make, r.vehicle.model].filter(Boolean).join(" ")}</td><td>${r.link.role || ""}</td><td>${r.link.notes || ""}</td></tr>`).join("")}
+</table>` : ""}
+
+${evidence.length > 0 ? `<h2>Evidence (${evidence.length})</h2>
+${evidence.map(ev => `<div class="evidence-item">
+<strong>${ev.evidenceType}</strong> — ${ev.caption || "No caption"}<br>
+<span style="color:#888;font-size:11px">Phase: ${ev.phase} | Captured: ${fmtDate(ev.capturedAt)} | Added: ${fmtDate(ev.addedAt)} | Source: ${ev.uploadedBy ? "authenticated reporter" : "public form"}</span>
+</div>`).join("")}` : ""}
+
+<div style="margin-top:32px;padding-top:12px;border-top:1px solid #ddd;font-size:10px;color:#999">
+Generated ${new Date().toISOString()} | TRACE Community Observation Record | Not a law enforcement document
+</div>
+</body></html>`;
+
+  return c.html(html);
+});
+
+// ============================================================
 // CLOSE INCIDENT
 // ============================================================
 incidentsRouter.post("/:id/close", async (c) => {
