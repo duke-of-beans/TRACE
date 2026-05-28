@@ -26,6 +26,17 @@
   opacity: 0.5;
   width: 200px;
   margin: 8px auto 0;
+  position: relative;
+}
+.wordmark-rule::after {
+  content: '';
+  position: absolute;
+  right: -3px;
+  top: -2px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--accent);
 }
 .wordmark-expansion {
   display: block;
