@@ -95,7 +95,9 @@ export function OperatorOnboarding({ onComplete }: OperatorOnboardingProps) {
                 fontWeight: 100, fontSize: 36, letterSpacing: "0.22em",
                 color: "var(--accent)", display: "block",
               }}>TRACE</span>
-              <span style={{ display: "block", height: 1, background: "var(--accent)", opacity: 0.4, marginTop: 6 }}></span>
+              <span style={{ display: "block", position: "relative" as const, height: 1, background: "var(--accent)", opacity: 0.4, marginTop: 6 }}>
+                <span style={{ position: "absolute" as const, right: -3, top: -2, width: 5, height: 5, borderRadius: "50%", background: "var(--accent)", opacity: 1 }}></span>
+              </span>
               <span style={{ display: "block", fontSize: 9, letterSpacing: "0.08em", color: "var(--text-muted)", marginTop: 6 }}>OPERATOR CONSOLE</span>
             </div>
           ) : (
