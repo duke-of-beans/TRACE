@@ -9,6 +9,7 @@ import { Submit } from "./pages/submit.js";
 import { History } from "./pages/history.js";
 import { ReporterMap } from "./pages/reporter-map.js";
 import { Alert } from "./pages/alert.js";
+import { BurstCapture } from "./pages/burst.js";
 import { Onboarding } from "./components/onboarding.js";
 import { PinSetup } from "./components/pin-setup.js";
 import { PinLock } from "./components/pin-lock.js";
@@ -38,6 +39,7 @@ export function App() {
   const [briefed, setBriefed] = useState(() => isBriefed());
   const [ttlHours] = useState(() => parseInt(localStorage.getItem("trace_ttl_hours") || "72"));
   const [theme, setThemeState] = useState(() => getTheme("light"));
+  const [burstMode, setBurstMode] = useState(false);
 
   // Auto night mode on mount + check every 15 min
   useEffect(() => {
@@ -113,7 +115,28 @@ export function App() {
         )}
       </main>
 
-      {authed && briefed && (
+      {authed && briefed && (<>
+      {/* Burst capture overlay - renders above everything */}
+      {burstMode && <BurstCapture onExit={() => { setBurstMode(false); getQueueCount().then(setQueueCount); }} />}
+
+      {/* Burst mode floating button - above nav, always visible when authed */}
+      {!burstMode && (
+        <button onClick={() => setBurstMode(true)} aria-label="Burst capture mode"
+          style={{
+            position: "fixed", bottom: 72, right: 16, zIndex: 100,
+            width: 52, height: 52, borderRadius: "50%",
+            background: "#e74c3c", border: "3px solid rgba(231,76,60,0.4)",
+            color: "#fff", fontSize: 10, fontWeight: 700,
+            display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+            boxShadow: "0 4px 16px rgba(231,76,60,0.4)",
+            letterSpacing: "0.04em", textTransform: "uppercase",
+            cursor: "pointer",
+          }}>
+          <Icon name="camera" size={18} />
+          <span style={{ fontSize: 8, marginTop: 1 }}>Burst</span>
+        </button>
+      )}
+
       <nav class="bottom-nav" role="navigation" aria-label="Main navigation">
         <button class={`nav-btn ${page === "submit" ? "active" : ""}`} onClick={() => setPage("submit")} aria-label="Report a sighting">
           <Icon name="send" size={20} />
@@ -137,7 +160,7 @@ export function App() {
           <span>Settings</span>
         </button>
       </nav>
-      )}
+      </>)}
     </div>
   );
 }
