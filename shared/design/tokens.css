@@ -15,8 +15,8 @@
 
   /* Text */
   --text: #1E293B;
-  --text-sec: #64748B;
-  --text-muted: #94A3B8;
+  --text-sec: #475569;
+  --text-muted: #64748B;
 
   /* Borders */
   --border: #E2E8F0;
@@ -65,8 +65,8 @@
   --font: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
   --font-mono: "SF Mono", "Cascadia Code", "Fira Code", ui-monospace, monospace;
 
-  --text-xs: 11px;
-  --text-sm: 13px;
+  --text-xs: 12px;
+  --text-sm: 14px;
   --text-base: 15px;
   --text-lg: 17px;
   --text-xl: 20px;
@@ -90,8 +90,8 @@
   --surface: #1E293B;
   --surface-alt: #334155;
   --text: #F1F5F9;
-  --text-sec: #94A3B8;
-  --text-muted: #64748B;
+  --text-sec: #B0BEC5;
+  --text-muted: #8899AA;
   --border: #334155;
   --border-focus: #818CF8;
   --accent: #818CF8;

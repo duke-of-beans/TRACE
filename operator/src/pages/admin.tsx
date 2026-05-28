@@ -60,7 +60,6 @@ export function Admin() {
     ]},
     { label: "System", items: [
       { key: "channels", label: "Notifications" },
-      { key: "feedback", label: "Feedback" },
     ]},
   ];
 
@@ -115,7 +114,6 @@ export function Admin() {
       {tab === "operators"   && <OperatorsAdmin />}
       {tab === "reporters"   && <ReportersAdmin />}
       {tab === "channels"    && <ChannelsAdmin />}
-      {tab === "feedback"    && <FeedbackAdmin />}
         </div>
       </div>
     </div>
@@ -1430,7 +1428,6 @@ function IntegrationsAdmin() {
   const SERVICES: Record<string, { name: string; desc: string }> = {
     carapi: { name: "CarAPI", desc: "Resolve plates to VIN, make, model, year, color." },
     spokeo: { name: "Spokeo", desc: "Identify callers by phone number." },
-    bumper: { name: "Bumper", desc: "Vehicle history reports (future)." },
   };
 
   const handleSaveKey = async (service: string) => {
