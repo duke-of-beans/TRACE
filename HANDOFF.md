@@ -1,97 +1,95 @@
 # TRACE Session 8 → Session 9 Handoff
 
-## SESSION 8 SUMMARY
-Massive build session. 34+ deliverables across full stack. Watchpoints, vehicle multi-photo, behavior reports, co-occurrence reports, burst capture review, Reports page, dashboard enrichment, ConfirmedVehicles import improvements, line+dot design language, donate section, TraceLoader. 12 deploys to production. YUMA 87 → 93.
+## SESSION 8 COMPLETE
+Massive build session. 40+ deliverables across full stack. 8 production deploys. YUMA 87 → 93.
 
-## DEPLOYED TO PRODUCTION
+## PRODUCTION STATE
 - **URL:** https://trace-jet.vercel.app
-- **Commit:** session-8-watchpoints-reports-photos-burst-design (a356779)
-- **YUMA:** 93/93 passed
-- **Migration 0009:** NOT YET APPLIED — run before using vehicle photos:
-  `psql $DATABASE_URL -f migrations/0009_vehicle-photos.sql`
+- **Git:** github.com/duke-of-beans/TRACE (0cb2c43)
+- **YUMA:** 93/93
+- **Migration 0009:** Applied to production
+- **BTC wallet:** Live (bc1q4aj0udelsh57z860phkm8urqs2rjpfkhkpnmhn)
 
-## WHAT SHIPPED
+## WHAT SHIPPED (Session 8)
 
-### Watchpoints (P1) — Full Stack
-Map layer (purple markers + radius rings), right-click context menu with dispatch/watchpoint choice, creation form (name/address/city/radius), activity panel (vehicle list ranked by sighting count), legend entry, dispatch form city-grouped picker, dashboard widget, map stats badge.
+### Full Stack Features
+- **Watchpoints** — Map layer, context menu, creation form, activity panel, dashboard widget, map stats badge
+- **Vehicle Multi-Photo** — Schema, migration 0009, API CRUD, gallery UI with primary/delete
+- **Burst Capture Review** — PATCH endpoint, PWA History burst tab, photo thumbnails, dashboard alert
+- **Vehicle Behavior Report** — Clustering service, API, Reports page UI, copy as text
+- **Co-occurrence Report** — Pair detection service, API, Reports page UI, copy as text
+- **Reports Page** — New operator page, two tabs, date range + vehicle filters, lazy-loaded
 
-### Vehicle Groups in Dispatch (P2)
-Vehicle picker + group picker in dispatch form. Select group → fills plate + notes with all member plates.
+### UI Enrichment
+- Vehicle record: Activity Patterns + Frequently Seen With sections
+- Dashboard: Watchpoint activity widget + burst untagged alert banner
+- Activity Map: Collapsible filter panel (time, vehicle, concern level, dispatches, actors)
+- Activity Map: Watchpoint count badge on stats bar
+- Quick tour updated with all new features
 
-### Vehicle Multi-Photo (P3) — Full Stack
-Schema (vehicle_photos table), migration 0009, API (CRUD + primary sync), gallery UI with set-primary/delete hover actions. Replaces single banner photo.
-
-### Burst Capture Review (P4) — Full Stack
-PATCH /sightings/:id endpoint, Burst tab in PWA History, BurstReviewCard with photo thumbnails + tag form, dashboard untagged alert banner.
-
-### Vehicle Behavior Report (P5) — Full Stack
-getBehaviorReport() service (cluster + time-of-day analysis), API endpoint, Reports page UI with Copy as Text in exact client format.
-
-### Co-occurrence Report (P6) — Full Stack
-getCoOccurrenceReport() service (pair detection within distance/time window), API endpoint, Reports page UI with encounter cards + Copy as Text.
-
-### Reports Page — NEW
-New operator page, two tabs (Behavior + Co-occurrence), date range selectors, vehicle filter, lazy-loaded.
-
-### Vehicle Record Enrichment
-Activity Patterns section (repeat location clusters + time-of-day badges). Frequently Seen With section (co-occurrence pairs + encounter counts).
-
-### Import Pipeline Improvements
-Sheet picker UI for multi-sheet Excel files, smart sheet dimming (metadata sheets faded), column mapping display, sample row preview, global best-match mapper algorithm, "most recent" plate preference, expanded keyword dictionary.
+### Import Pipeline
+- Sheet picker for multi-sheet Excel files
+- Smart sheet dimming (metadata sheets faded)
+- Column mapping display + sample row preview
+- Global best-match mapper algorithm
+- "Most recent" plate preference for ConfirmedVehicles format
 
 ### Design Language: Line + Dot
-Trace dot added to: hero wordmark (guide.html, docs.html), footer wordmark, sidebar wordmark, login Logo, step divider lines. TraceLoader component (animated line+dot for page loading). Corridor endpoints refined (faded origin → trace dot terminus). docs.html scroll nav synced to guide.html style.
+Applied to every TRACE wordmark (12 surfaces):
+- guide.html hero + footer + step dividers
+- docs.html hero + step dividers
+- Operator sidebar, login, setup screens
+- PWA PIN setup + lock screens
+- Reporter + operator onboarding tutorials
+- TraceLoader animation (Suspense fallback)
+- Map corridor endpoints (faded origin → trace dot terminus)
+- Scroll nav synced (docs.html matched to guide.html)
 
-### Support TRACE (Donate)
-Heart icon, sidebar link, guide.html #support section with indie story copy + BTC card (stubbed as bc1q_setup_pending).
+### Copy & Onboarding Polish
+- Node Settings: 12 jargon fixes (layman language pass)
+- Operator onboarding: Restructured 10 steps (added Activity Map, Reports, vehicle enrichment)
+- Reporter onboarding: Added burst capture step, cleaned technical jargon
 
-### Misc
-Quick tour updated (watchpoints, reports, multi-photo). Watchpoint count on map stats bar. Dashboard burst untagged alert. PWA API_BASE consistency fix.
-
-## KEY NUMBERS
-- 28 files changed, 1917 insertions, 198 deletions
-- 3 new files: vehicle-photos API, migration 0009, reports.tsx
-- YUMA: 87 → 93 checks
-- Operator pages: 12 (added Reports)
-- Icons: 53 (added heart)
+### Infrastructure
+- BTC wallet live (DCS1 for TRACE, DCS2 for Tranche held)
+- Migration 0009 applied via Node.js script
+- Support TRACE section with donate copy + BTC click-to-copy
+- Heart + filter icons added (54 total)
 
 ## SESSION 9 PRIORITIES
 
-### P1: Apply Migration 0009
-`psql $DATABASE_URL -f migrations/0009_vehicle-photos.sql`
+### P1: Security — Disable Screenshot/Copy/Highlight
+Prevent text selection, copying, and screenshots within TRACE on both PWA and operator console. CSS user-select:none, context menu prevention, and platform-specific screenshot blocking where possible. Critical for protecting reporter data and sighting content from casual exfiltration.
 
-### P2: ConfirmedVehicles Import
-Pipeline ready. Upload ConfirmedVehicles_1.xlsx → Admin → Import → Select "ICE Raid Vehicles" sheet → Preview → Import. Repeat for "GOV NOT ICE" if desired.
+### P2: Operator Guide — Complete Usage Documentation
+Enhance the existing docs.html (operator guide) into a comprehensive usage manual covering all features: triage workflow, Activity Map (filters, watchpoints, corridors, time slider), vehicle/actor management, reports, dispatch system, import pipeline, harassment review, admin configuration. Written for non-technical operators.
 
-### P3: BTC Wallet Setup
-Replace `bc1q_setup_pending` in pwa/public/guide.html with real address.
+### P3: Reporter Guide — Create Field Manual
+New HTML page (or section in guide.html) covering reporter daily workflow: submitting sightings, burst capture mode, photo best practices, tagging from history, harassment reporting, offline mode, emergency wipe, check-in system. Written for field reporters who may have minimal tech experience.
 
-### P4: Field Testing
-Deploy is live. Test watchpoints, burst review, reports, vehicle photos with real data.
-
-### P5: Remaining Polish
-- Node Settings layman language pass (copy already decent)
-- Vehicle photos in Activity Map drawer
-- Reports page: vehicle pre-selection from vehicle record
+### P4: ConfirmedVehicles Import
+Pipeline ready. Upload through Admin → Import → Select "ICE Raid Vehicles" sheet → Preview → Import.
 
 ## CRITICAL RULES (carry forward)
 1. Two entry points MUST stay in sync: src/index.ts and api/index.ts
 2. Toast API: toast("msg", "type") not toast.success()
-3. YUMA runs before every deploy: python tests/yuma.py (must be 93/93)
+3. YUMA: python tests/yuma.py must be 93/93
 4. ALWAYS read_file before write_file on ANY existing path
 5. DO NOT overwrite guide.html or favicon.svg
-6. guide.html source of truth is pwa/public/guide.html
-7. No Simi Valley coordinates (use McLean VA)
-8. Schema column: sightings.triaged (boolean), NOT triageStatus
-9. Schema column: actorIdentifiers.identifierTypeId, NOT typeId
+6. guide.html source of truth is pwa/public/guide.html (NOT public/guide.html)
+7. docs.html source of truth is pwa/public/docs.html (NOT public/docs.html)
+8. public/ is gitignored — edit pwa/public/ for static HTML files
+9. No Simi Valley coordinates (use McLean VA)
 10. PowerShell uses ; not && for command chaining
-11. vehicleConcernHistory has changedByRole (required), no changedAt field
-12. Unsplash key WORKS: 4X1wlNJKXv9gno0vjIzjoD6FfVAI0x85dKXexlhfDE8
-13. Windows cmd splits commit messages at spaces - use hyphenated messages
-14. Tooltip component uses position:fixed with getBoundingClientRect
+11. Windows cmd splits commit messages at spaces — use hyphenated
+12. Tooltip uses position:fixed with getBoundingClientRect
+13. Unsplash key: 4X1wlNJKXv9gno0vjIzjoD6FfVAI0x85dKXexlhfDE8
+
+## WALLET ADDRESSES
+- TRACE (DCS1): bc1q4aj0udelsh57z860phkm8urqs2rjpfkhkpnmhn
+- Tranche (DCS2): bc1qq0a7wlnepq34lnzkw7qtzat8ge6s6c3m7l9625
 
 ## CREDENTIALS
-- Vercel: projectId prj_qvFAyYUjX246zdNX0wGtuOCz6gmZ
 - Operator login: callsign OPERATOR, accessCode trace2025
 - Live: https://trace-jet.vercel.app
 - GitHub: https://github.com/duke-of-beans/TRACE
