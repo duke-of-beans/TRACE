@@ -18,6 +18,7 @@ const Incidents = lazy(() => import("./pages/incidents.js").then(m => ({ default
 const Actors = lazy(() => import("./pages/actors.js").then(m => ({ default: m.Actors })));
 const Security = lazy(() => import("./pages/security.js").then(m => ({ default: m.Security })));
 const Harassment = lazy(() => import("./pages/harassment.js").then(m => ({ default: m.Harassment })));
+const NodeSettings = lazy(() => import("./pages/node-settings.js").then(m => ({ default: m.NodeSettings })));
 
 import {
   ToastProvider, ConfirmProvider, ErrorBoundary, KeyboardOverlay, Tooltip,
@@ -26,7 +27,7 @@ import { LoginScreen, logout } from "./lib/auth-gate.js";
 import { OperatorOnboarding, needsOperatorOnboarding } from "./components/operator-onboarding.js";
 import { toggleTheme, getTheme } from "../../shared/design/theme.js";
 
-type Page = "dashboard" | "triage" | "intel" | "dispatches" | "incidents" | "harassment" | "vehicles" | "actors" | "admin" | "security";
+type Page = "dashboard" | "triage" | "intel" | "dispatches" | "incidents" | "harassment" | "vehicles" | "actors" | "admin" | "security" | "node";
 
 const NAV: { key: Page; label: string; shortcut: string; icon: string; desc: string }[] = [
   { key: "dashboard",  label: "Dashboard",  shortcut: "1", icon: "grid",           desc: "Overview stats and status" },
@@ -38,6 +39,7 @@ const NAV: { key: Page; label: string; shortcut: string; icon: string; desc: str
   { key: "vehicles",   label: "Vehicles",   shortcut: "7", icon: "car",            desc: "Vehicle records and search" },
   { key: "actors",     label: "Actors",     shortcut: "8", icon: "user",           desc: "Person profiles and identifiers" },
   { key: "admin",      label: "Admin",      shortcut: "9", icon: "sliders",        desc: "Chapter configuration" },
+  { key: "node",       label: "Node",       shortcut: "0", icon: "cpu",            desc: "Node settings, security, and deployment" },
   { key: "security",   label: "Security",   shortcut: "",  icon: "shield",         desc: "Device control and kill switches" },
 ];
 
@@ -186,6 +188,7 @@ export function App() {
               {page === "vehicles"   && <Vehicles />}
               {page === "actors"    && <Actors />}
               {page === "admin"     && <Admin />}
+              {page === "node"      && <NodeSettings />}
               {page === "security"  && <Security />}
               </Suspense>
             </ErrorBoundary>
