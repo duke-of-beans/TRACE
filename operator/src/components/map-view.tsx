@@ -44,6 +44,16 @@ type DispatchPin = {
   createdAt: string;
 };
 
+type Watchpoint = {
+  id: string;
+  name: string;
+  address?: string;
+  cityGroup?: string;
+  lat: number;
+  lng: number;
+  radiusMeters?: number;
+};
+
 type IntelMapProps = {
   markers?: MapMarker[];
   highlightedMarkers?: MapMarker[];
@@ -51,9 +61,12 @@ type IntelMapProps = {
   corridors?: { vehicleId: string; color: string; segments: CorridorSegment[] }[];
   coOccurrences?: CoOccurrence[];
   dispatchPins?: DispatchPin[];
+  watchpoints?: Watchpoint[];
   onPlacePin?: (lat: number, lng: number) => void;
+  onSaveWatchpoint?: (lat: number, lng: number) => void;
   onPinClick?: (pin: DispatchPin) => void;
   onMarkerClick?: (marker: MapMarker) => void;
+  onWatchpointClick?: (wp: Watchpoint) => void;
   center?: [number, number];
   zoom?: number;
   height?: string;
@@ -68,6 +81,7 @@ type LayerRefs = {
   corridors: L.LayerGroup;
   coOccurrences: L.LayerGroup;
   dispatchPins: L.LayerGroup;
+  watchpoints: L.LayerGroup;
 };
 
 const PRIORITY_COLORS: Record<string, string> = {
@@ -100,9 +114,12 @@ export function IntelMap({
   corridors = [],
   coOccurrences = [],
   dispatchPins = [],
+  watchpoints = [],
   onPlacePin,
+  onSaveWatchpoint,
   onPinClick,
   onMarkerClick,
+  onWatchpointClick,
   center = [38.9310, -77.1770],
   zoom = 12,
   height = "500px",
@@ -118,6 +135,10 @@ export function IntelMap({
   onPinClickRef.current = onPinClick;
   const onMarkerClickRef = useRef(onMarkerClick);
   onMarkerClickRef.current = onMarkerClick;
+  const onWatchpointClickRef = useRef(onWatchpointClick);
+  onWatchpointClickRef.current = onWatchpointClick;
+  const onSaveWatchpointRef = useRef(onSaveWatchpoint);
+  onSaveWatchpointRef.current = onSaveWatchpoint;
 
   // switch tile layer
   const switchTiles = useCallback((mode: TileMode) => {
@@ -160,6 +181,7 @@ export function IntelMap({
       markers: L.layerGroup().addTo(map),
       highlighted: L.layerGroup().addTo(map),
       dispatchPins: L.layerGroup().addTo(map),
+      watchpoints: L.layerGroup().addTo(map),
     };
 
     // layer control
@@ -170,35 +192,73 @@ export function IntelMap({
       "Corridors": layers.corridors,
       "Co-occurrence": layers.coOccurrences,
       "Dispatch Pins": layers.dispatchPins,
+      "Watchpoints": layers.watchpoints,
     }, { collapsed: false, position: "topright" }).addTo(map);
 
     leafletRef.current = map;
     layersRef.current = layers;
 
-    // Right-click / long-press to place dispatch pin
+    // Right-click / long-press — context menu with dispatch pin + watchpoint options
     map.on("contextmenu", (e: any) => {
-      if (onPlacePin) {
-        e.originalEvent.preventDefault();
-        // Drop a temporary pulsing marker immediately
-        const tempMarker = L.marker([e.latlng.lat, e.latlng.lng], {
-          icon: L.divIcon({
-            className: "",
-            html: `<div style="
-              width:32px;height:32px;transform:rotate(45deg);
-              border:3px solid #D97706;background:rgba(217,119,6,0.3);
-              border-radius:4px;
-              animation:pulse 1.5s infinite;
-              box-shadow:0 0 12px rgba(217,119,6,0.5);
-            "></div>`,
-            iconSize: [32, 32],
-            iconAnchor: [16, 16],
-          }),
-        }).addTo(map);
-        // Store for cleanup
-        if ((map as any)._tempPin) (map as any)._tempPin.remove();
-        (map as any)._tempPin = tempMarker;
-        onPlacePin(e.latlng.lat, e.latlng.lng);
-      }
+      e.originalEvent.preventDefault();
+      // Remove any existing context menu
+      const existing = document.getElementById("trace-ctx-menu");
+      if (existing) existing.remove();
+
+      const menu = document.createElement("div");
+      menu.id = "trace-ctx-menu";
+      menu.style.cssText = `
+        position:fixed;z-index:99999;background:var(--surface);border:1px solid var(--border);
+        border-radius:8px;padding:4px;min-width:180px;box-shadow:0 4px 20px rgba(0,0,0,0.4);
+        font-family:system-ui;font-size:12px;
+      `;
+      menu.style.left = e.originalEvent.clientX + "px";
+      menu.style.top = e.originalEvent.clientY + "px";
+
+      const makeItem = (label: string, icon: string, cb: () => void) => {
+        const item = document.createElement("div");
+        item.textContent = icon + " " + label;
+        item.style.cssText = `
+          padding:8px 12px;cursor:pointer;border-radius:6px;color:var(--text-sec);
+          transition:background 0.1s;
+        `;
+        item.onmouseenter = () => { item.style.background = "var(--surface-alt, rgba(255,255,255,0.05))"; };
+        item.onmouseleave = () => { item.style.background = "none"; };
+        item.onclick = () => { menu.remove(); cb(); };
+        return item;
+      };
+
+      menu.appendChild(makeItem("Drop dispatch pin", "📍", () => {
+        if (onPlacePin) {
+          const tempMarker = L.marker([e.latlng.lat, e.latlng.lng], {
+            icon: L.divIcon({
+              className: "",
+              html: `<div style="
+                width:32px;height:32px;transform:rotate(45deg);
+                border:3px solid #D97706;background:rgba(217,119,6,0.3);
+                border-radius:4px;animation:pulse 1.5s infinite;
+                box-shadow:0 0 12px rgba(217,119,6,0.5);
+              "></div>`,
+              iconSize: [32, 32], iconAnchor: [16, 16],
+            }),
+          }).addTo(map);
+          if ((map as any)._tempPin) (map as any)._tempPin.remove();
+          (map as any)._tempPin = tempMarker;
+          onPlacePin(e.latlng.lat, e.latlng.lng);
+        }
+      }));
+
+      menu.appendChild(makeItem("Save as watchpoint", "⭐", () => {
+        if (onSaveWatchpointRef.current) {
+          onSaveWatchpointRef.current(e.latlng.lat, e.latlng.lng);
+        }
+      }));
+
+      document.body.appendChild(menu);
+      const dismiss = (ev: MouseEvent) => {
+        if (!menu.contains(ev.target as Node)) { menu.remove(); document.removeEventListener("click", dismiss); }
+      };
+      setTimeout(() => document.addEventListener("click", dismiss), 0);
     });
 
     return () => { map.remove(); leafletRef.current = null; };
@@ -321,25 +381,27 @@ export function IntelMap({
 
       L.polyline(latlngs, {
         color: corridor.color,
-        weight: 3,
-        opacity: 0.7,
-        dashArray: "8 4",
+        weight: 2.5,
+        opacity: 0.6,
+        dashArray: "6 4",
       })
         .bindPopup(`Vehicle corridor`)
         .addTo(layer);
 
-      // start/end markers
+      // start/end markers — origin fades, terminus is the "trace dot"
       const start = corridor.segments[0].from;
       const end = corridor.segments[corridor.segments.length - 1].to;
 
+      // Origin: understated
       L.circleMarker([start.lat, start.lng], {
-        radius: 5, fillColor: corridor.color, color: "#fff",
-        weight: 2, fillOpacity: 1,
+        radius: 4, fillColor: corridor.color, color: corridor.color,
+        weight: 1.5, fillOpacity: 0.3, opacity: 0.5,
       }).bindTooltip("First sighting").addTo(layer);
 
+      // Terminus: the trace dot — matches brand language
       L.circleMarker([end.lat, end.lng], {
-        radius: 8, fillColor: corridor.color, color: "#fff",
-        weight: 2, fillOpacity: 1,
+        radius: 6, fillColor: corridor.color, color: "#fff",
+        weight: 2, fillOpacity: 1, opacity: 0.9,
       }).bindTooltip("Latest sighting").addTo(layer);
     });
   }, [corridors]);
@@ -424,6 +486,48 @@ export function IntelMap({
     });
   }, [dispatchPins]);
 
+  // --- Watchpoints (star markers with radius ring) ---
+  useEffect(() => {
+    const layer = layersRef.current?.watchpoints;
+    if (!layer) return;
+    layer.clearLayers();
+
+    watchpoints.forEach((wp) => {
+      // Radius ring
+      L.circle([wp.lat, wp.lng], {
+        radius: wp.radiusMeters || 200,
+        fillColor: "#8b5cf6",
+        color: "#8b5cf6",
+        weight: 1.5,
+        fillOpacity: 0.08,
+        dashArray: "6 3",
+      }).addTo(layer);
+
+      // Star marker
+      const iconHtml = `<div style="
+        width:26px;height:26px;display:flex;align-items:center;justify-content:center;
+        background:#8b5cf6;border:2px solid #a78bfa;border-radius:50%;
+        box-shadow:0 2px 8px rgba(139,92,246,0.4);
+        font-size:12px;color:#fff;
+      ">⭐</div>`;
+
+      const marker = L.marker([wp.lat, wp.lng], {
+        icon: L.divIcon({ className: "", html: iconHtml, iconSize: [26, 26], iconAnchor: [13, 13] }),
+      });
+
+      marker.bindTooltip(`<div style="min-width:120px;font-family:system-ui;font-size:11px;">
+        <div style="font-weight:700;">${wp.name}</div>
+        ${wp.address ? `<div style="color:#999;">${wp.address}</div>` : ""}
+        ${wp.cityGroup ? `<div style="color:#a78bfa;font-size:10px;">${wp.cityGroup}</div>` : ""}
+      </div>`, { direction: "top", offset: [0, -10] });
+
+      marker.on("click", () => {
+        if (onWatchpointClickRef.current) onWatchpointClickRef.current(wp);
+      });
+      marker.addTo(layer);
+    });
+  }, [watchpoints]);
+
   return (
     <div style={{ position: "relative", height }}>
       <div
@@ -466,4 +570,4 @@ function weightToColor(w: number): string {
 
 // re-export the simple MapView for backward compat
 export { IntelMap as MapView };
-export type { MapMarker, DispatchPin };
+export type { MapMarker, DispatchPin, Watchpoint };

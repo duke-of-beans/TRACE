@@ -189,4 +189,30 @@ export const api = {
   deleteWatchpoint: (id: string) =>
     request(`/watchpoints/${id}`, { method: "DELETE" }),
   getWatchpointActivity: (id: string) => request<any>(`/watchpoints/${id}/activity`),
+
+  // Vehicle Photos
+  getVehiclePhotos: (vehicleId: string) => request<any[]>(`/vehicle-photos/${vehicleId}`),
+  addVehiclePhoto: (vehicleId: string, data: { photoUrl: string; description?: string; isPrimary?: boolean }) =>
+    request(`/vehicle-photos/${vehicleId}`, { method: "POST", body: JSON.stringify(data) }),
+  updateVehiclePhoto: (vehicleId: string, photoId: string, data: any) =>
+    request(`/vehicle-photos/${vehicleId}/${photoId}`, { method: "PATCH", body: JSON.stringify(data) }),
+  deleteVehiclePhoto: (vehicleId: string, photoId: string) =>
+    request(`/vehicle-photos/${vehicleId}/${photoId}`, { method: "DELETE" }),
+
+  // Reports
+  getBehaviorReport: (params?: { start?: string; end?: string; vehicleId?: string }) => {
+    const qs = new URLSearchParams();
+    if (params?.start) qs.set("start", params.start);
+    if (params?.end) qs.set("end", params.end);
+    if (params?.vehicleId) qs.set("vehicleId", params.vehicleId);
+    const q = qs.toString();
+    return request<any[]>(`/geo/behavior-report${q ? `?${q}` : ""}`);
+  },
+  getCoOccurrenceReport: (params?: { start?: string; end?: string }) => {
+    const qs = new URLSearchParams();
+    if (params?.start) qs.set("start", params.start);
+    if (params?.end) qs.set("end", params.end);
+    const q = qs.toString();
+    return request<any[]>(`/geo/co-occurrence-report${q ? `?${q}` : ""}`);
+  },
 };

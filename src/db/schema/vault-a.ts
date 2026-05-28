@@ -285,6 +285,18 @@ export const actorPhotos = ops.table("actor_photos", {
 });
 
 // ============================================================
+// VEHICLE PHOTOS (multi-photo support)
+// ============================================================
+export const vehiclePhotos = ops.table("vehicle_photos", {
+  id: id(),
+  vehicleId: uuid("vehicle_id").notNull().references(() => vehicles.id),
+  photoUrl: text("photo_url").notNull(),                  // base64 data URI or URL
+  description: text("description"),                        // "new plate as of March", "dent on rear"
+  isPrimary: boolean("is_primary").default(false),
+  createdAt: createdAt(),
+});
+
+// ============================================================
 // SIGHTINGS (the core intelligence record)
 // ============================================================
 export const sightings = ops.table("sightings", {

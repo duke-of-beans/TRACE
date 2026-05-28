@@ -349,3 +349,253 @@ export async function getActorTerritory(actorId: string): Promise<Array<{
 
   return points;
 }
+
+
+// ---------- Vehicle Behavior Report (P5) ----------
+
+export type BehaviorPattern = {
+  vehicleId: string;
+  plate: string;
+  make: string;
+  model: string;
+  color: string;
+  clusters: Array<{
+    centerLat: number;
+    centerLng: number;
+    locationDescription: string | null;
+    sightingCount: number;
+    dates: string[];
+    timeOfDay: Record<string, number>; // "7am-8am": 3
+    firstSeen: string;
+    lastSeen: string;
+  }>;
+  totalSightings: number;
+};
+
+/**
+ * Generate vehicle behavior report for a chapter.
+ * Groups sightings by vehicle + location cluster, surfaces time-of-day patterns.
+ * Client format: "Vehicle ABC seen on Wilbur Rd 4 times in 2 weeks, 3 times 7-8am"
+ */
+export async function getBehaviorReport(opts: {
+  chapterId: string;
+  startDate?: Date;
+  endDate?: Date;
+  vehicleId?: string;
+  clusterRadius?: number; // degrees, default ~200m
+}): Promise<BehaviorPattern[]> {
+  const { chapterId, clusterRadius = 0.002 } = opts;
+  const startDate = opts.startDate || new Date(Date.now() - 14 * 86400000);
+  const endDate = opts.endDate || new Date();
+
+  const conditions = [
+    eq(sightings.chapterId, chapterId),
+    gte(sightings.observedAt, startDate),
+    lte(sightings.observedAt, endDate),
+  ];
+  if (opts.vehicleId) conditions.push(eq(sightings.vehicleId, opts.vehicleId));
+
+  const raw = await opsDb
+    .select({
+      vehicleId: sightings.vehicleId,
+      plate: vehicles.plate,
+      make: vehicles.make,
+      model: vehicles.model,
+      color: vehicles.color,
+      lat: sightings.lat,
+      lng: sightings.lng,
+      locationDescription: sightings.locationDescription,
+      observedAt: sightings.observedAt,
+    })
+    .from(sightings)
+    .leftJoin(vehicles, eq(sightings.vehicleId, vehicles.id))
+    .where(and(...conditions))
+    .orderBy(sightings.observedAt);
+
+  // Group by vehicle
+  const byVehicle = new Map<string, typeof raw>();
+  for (const s of raw) {
+    if (!s.vehicleId || !s.lat) continue;
+    const arr = byVehicle.get(s.vehicleId) || [];
+    arr.push(s);
+    byVehicle.set(s.vehicleId, arr);
+  }
+
+  const results: BehaviorPattern[] = [];
+
+  for (const [vehicleId, vehicleSightings] of byVehicle) {
+    if (vehicleSightings.length < 2) continue; // need at least 2 sightings for a pattern
+
+    // Cluster sightings by location proximity
+    const clusters: Array<{ points: typeof vehicleSightings; centerLat: number; centerLng: number }> = [];
+
+    for (const s of vehicleSightings) {
+      let placed = false;
+      for (const c of clusters) {
+        if (Math.abs(s.lat! - c.centerLat) < clusterRadius && Math.abs(s.lng! - c.centerLng) < clusterRadius) {
+          c.points.push(s);
+          c.centerLat = c.points.reduce((sum, p) => sum + p.lat!, 0) / c.points.length;
+          c.centerLng = c.points.reduce((sum, p) => sum + p.lng!, 0) / c.points.length;
+          placed = true;
+          break;
+        }
+      }
+      if (!placed) {
+        clusters.push({ points: [s], centerLat: s.lat!, centerLng: s.lng! });
+      }
+    }
+
+    // Only include clusters with 2+ sightings
+    const significantClusters = clusters.filter(c => c.points.length >= 2);
+    if (significantClusters.length === 0) continue;
+
+    const first = vehicleSightings[0];
+    results.push({
+      vehicleId,
+      plate: first.plate || "",
+      make: first.make || "",
+      model: first.model || "",
+      color: first.color || "",
+      totalSightings: vehicleSightings.length,
+      clusters: significantClusters.map(c => {
+        // Time-of-day buckets (hourly)
+        const tod: Record<string, number> = {};
+        const dates: string[] = [];
+        for (const p of c.points) {
+          const h = p.observedAt.getHours();
+          const label = `${h === 0 ? 12 : h > 12 ? h - 12 : h}${h < 12 ? "am" : "pm"}-${(h + 1) === 0 ? 12 : (h + 1) > 12 ? (h + 1) - 12 : h + 1}${(h + 1) < 12 ? "am" : "pm"}`;
+          tod[label] = (tod[label] || 0) + 1;
+          const dateStr = p.observedAt.toISOString().split("T")[0];
+          if (!dates.includes(dateStr)) dates.push(dateStr);
+        }
+        const sorted = c.points.sort((a, b) => a.observedAt.getTime() - b.observedAt.getTime());
+        // Use most common location description
+        const descCounts = new Map<string, number>();
+        for (const p of c.points) {
+          if (p.locationDescription) descCounts.set(p.locationDescription, (descCounts.get(p.locationDescription) || 0) + 1);
+        }
+        let bestDesc: string | null = null;
+        let bestCount = 0;
+        for (const [d, cnt] of descCounts) { if (cnt > bestCount) { bestDesc = d; bestCount = cnt; } }
+
+        return {
+          centerLat: c.centerLat,
+          centerLng: c.centerLng,
+          locationDescription: bestDesc,
+          sightingCount: c.points.length,
+          dates,
+          timeOfDay: tod,
+          firstSeen: sorted[0].observedAt.toISOString(),
+          lastSeen: sorted[sorted.length - 1].observedAt.toISOString(),
+        };
+      }).sort((a, b) => b.sightingCount - a.sightingCount),
+    });
+  }
+
+  return results.sort((a, b) => b.totalSightings - a.totalSightings);
+}
+
+
+// ---------- Co-Occurrence Rolling Report (P6) ----------
+
+export type CoOccurrenceReport = {
+  vehicleA: { id: string; plate: string; make: string; model: string; color: string };
+  vehicleB: { id: string; plate: string; make: string; model: string; color: string };
+  encounters: number;
+  locations: Array<{ lat: number; lng: number; date: string }>;
+  firstSeen: string;
+  lastSeen: string;
+};
+
+/**
+ * Rolling report of vehicle pairs seen together.
+ * "Which vehicles are seen together within 2 weeks?"
+ */
+export async function getCoOccurrenceReport(opts: {
+  chapterId: string;
+  startDate?: Date;
+  endDate?: Date;
+  distanceMeters?: number;
+  timeWindowMinutes?: number;
+}): Promise<CoOccurrenceReport[]> {
+  const { chapterId, distanceMeters = 200, timeWindowMinutes = 60 } = opts;
+  const startDate = opts.startDate || new Date(Date.now() - 14 * 86400000);
+  const endDate = opts.endDate || new Date();
+  const degreeThreshold = distanceMeters / 111000;
+  const timeThresholdMs = timeWindowMinutes * 60 * 1000;
+
+  const conditions = [
+    eq(sightings.chapterId, chapterId),
+    gte(sightings.observedAt, startDate),
+    lte(sightings.observedAt, endDate),
+  ];
+
+  const raw = await opsDb
+    .select({
+      vehicleId: sightings.vehicleId,
+      plate: vehicles.plate,
+      make: vehicles.make,
+      model: vehicles.model,
+      color: vehicles.color,
+      lat: sightings.lat,
+      lng: sightings.lng,
+      observedAt: sightings.observedAt,
+    })
+    .from(sightings)
+    .leftJoin(vehicles, eq(sightings.vehicleId, vehicles.id))
+    .where(and(...conditions))
+    .orderBy(sightings.observedAt);
+
+  // Find co-occurring pairs
+  const pairMap = new Map<string, {
+    vehicleA: { id: string; plate: string; make: string; model: string; color: string };
+    vehicleB: { id: string; plate: string; make: string; model: string; color: string };
+    locations: Array<{ lat: number; lng: number; date: string }>;
+  }>();
+
+  for (let i = 0; i < raw.length; i++) {
+    const a = raw[i];
+    if (!a.vehicleId || !a.lat) continue;
+
+    for (let j = i + 1; j < raw.length; j++) {
+      const b = raw[j];
+      if (!b.vehicleId || !b.lat) continue;
+      if (a.vehicleId === b.vehicleId) continue;
+
+      const timeDiff = Math.abs(a.observedAt.getTime() - b.observedAt.getTime());
+      if (timeDiff > timeThresholdMs) {
+        if (b.observedAt.getTime() - a.observedAt.getTime() > timeThresholdMs) break;
+        continue;
+      }
+
+      const latDiff = Math.abs(a.lat - b.lat);
+      const lngDiff = Math.abs(a.lng! - b.lng!);
+      if (latDiff > degreeThreshold || lngDiff > degreeThreshold) continue;
+
+      const key = [a.vehicleId, b.vehicleId].sort().join(":");
+      const existing = pairMap.get(key);
+      if (existing) {
+        existing.locations.push({ lat: (a.lat + b.lat) / 2, lng: (a.lng! + b.lng!) / 2, date: a.observedAt.toISOString() });
+      } else {
+        const [idA, idB] = [a.vehicleId, b.vehicleId].sort();
+        const infoA = idA === a.vehicleId ? a : b;
+        const infoB = idA === a.vehicleId ? b : a;
+        pairMap.set(key, {
+          vehicleA: { id: idA, plate: infoA.plate || "", make: infoA.make || "", model: infoA.model || "", color: infoA.color || "" },
+          vehicleB: { id: idB, plate: infoB.plate || "", make: infoB.make || "", model: infoB.model || "", color: infoB.color || "" },
+          locations: [{ lat: (a.lat + b.lat) / 2, lng: (a.lng! + b.lng!) / 2, date: a.observedAt.toISOString() }],
+        });
+      }
+    }
+  }
+
+  return Array.from(pairMap.values())
+    .filter(p => p.locations.length >= 2) // at least 2 encounters
+    .map(p => ({
+      ...p,
+      encounters: p.locations.length,
+      firstSeen: p.locations[0].date,
+      lastSeen: p.locations[p.locations.length - 1].date,
+    }))
+    .sort((a, b) => b.encounters - a.encounters);
+}

@@ -8,7 +8,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { api } from "../lib/api.js";
 import { IntelMap } from "../components/map-view.js";
-import type { MapMarker } from "../components/map-view.js";
+import type { MapMarker, Watchpoint } from "../components/map-view.js";
 import { TimeSlider } from "../components/time-slider.js";
 
 type HeatmapPoint = { lat: number; lng: number; weight: number };
@@ -56,6 +56,13 @@ export function Intelligence() {
   const [selectedMarker, setSelectedMarker] = useState<MapMarker | null>(null);
   const [markerVehicle, setMarkerVehicle] = useState<any>(null);
 
+  // --- Watchpoint state ---
+  const [watchpointsList, setWatchpointsList] = useState<Watchpoint[]>([]);
+  const [creatingWatchpoint, setCreatingWatchpoint] = useState<{ lat: number; lng: number } | null>(null);
+  const [selectedWatchpoint, setSelectedWatchpoint] = useState<Watchpoint | null>(null);
+  const [watchpointActivity, setWatchpointActivity] = useState<any>(null);
+  const [wpActivityLoading, setWpActivityLoading] = useState(false);
+
   // Fetch vehicle detail when marker is selected
   useEffect(() => {
     if (!selectedMarker?.data?.vehicleId) { setMarkerVehicle(null); return; }
@@ -74,7 +81,24 @@ export function Intelligence() {
     api.getDispatchEventTypes().then(setEventTypes).catch(() => {});
     api.getReporters().then(setReporters).catch(() => {});
     loadDispatchPins();
+    loadWatchpoints();
+    loadVehicleGroups();
   }, []);
+
+  const [vehicleGroups, setVehicleGroups] = useState<any[]>([]);
+  const loadVehicleGroups = async () => {
+    try {
+      const data = await api.getVehicleGroups();
+      setVehicleGroups(Array.isArray(data) ? data : []);
+    } catch {}
+  };
+
+  const loadWatchpoints = async () => {
+    try {
+      const data = await api.getWatchpoints();
+      setWatchpointsList(Array.isArray(data?.watchpoints) ? data.watchpoints : []);
+    } catch {}
+  };
 
   const loadDispatchPins = async () => {
     try {
@@ -229,9 +253,19 @@ export function Intelligence() {
         corridors={corridors}
         coOccurrences={coOccurrences}
         dispatchPins={dispatchPins}
-        onPlacePin={(lat, lng) => { setPlacingPin({ lat, lng }); setSelectedPin(null); setSelectedMarker(null); }}
-        onPinClick={(pin) => { setSelectedPin(pin); setPlacingPin(null); setSelectedMarker(null); }}
-        onMarkerClick={(marker) => { setSelectedMarker(marker); setSelectedPin(null); setPlacingPin(null); }}
+        watchpoints={watchpointsList}
+        onPlacePin={(lat, lng) => { setPlacingPin({ lat, lng }); setSelectedPin(null); setSelectedMarker(null); setCreatingWatchpoint(null); setSelectedWatchpoint(null); }}
+        onSaveWatchpoint={(lat, lng) => { setCreatingWatchpoint({ lat, lng }); setPlacingPin(null); setSelectedPin(null); setSelectedMarker(null); setSelectedWatchpoint(null); }}
+        onPinClick={(pin) => { setSelectedPin(pin); setPlacingPin(null); setSelectedMarker(null); setCreatingWatchpoint(null); setSelectedWatchpoint(null); }}
+        onMarkerClick={(marker) => { setSelectedMarker(marker); setSelectedPin(null); setPlacingPin(null); setCreatingWatchpoint(null); setSelectedWatchpoint(null); }}
+        onWatchpointClick={(wp) => {
+          setSelectedWatchpoint(wp);
+          setSelectedPin(null); setPlacingPin(null); setSelectedMarker(null); setCreatingWatchpoint(null);
+          // Load activity for this watchpoint
+          setWpActivityLoading(true);
+          setWatchpointActivity(null);
+          api.getWatchpointActivity(wp.id).then(setWatchpointActivity).catch(() => setWatchpointActivity(null)).finally(() => setWpActivityLoading(false));
+        }}
         height="100%"
       >
         {/* ── FLOATING FILTER BAR (below zoom controls) ── */}
@@ -289,7 +323,7 @@ export function Intelligence() {
             padding: "4px 10px", borderRadius: 20, fontSize: 10,
             background: "var(--surface)", color: "var(--text-muted)",
             backdropFilter: "blur(8px)",
-          }}>Right-click map to drop a pin</span>
+          }}>Right-click map for pin or watchpoint</span>
           <span style={{
             padding: "4px 10px", borderRadius: 20, fontSize: 10, fontWeight: 600,
             background: "var(--surface)", color: "var(--text-muted)", border: "1px solid var(--border)",
@@ -300,6 +334,13 @@ export function Intelligence() {
             background: "var(--surface)", color: "var(--text-muted)", border: "1px solid var(--border)",
             backdropFilter: "blur(8px)",
           }}>{corridors.length} corridors</span>
+          {watchpointsList.length > 0 && (
+            <span style={{
+              padding: "4px 10px", borderRadius: 20, fontSize: 10, fontWeight: 600,
+              background: "var(--surface)", color: "#a78bfa", border: "1px solid var(--border)",
+              backdropFilter: "blur(8px)",
+            }}>{watchpointsList.length} watchpoint{watchpointsList.length !== 1 ? "s" : ""}</span>
+          )}
         </div>
 
         {/* ── BOTTOM TIME SCRUBBER (floating on map) ── */}
@@ -343,6 +384,12 @@ export function Intelligence() {
               <div style={{ display: "flex", alignItems: "center", gap: 6 }} title="Operator-placed marker telling field reporters where to respond">
                 <div style={{ width: 12, height: 12, background: "var(--accent)", borderRadius: 2, transform: "rotate(45deg)" }} />
                 <span style={{ color: "var(--text-sec)" }}>Dispatch pin</span>
+              </div>
+            )}
+            {watchpointsList.length > 0 && (
+              <div style={{ display: "flex", alignItems: "center", gap: 6 }} title="Saved hotspot location - click to see nearby vehicle activity">
+                <div style={{ width: 12, height: 12, background: "#8b5cf6", borderRadius: "50%", border: "2px solid #a78bfa" }} />
+                <span style={{ color: "var(--text-sec)" }}>Watchpoint</span>
               </div>
             )}
           </div>
@@ -529,6 +576,9 @@ export function Intelligence() {
             lng={placingPin.lng}
             eventTypes={eventTypes}
             reporters={reporters}
+            watchpoints={watchpointsList}
+            vehicleGroups={vehicleGroups}
+            vehicles={vehicles}
             onSave={async (data) => {
               try {
                 await api.createDispatch({ ...data, lat: placingPin.lat, lng: placingPin.lng });
@@ -551,6 +601,115 @@ export function Intelligence() {
         </div>
       )}
 
+      {/* Watchpoint creation form */}
+      {creatingWatchpoint && (
+        <div style={{
+          position: "absolute", top: 0, right: 0, bottom: 0, width: 380, zIndex: 10001,
+          background: "var(--surface)", borderLeft: "1px solid var(--border)",
+          padding: 20, overflowY: "auto",
+          boxShadow: "-4px 0 20px rgba(0,0,0,0.3)",
+        }}>
+          <WatchpointCreationForm
+            lat={creatingWatchpoint.lat}
+            lng={creatingWatchpoint.lng}
+            onSave={async (data) => {
+              try {
+                await api.createWatchpoint({ ...data, lat: creatingWatchpoint.lat, lng: creatingWatchpoint.lng });
+                setCreatingWatchpoint(null);
+                loadWatchpoints();
+              } catch {}
+            }}
+            onCancel={() => setCreatingWatchpoint(null)}
+          />
+        </div>
+      )}
+
+      {/* Watchpoint activity panel */}
+      {selectedWatchpoint && (
+        <div style={{
+          position: "absolute", top: 0, right: 0, bottom: 0, width: 380, zIndex: 10001,
+          background: "var(--surface)", borderLeft: "1px solid var(--border)",
+          padding: 20, overflowY: "auto",
+          boxShadow: "-4px 0 20px rgba(0,0,0,0.3)",
+        }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <span style={{ fontSize: 10, padding: "2px 8px", borderRadius: 4, fontWeight: 700, background: "#8b5cf6", color: "#fff" }}>Watchpoint</span>
+              <span style={{ fontSize: 14, fontWeight: 600 }}>{selectedWatchpoint.name}</span>
+            </div>
+            <button onClick={() => { setSelectedWatchpoint(null); setWatchpointActivity(null); }} style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", fontSize: 16 }}>✕</button>
+          </div>
+
+          {selectedWatchpoint.address && (
+            <div style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 4, display: "flex", alignItems: "center", gap: 4 }}>
+              <span style={{ opacity: 0.6 }}>📍</span> {selectedWatchpoint.address}
+            </div>
+          )}
+          {selectedWatchpoint.cityGroup && (
+            <div style={{ fontSize: 11, color: "#a78bfa", marginBottom: 8 }}>{selectedWatchpoint.cityGroup}</div>
+          )}
+          <div style={{ fontSize: 11, color: "var(--text-muted)", marginBottom: 12 }}>
+            Radius: {selectedWatchpoint.radiusMeters || 200}m · {selectedWatchpoint.lat.toFixed(5)}, {selectedWatchpoint.lng.toFixed(5)}
+          </div>
+
+          {/* Activity section */}
+          <div style={{ borderTop: "1px solid var(--border)", paddingTop: 12, marginBottom: 12 }}>
+            <div style={{ fontSize: 11, fontWeight: 600, color: "var(--text-sec)", marginBottom: 8 }}>Vehicle activity (last 14 days)</div>
+            {wpActivityLoading && <div style={{ fontSize: 12, color: "var(--text-muted)" }}>Loading activity...</div>}
+            {!wpActivityLoading && watchpointActivity && (
+              <>
+                <div style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 8 }}>
+                  {watchpointActivity.totalSightings} sighting{watchpointActivity.totalSightings !== 1 ? "s" : ""} · {watchpointActivity.vehicles?.length || 0} vehicle{(watchpointActivity.vehicles?.length || 0) !== 1 ? "s" : ""}
+                </div>
+                {watchpointActivity.vehicles?.map((v: any) => (
+                  <div key={v.vehicleId} onClick={() => { window.dispatchEvent(new CustomEvent("trace-navigate", { detail: "vehicles" })); }}
+                    style={{
+                      display: "flex", alignItems: "center", justifyContent: "space-between",
+                      padding: "8px 10px", marginBottom: 4, borderRadius: 6, cursor: "pointer",
+                      background: "var(--surface-alt, rgba(255,255,255,0.03))", border: "1px solid var(--border)",
+                    }}>
+                    <div style={{ minWidth: 0 }}>
+                      <div style={{ fontFamily: "var(--font-mono)", fontWeight: 700, fontSize: 13 }}>{v.plate || "No plate"}</div>
+                      <div style={{ fontSize: 10, color: "var(--text-muted)" }}>{[v.color, v.make, v.model].filter(Boolean).join(" ")}</div>
+                    </div>
+                    <div style={{ textAlign: "right", flexShrink: 0 }}>
+                      <div style={{ fontSize: 14, fontWeight: 700, color: "var(--accent)" }}>{v.count}</div>
+                      <div style={{ fontSize: 9, color: "var(--text-muted)" }}>
+                        {v.lastSeen ? new Date(v.lastSeen).toLocaleDateString() : ""}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                {(!watchpointActivity.vehicles || watchpointActivity.vehicles.length === 0) && (
+                  <div style={{ fontSize: 12, color: "var(--text-muted)", fontStyle: "italic" }}>No vehicles sighted in this area recently.</div>
+                )}
+              </>
+            )}
+          </div>
+
+          {/* Actions */}
+          <div style={{ display: "flex", gap: 8 }}>
+            <button onClick={() => {
+              setPlacingPin({ lat: selectedWatchpoint.lat, lng: selectedWatchpoint.lng });
+              setSelectedWatchpoint(null); setWatchpointActivity(null);
+            }}
+              style={{ flex: 1, background: "var(--accent)", color: "var(--accent-text)", border: "none", borderRadius: 8, padding: "10px 16px", fontSize: 12, fontWeight: 600, cursor: "pointer" }}>
+              Dispatch here
+            </button>
+            <button onClick={async () => {
+              if (confirm("Delete this watchpoint?")) {
+                await api.deleteWatchpoint(selectedWatchpoint.id).catch(() => {});
+                setSelectedWatchpoint(null); setWatchpointActivity(null);
+                loadWatchpoints();
+              }
+            }}
+              style={{ padding: "10px 12px", background: "var(--surface-alt, var(--bg))", color: "#ef4444", border: "1px solid var(--border)", borderRadius: 8, fontSize: 12, cursor: "pointer" }}>
+              Delete
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* No data message */}
       {temporalBuckets.length === 0 && !loading && (
         <div style={{
@@ -567,8 +726,8 @@ export function Intelligence() {
 
 
 // --- Pin Creation Form ---
-function PinCreationForm({ lat, lng, eventTypes, reporters, onSave, onCancel }: {
-  lat: number; lng: number; eventTypes: any[]; reporters: any[];
+function PinCreationForm({ lat, lng, eventTypes, reporters, watchpoints, vehicleGroups, vehicles, onSave, onCancel }: {
+  lat: number; lng: number; eventTypes: any[]; reporters: any[]; watchpoints?: any[]; vehicleGroups?: any[]; vehicles?: any[];
   onSave: (data: any) => void; onCancel: () => void;
 }) {
   const [eventTypeId, setEventTypeId] = useState(eventTypes[0]?.id || "");
@@ -630,6 +789,34 @@ function PinCreationForm({ lat, lng, eventTypes, reporters, onSave, onCancel }: 
         ))}
       </div>
 
+      {/* Vehicle / Group picker */}
+      <div className="grid grid-cols-2 gap-3 mb-3">
+        <select value={plate} onChange={(e) => setPlate(e.target.value)}
+          className="bg-trace-bg border border-trace-border rounded-lg px-3 py-2 text-sm" style={{ colorScheme: "dark" }}>
+          <option value="">Vehicle (optional)</option>
+          {(vehicles || []).map((v: any) => (
+            <option key={v.id} value={v.plate || ""}>{v.plate || v.id.slice(0, 8)} {[v.color, v.make].filter(Boolean).join(" ")}</option>
+          ))}
+        </select>
+        {vehicleGroups && vehicleGroups.length > 0 && (
+          <select defaultValue="" onChange={(e) => {
+            const g = vehicleGroups?.find((g: any) => g.id === e.target.value);
+            if (g) {
+              const memberPlates = (g.members || []).map((m: any) => m.plate).filter(Boolean);
+              if (memberPlates.length > 0) setPlate(memberPlates[0]);
+              setNotes(`Group: ${g.name} (${memberPlates.join(", ")})`);
+            }
+            e.target.value = "";
+          }}
+            className="bg-trace-bg border border-trace-border rounded-lg px-3 py-2 text-sm" style={{ colorScheme: "dark" }}>
+            <option value="">Group → fill plates</option>
+            {vehicleGroups.map((g: any) => (
+              <option key={g.id} value={g.id}>{g.name} ({g.members?.length || 0})</option>
+            ))}
+          </select>
+        )}
+      </div>
+
       {/* Plate + Notes on one row */}
       <div className="grid grid-cols-2 gap-3 mb-3">
         <input placeholder="Plate (optional)" value={plate}
@@ -639,6 +826,33 @@ function PinCreationForm({ lat, lng, eventTypes, reporters, onSave, onCancel }: 
           onChange={(e) => setNotes(e.target.value)}
           className="bg-trace-bg border border-trace-border rounded-lg px-3 py-2 text-sm" />
       </div>
+
+      {/* Watchpoint quick-fill */}
+      {watchpoints && watchpoints.length > 0 && (
+        <div className="mb-3">
+          <span className="text-xs" style={{ color: "var(--text-muted)" }}>Or use a saved watchpoint:</span>
+          <div className="flex flex-wrap gap-1.5 mt-1">
+            {(() => {
+              const grouped: Record<string, any[]> = {};
+              watchpoints.forEach(wp => { const c = wp.cityGroup || "Other"; if (!grouped[c]) grouped[c] = []; grouped[c].push(wp); });
+              return Object.entries(grouped).map(([city, wps]) => (
+                <div key={city} style={{ width: "100%" }}>
+                  <div style={{ fontSize: 9, fontWeight: 600, color: "#a78bfa", textTransform: "uppercase", letterSpacing: "0.05em", marginTop: 4, marginBottom: 2 }}>{city}</div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {wps.map((wp: any) => (
+                      <button key={wp.id} onClick={() => setNotes(`${wp.name}${wp.address ? ` - ${wp.address}` : ""}`)}
+                        className="px-2.5 py-1 rounded text-xs"
+                        style={{ background: "var(--bg)", color: "var(--text-sec)", border: "1px solid var(--border)" }}>
+                        ⭐ {wp.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ));
+            })()}
+          </div>
+        </div>
+      )}
 
       {/* Reporter selection */}
       {reporters.length > 0 && (
@@ -814,6 +1028,80 @@ function SightingDetailPanel({ marker, onClose, onCreateDispatch }: {
           className="px-4 py-2 rounded-lg text-xs"
           style={{ background: "var(--bg)", border: "1px solid var(--border)", color: "var(--text-sec)" }}>
           Close
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// --- Watchpoint Creation Form ---
+function WatchpointCreationForm({ lat, lng, onSave, onCancel }: {
+  lat: number; lng: number;
+  onSave: (data: any) => void; onCancel: () => void;
+}) {
+  const [name, setName] = useState("");
+  const [address, setAddress] = useState("");
+  const [cityGroup, setCityGroup] = useState("");
+  const [radiusMeters, setRadiusMeters] = useState("200");
+  const [saving, setSaving] = useState(false);
+
+  return (
+    <div className="mt-4 bg-trace-surface rounded-lg p-5 border border-trace-border">
+      <div className="flex justify-between items-center mb-3">
+        <h3 className="text-sm font-semibold" style={{ display: "flex", alignItems: "center", gap: 6 }}>
+          <span>⭐</span> Save as Watchpoint
+        </h3>
+        <button onClick={onCancel} style={{ color: "var(--text-muted)", background: "none", border: "none", cursor: "pointer" }}>✕</button>
+      </div>
+      <p className="text-xs mb-3" style={{ color: "var(--text-muted)" }}>
+        Save this location as a hotspot for quick access. Watchpoints show nearby vehicle activity.
+      </p>
+
+      <div className="mb-3">
+        <input placeholder="Name (e.g. Wilbur Apartments)" value={name}
+          onChange={(e) => setName(e.target.value)} autoFocus
+          className="w-full bg-trace-bg border border-trace-border rounded-lg px-3 py-2 text-sm" />
+      </div>
+
+      <div className="grid grid-cols-2 gap-3 mb-3">
+        <input placeholder="Address (optional)" value={address}
+          onChange={(e) => setAddress(e.target.value)}
+          className="bg-trace-bg border border-trace-border rounded-lg px-3 py-2 text-sm" />
+        <input placeholder="City group (e.g. Thousand Oaks)" value={cityGroup}
+          onChange={(e) => setCityGroup(e.target.value)}
+          className="bg-trace-bg border border-trace-border rounded-lg px-3 py-2 text-sm" />
+      </div>
+
+      <div className="mb-3">
+        <label className="text-xs" style={{ color: "var(--text-muted)" }}>Detection radius: {radiusMeters}m</label>
+        <input type="range" min="50" max="1000" step="50" value={radiusMeters}
+          onChange={(e) => setRadiusMeters(e.target.value)}
+          style={{ width: "100%", accentColor: "#8b5cf6" }} />
+      </div>
+
+      <div className="text-xs mb-3" style={{ color: "var(--text-muted)" }}>
+        📍 {lat.toFixed(5)}, {lng.toFixed(5)}
+      </div>
+
+      <div className="flex gap-2">
+        <button onClick={async () => {
+          if (!name.trim()) return;
+          setSaving(true);
+          await onSave({
+            name: name.trim(),
+            address: address.trim() || undefined,
+            cityGroup: cityGroup.trim() || undefined,
+            radiusMeters: parseInt(radiusMeters) || 200,
+          });
+          setSaving(false);
+        }} disabled={saving || !name.trim()}
+          className="flex-1 py-2 rounded-lg text-sm font-semibold transition disabled:opacity-50"
+          style={{ background: "#8b5cf6", color: "#fff", border: "none" }}>
+          {saving ? "Saving..." : "Save Watchpoint"}
+        </button>
+        <button onClick={onCancel} className="px-4 py-2 rounded-lg text-sm"
+          style={{ background: "var(--bg)", border: "1px solid var(--border)", color: "var(--text-sec)" }}>
+          Cancel
         </button>
       </div>
     </div>

@@ -1543,6 +1543,7 @@ function ImportAdmin() {
   const [refreshDone, setRefreshDone] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<any>(null);
+  const [selectedSheet, setSelectedSheet] = useState<string>("");
   const [uploading, setUploading] = useState(false);
   const [importing, setImporting] = useState(false);
   const [result, setResult] = useState<any>(null);
@@ -1572,12 +1573,17 @@ function ImportAdmin() {
     try {
       const form = new FormData();
       form.append("file", file);
+      if (selectedSheet) form.append("sheet", selectedSheet);
       const token = localStorage.getItem("trace_op_token");
       const res = await fetch(`${API_BASE}/import/preview`, {
         method: "POST", headers: { Authorization: `Bearer ${token}` }, body: form,
       });
       const data = await res.json();
       setPreview(data);
+      // If no sheet was selected and multiple exist, show picker
+      if (!selectedSheet && data.sheetNames?.length > 1) {
+        toast("Multiple sheets found - select one and preview again", "info");
+      }
     } catch { toast("Upload failed", "error"); }
     setUploading(false);
   };
@@ -1588,7 +1594,7 @@ function ImportAdmin() {
     try {
       const res = await fetch(`${API_BASE}/import/run`, {
         method: "POST", headers: authHeaders(),
-        body: JSON.stringify({ tempFile: preview.tempFile }),
+        body: JSON.stringify({ tempFile: preview.tempFile, sheet: selectedSheet || undefined }),
       });
       const data = await res.json();
       setResult(data);
@@ -1700,7 +1706,7 @@ function ImportAdmin() {
           Accepts .xlsx, .xls, .csv, or .tsv files. Column names are matched automatically.
         </p>
         <input type="file" accept=".xlsx,.xls,.csv,.tsv"
-          onChange={(e) => { setFile(e.target.files?.[0] || null); setPreview(null); setResult(null); }}
+          onChange={(e) => { setFile(e.target.files?.[0] || null); setPreview(null); setResult(null); setSelectedSheet(""); }}
           className="text-sm" style={{ color: "var(--text)" }} />
         {file && (
           <button onClick={handleUpload} disabled={uploading}
@@ -1711,20 +1717,80 @@ function ImportAdmin() {
         )}
       </div>
 
+      {/* Sheet picker (for multi-sheet Excel files) */}
+      {preview?.sheetNames?.length > 1 && (
+        <div className="rounded-lg p-4 mb-4" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+          <div className="text-sm font-medium mb-2" style={{ color: "var(--text-sec)" }}>Select worksheet</div>
+          <p className="text-xs mb-2" style={{ color: "var(--text-muted)" }}>
+            This file has {preview.sheetNames.length} sheets. Pick the one with vehicle data.
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {preview.sheetNames.map((name: string) => {
+              const isDataSheet = !name.toLowerCase().includes("summary") && !name.toLowerCase().includes("notes") && !name.toLowerCase().includes("resources") && !name.toLowerCase().includes("abduction");
+              return (
+                <button key={name} onClick={() => { setSelectedSheet(name); }}
+                  className="px-3 py-1.5 rounded text-xs font-medium transition"
+                  style={{
+                    background: selectedSheet === name ? "var(--accent)" : isDataSheet ? "var(--bg)" : "transparent",
+                    color: selectedSheet === name ? "var(--accent-text)" : isDataSheet ? "var(--text-sec)" : "var(--text-muted)",
+                    border: `1px solid ${selectedSheet === name ? "var(--accent)" : "var(--border)"}`,
+                    opacity: isDataSheet ? 1 : 0.6,
+                  }}>{name}</button>
+              );
+            })}
+          </div>
+          {selectedSheet && selectedSheet !== (preview.sheetNames?.[0] || "") && (
+            <button onClick={handleUpload} disabled={uploading}
+              className="mt-2 px-3 py-1.5 rounded text-xs font-semibold"
+              style={{ background: "var(--accent)", color: "var(--accent-text)" }}>
+              {uploading ? "Re-analyzing..." : "Preview this sheet"}
+            </button>
+          )}
+        </div>
+      )}
+
       {/* Preview */}
       {preview && !result && (
         <div className="rounded-lg p-4 mb-4" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
-          <div className="text-sm font-medium mb-2">Import Preview: {preview.fileName}</div>
+          <div className="text-sm font-medium mb-2">Import Preview: {preview.fileName}{selectedSheet ? ` → ${selectedSheet}` : ""}</div>
           <div className="grid grid-cols-4 gap-3 text-center mb-3">
             <div><div className="text-lg font-bold">{preview.totalRows}</div><div className="text-[10px]" style={{ color: "var(--text-muted)" }}>Total rows</div></div>
             <div><div className="text-lg font-bold" style={{ color: "#16A34A" }}>{preview.validRows}</div><div className="text-[10px]" style={{ color: "var(--text-muted)" }}>Valid</div></div>
             <div><div className="text-lg font-bold" style={{ color: "#DC2626" }}>{preview.errorRows}</div><div className="text-[10px]" style={{ color: "var(--text-muted)" }}>Errors</div></div>
             <div><div className="text-lg font-bold" style={{ color: "var(--text-muted)" }}>{preview.duplicates}</div><div className="text-[10px]" style={{ color: "var(--text-muted)" }}>Duplicates</div></div>
           </div>
+          {/* Column mappings */}
+          {preview.sample?.[0]?.normalized && (
+            <div className="mb-3">
+              <p className="text-xs font-medium mb-1" style={{ color: "var(--text-sec)" }}>Column mappings:</p>
+              <div className="flex flex-wrap gap-1">
+                {Object.entries(preview.sample[0].normalized).filter(([, v]) => v != null).map(([k]) => (
+                  <span key={k} className="text-[10px] px-2 py-0.5 rounded"
+                    style={{ background: "rgba(22,163,74,0.1)", color: "#16A34A", border: "1px solid rgba(22,163,74,0.2)" }}>
+                    {k}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
           {preview.unmappedColumns?.length > 0 && (
             <p className="text-xs mb-2" style={{ color: "var(--text-muted)" }}>
               Unmapped columns (skipped): {preview.unmappedColumns.join(", ")}
             </p>
+          )}
+          {/* Sample row preview */}
+          {preview.sample?.[0]?.normalized && (
+            <div className="mb-3 rounded p-3" style={{ background: "var(--bg)", border: "1px solid var(--border)" }}>
+              <p className="text-[10px] font-medium mb-1" style={{ color: "var(--text-muted)" }}>Sample row:</p>
+              <div className="grid grid-cols-2 gap-x-4 gap-y-0.5 text-xs">
+                {Object.entries(preview.sample[0].normalized).filter(([, v]) => v != null && v !== "").map(([k, v]) => (
+                  <div key={k}>
+                    <span style={{ color: "var(--text-muted)" }}>{k}: </span>
+                    <span className="font-mono" style={{ color: "var(--text-sec)" }}>{String(v).slice(0, 40)}{String(v).length > 40 ? "..." : ""}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
           )}
           <button onClick={handleImport} disabled={importing || preview.validRows === 0}
             className="px-4 py-2 rounded text-sm font-semibold"

@@ -30,6 +30,7 @@ export type ImportReport = {
   errorRows: number;
   duplicates: number;
   unmappedColumns: string[];
+  sheetNames: string[];
   errors: Array<{ row: number; field: string; message: string }>;
   sample: ImportRow[];
 };

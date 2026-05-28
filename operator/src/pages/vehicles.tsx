@@ -348,9 +348,22 @@ function VehicleRecord({ vehicle, onUpdated, onRetired }: { vehicle: any; onUpda
   const [sightingMarkers, setSightingMarkers] = useState<any[]>([]);
   const [corridorData, setCorridorData] = useState<any[]>([]);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [vehiclePhotos, setVehiclePhotos] = useState<any[]>([]);
+  const [photoDesc, setPhotoDesc] = useState("");
+  const [behaviorData, setBehaviorData] = useState<any>(null);
+  const [coOccData, setCoOccData] = useState<any[]>([]);
   const photoRef = useRef<HTMLInputElement>(null);
   const toast = useToast();
   const confirm = useConfirm();
+
+  // Load photos
+  const loadPhotos = () => {
+    api.getVehiclePhotos(vehicle.id).then((p) => setVehiclePhotos(Array.isArray(p) ? p : [])).catch(() => {});
+  };
+
+  useEffect(() => {
+    loadPhotos();
+  }, [vehicle.id]);
 
   useEffect(() => {
     const token = localStorage.getItem("trace_op_token");
@@ -371,6 +384,19 @@ function VehicleRecord({ vehicle, onUpdated, onRetired }: { vehicle: any; onUpda
         })));
       })
       .catch(() => {});
+
+    // Load behavior report for this vehicle
+    api.getBehaviorReport({ vehicleId: vehicle.id }).then((r) => {
+      setBehaviorData(Array.isArray(r) && r.length > 0 ? r[0] : null);
+    }).catch(() => {});
+
+    // Load co-occurrence data
+    api.getCoOccurrenceReport().then((r) => {
+      const relevant = (Array.isArray(r) ? r : []).filter((p: any) =>
+        p.vehicleA?.id === vehicle.id || p.vehicleB?.id === vehicle.id
+      );
+      setCoOccData(relevant);
+    }).catch(() => {});
   }, [vehicle.id]);
 
   const startEdit = () => {
@@ -432,7 +458,7 @@ function VehicleRecord({ vehicle, onUpdated, onRetired }: { vehicle: any; onUpda
         </div>
       </div>
 
-      {/* Photo */}
+      {/* Photo Gallery */}
       <input ref={photoRef} type="file" accept="image/*" style={{ display: "none" }} onChange={async (e) => {
         const file = e.target.files?.[0];
         if (!file) return;
@@ -441,23 +467,61 @@ function VehicleRecord({ vehicle, onUpdated, onRetired }: { vehicle: any; onUpda
         reader.onload = async () => {
           try {
             const photoUrl = reader.result as string;
-            const updated = await api.updateVehicle(vehicle.id, { photoUrl });
-            onUpdated(updated);
-            toast("Photo uploaded", "success");
+            const isFirst = vehiclePhotos.length === 0;
+            await api.addVehiclePhoto(vehicle.id, { photoUrl, description: photoDesc || undefined, isPrimary: isFirst });
+            setPhotoDesc("");
+            loadPhotos();
+            // Refresh vehicle to get updated banner
+            const updated = await api.getVehicle(vehicle.id);
+            if (updated) onUpdated(updated);
+            toast("Photo added", "success");
           } catch { toast("Photo upload failed", "error"); }
           setUploadingPhoto(false);
         };
         reader.readAsDataURL(file);
       }} />
       <div className="mb-4">
-        {vehicle.photoUrl ? (
-          <div className="relative">
-            <img src={vehicle.photoUrl} alt={vehicle.plate || "Vehicle"} className="w-full h-48 object-cover rounded-lg" style={{ border: "1px solid var(--border)" }} />
-            <button onClick={() => photoRef.current?.click()}
-              className="absolute bottom-2 right-2 px-2 py-1 rounded text-xs font-medium"
-              style={{ background: "rgba(0,0,0,0.7)", color: "#fff" }}>
-              {uploadingPhoto ? "Uploading..." : "Change Photo"}
-            </button>
+        <div className="flex items-center justify-between mb-2">
+          <label className="text-xs uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>Photos ({vehiclePhotos.length})</label>
+          <button onClick={() => photoRef.current?.click()}
+            className="text-xs px-2 py-1 rounded" style={{ color: "var(--accent)", border: "1px solid var(--border)" }}>
+            {uploadingPhoto ? "Uploading..." : "+ Add Photo"}
+          </button>
+        </div>
+        {vehiclePhotos.length > 0 ? (
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(80px, 1fr))", gap: 6 }}>
+            {vehiclePhotos.map((p: any) => (
+              <div key={p.id} className="relative group" style={{ aspectRatio: "1", borderRadius: 8, overflow: "hidden", border: p.isPrimary ? "2px solid var(--accent)" : "1px solid var(--border)" }}>
+                <img src={p.photoUrl} alt={p.description || ""} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                {p.isPrimary && (
+                  <span style={{ position: "absolute", top: 2, left: 2, fontSize: 8, padding: "1px 4px", borderRadius: 3, background: "var(--accent)", color: "#fff", fontWeight: 700 }}>PRIMARY</span>
+                )}
+                {p.description && (
+                  <span style={{ position: "absolute", bottom: 0, left: 0, right: 0, fontSize: 9, padding: "2px 4px", background: "rgba(0,0,0,0.7)", color: "#ccc", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{p.description}</span>
+                )}
+                {/* Hover actions */}
+                <div className="opacity-0 group-hover:opacity-100" style={{ position: "absolute", top: 2, right: 2, display: "flex", gap: 2, transition: "opacity 0.15s" }}>
+                  {!p.isPrimary && (
+                    <button onClick={async () => {
+                      await api.updateVehiclePhoto(vehicle.id, p.id, { isPrimary: true });
+                      loadPhotos();
+                      const updated = await api.getVehicle(vehicle.id);
+                      if (updated) onUpdated(updated);
+                      toast("Set as primary", "success");
+                    }} style={{ background: "rgba(0,0,0,0.7)", color: "#fff", border: "none", borderRadius: 3, fontSize: 9, padding: "2px 4px", cursor: "pointer" }}>★</button>
+                  )}
+                  <button onClick={async () => {
+                    const ok = await confirm({ title: "Delete this photo?", message: "This cannot be undone.", confirmLabel: "Delete", danger: true });
+                    if (!ok) return;
+                    await api.deleteVehiclePhoto(vehicle.id, p.id);
+                    loadPhotos();
+                    const updated = await api.getVehicle(vehicle.id);
+                    if (updated) onUpdated(updated);
+                    toast("Photo deleted", "info");
+                  }} style={{ background: "rgba(0,0,0,0.7)", color: "#ef4444", border: "none", borderRadius: 3, fontSize: 9, padding: "2px 4px", cursor: "pointer" }}>✕</button>
+                </div>
+              </div>
+            ))}
           </div>
         ) : (
           <button onClick={() => photoRef.current?.click()}
@@ -515,6 +579,70 @@ function VehicleRecord({ vehicle, onUpdated, onRetired }: { vehicle: any; onUpda
             corridors={corridorData.length > 0 ? [{ vehicleId: vehicle.id, color: "#4F46E5", segments: corridorData }] : []}
             height="280px"
           />
+        </div>
+      )}
+
+      {/* Activity Patterns */}
+      {behaviorData && behaviorData.clusters?.length > 0 && (
+        <div className="mt-6">
+          <div className="flex items-center gap-2 mb-2">
+            <label className="text-xs uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>Activity Patterns</label>
+            <HelpTip text="Locations where this vehicle has been seen repeatedly, with time-of-day patterns." />
+          </div>
+          <div className="space-y-2">
+            {behaviorData.clusters.map((c: any, i: number) => (
+              <div key={i} className="rounded-lg p-3" style={{ background: "var(--surface-alt, var(--bg))", border: "1px solid var(--border)" }}>
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-sm font-medium" style={{ color: "var(--text-sec)" }}>
+                    {c.locationDescription || `${c.centerLat.toFixed(4)}, ${c.centerLng.toFixed(4)}`}
+                  </span>
+                  <span className="text-sm font-bold" style={{ color: "var(--accent)" }}>{c.sightingCount}×</span>
+                </div>
+                <div className="text-xs" style={{ color: "var(--text-muted)" }}>
+                  {c.dates.slice(0, 5).join(", ")}{c.dates.length > 5 ? ` +${c.dates.length - 5} more` : ""}
+                </div>
+                <div className="flex flex-wrap gap-1 mt-1">
+                  {Object.entries(c.timeOfDay).sort(([, a]: any, [, b]: any) => b - a).slice(0, 4).map(([time, count]: any) => (
+                    <span key={time} className="text-[10px] px-1.5 py-0.5 rounded"
+                      style={{ background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text-sec)" }}>
+                      {time}: {count}×
+                    </span>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Frequently Seen With */}
+      {coOccData.length > 0 && (
+        <div className="mt-6">
+          <div className="flex items-center gap-2 mb-2">
+            <label className="text-xs uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>Frequently Seen With</label>
+            <HelpTip text="Other vehicles that have appeared near this vehicle within a short time window. May indicate coordination." />
+          </div>
+          <div className="space-y-2">
+            {coOccData.map((pair: any, i: number) => {
+              const other = pair.vehicleA?.id === vehicle.id ? pair.vehicleB : pair.vehicleA;
+              return (
+                <div key={i} className="flex items-center justify-between rounded-lg p-3"
+                  style={{ background: "var(--surface-alt, var(--bg))", border: "1px solid var(--border)", cursor: "pointer" }}
+                  onClick={() => window.dispatchEvent(new CustomEvent("trace-navigate", { detail: "vehicles" }))}>
+                  <div>
+                    <span className="font-mono font-bold tracking-wider text-sm">{other.plate || "?"}</span>
+                    <span className="text-xs ml-2" style={{ color: "var(--text-muted)" }}>{[other.color, other.make, other.model].filter(Boolean).join(" ")}</span>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-sm font-bold" style={{ color: pair.encounters >= 4 ? "#ef4444" : "var(--accent)" }}>{pair.encounters}×</span>
+                    <div className="text-[10px]" style={{ color: "var(--text-muted)" }}>
+                      {new Date(pair.firstSeen).toLocaleDateString()} — {new Date(pair.lastSeen).toLocaleDateString()}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
     </div>

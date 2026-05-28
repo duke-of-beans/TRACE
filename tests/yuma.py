@@ -216,6 +216,8 @@ def test_structure():
         "src/api/tags/index.ts", "src/api/integrations/index.ts",
         "src/api/import/index.ts", "src/api/plates/index.ts",
         "src/api/harassment/index.ts", "src/api/incidents/index.ts",
+        "src/api/vehicle-groups/index.ts", "src/api/watchpoints/index.ts",
+        "src/api/vehicle-photos/index.ts",
         # Services
         "src/services/carapi.ts", "src/services/spokeo.ts",
         # Entry points
@@ -230,6 +232,7 @@ def test_structure():
         "operator/src/pages/vehicles.tsx", "operator/src/pages/actors.tsx",
         "operator/src/pages/admin.tsx",
         "operator/src/pages/security.tsx",
+        "operator/src/pages/reports.tsx",
         # Config
         "vercel.json", "pwa/public/guide.html",
     ]
@@ -349,7 +352,7 @@ def test_guide_nav():
     guide = read("pwa/public/guide.html") or ""
 
     nav_hrefs = re.findall(r'scroll-nav-dot.*?href="#([^"]+)"', guide)
-    section_ids = re.findall(r'id="(step-\d+|complete|whats-next)"', guide)
+    section_ids = re.findall(r'id="(step-\d+|complete|whats-next|support)"', guide)
 
     for href in nav_hrefs:
         if href in section_ids:

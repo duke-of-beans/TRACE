@@ -11,6 +11,8 @@ import {
   getCoOccurrences,
   getTemporalData,
   getActorTerritory,
+  getBehaviorReport,
+  getCoOccurrenceReport,
 } from "../../services/geospatial.js";
 
 export const geoRouter = new Hono();
@@ -70,5 +72,35 @@ geoRouter.get("/temporal", async (c) => {
 // --- GET /geo/territory/:actorId ---
 geoRouter.get("/territory/:actorId", async (c) => {
   const data = await getActorTerritory(c.req.param("actorId"));
+  return c.json(data);
+});
+
+// --- GET /geo/behavior-report ---
+geoRouter.get("/behavior-report", async (c) => {
+  const chapterId = c.req.header("x-chapter-id") || "";
+  const start = c.req.query("start");
+  const end = c.req.query("end");
+  const vehicleId = c.req.query("vehicleId");
+  const data = await getBehaviorReport({
+    chapterId,
+    startDate: start ? new Date(start) : undefined,
+    endDate: end ? new Date(end) : undefined,
+    vehicleId: vehicleId || undefined,
+  });
+  return c.json(data);
+});
+
+// --- GET /geo/co-occurrence-report ---
+geoRouter.get("/co-occurrence-report", async (c) => {
+  const chapterId = c.req.header("x-chapter-id") || "";
+  const start = c.req.query("start");
+  const end = c.req.query("end");
+  const data = await getCoOccurrenceReport({
+    chapterId,
+    startDate: start ? new Date(start) : undefined,
+    endDate: end ? new Date(end) : undefined,
+    distanceMeters: parseInt(c.req.query("distance") || "200"),
+    timeWindowMinutes: parseInt(c.req.query("timeWindow") || "60"),
+  });
   return c.json(data);
 });

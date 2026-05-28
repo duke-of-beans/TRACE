@@ -72,6 +72,7 @@ export async function preview(
     errorRows: errorRows.length,
     duplicates: duplicates.length,
     unmappedColumns: unmapped,
+    sheetNames: raw.sheetNames,
     errors: errorRows.flatMap((r) =>
       r.errors.map((e) => ({
         row: r.rowNumber,

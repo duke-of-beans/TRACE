@@ -24,6 +24,7 @@ import { harassmentRouter } from "../src/api/harassment/index.js";
 import { incidentsRouter, publicIncidentsRouter } from "../src/api/incidents/index.js";
 import { vehicleGroupsRouter } from "../src/api/vehicle-groups/index.js";
 import { watchpointsRouter } from "../src/api/watchpoints/index.js";
+import { vehiclePhotosRouter } from "../src/api/vehicle-photos/index.js";
 import { authMiddleware, operatorOnly } from "../src/middleware/auth.js";
 import { auditMiddleware } from "../src/middleware/audit.js";
 
@@ -70,6 +71,7 @@ app.route("/harassment-reports", harassmentRouter);
 app.route("/incidents", incidentsRouter);
 app.route("/vehicle-groups", vehicleGroupsRouter);
 app.route("/watchpoints", watchpointsRouter);
+app.route("/vehicle-photos", vehiclePhotosRouter);
 
 // Feedback
 app.post("/feedback", async (c) => {

@@ -155,6 +155,30 @@ sightingsRouter.patch("/:id/triage", async (c) => {
   return c.json({ ...updated, triageAction: action });
 });
 
+// --- PATCH /sightings/:id — update sighting metadata (burst tagging) ---
+sightingsRouter.patch("/:id", async (c) => {
+  const id = c.req.param("id");
+  const body = await c.req.json();
+  const fields: any = {};
+  if (body.plate !== undefined) fields.plate = body.plate;
+  if (body.vehicleDescription !== undefined) fields.vehicleDescription = body.vehicleDescription;
+  if (body.activityDescription !== undefined) fields.activityDescription = body.activityDescription;
+  if (body.vehicleId !== undefined) fields.vehicleId = body.vehicleId;
+  if (body.locationDescription !== undefined) fields.locationDescription = body.locationDescription;
+  if (body.direction !== undefined) fields.direction = body.direction;
+  if (body.notes !== undefined) fields.notes = body.notes;
+  fields.updatedAt = new Date();
+
+  const [updated] = await opsDb
+    .update(sightings)
+    .set(fields)
+    .where(eq(sightings.id, id))
+    .returning();
+
+  if (!updated) return c.json({ error: "Not found" }, 404);
+  return c.json(updated);
+});
+
 // --- GET /sightings/plate-check?plate=ABC1234 — quick plate check ---
 sightingsRouter.get("/plate-check", async (c) => {
   const plate = c.req.query("plate");

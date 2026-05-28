@@ -19,7 +19,11 @@ export async function ingest(
   sheet?: string
 ): Promise<IngestResult> {
   const buffer = await readFile(filePath);
-  const workbook = XLSX.read(buffer, { type: "buffer", cellDates: true });
+  const workbook = XLSX.read(buffer, {
+    type: "buffer",
+    cellDates: true,
+    bookImages: false, // skip embedded images (saves memory on large files)
+  });
 
   const sheetName = sheet || workbook.SheetNames[0];
   const ws = workbook.Sheets[sheetName];

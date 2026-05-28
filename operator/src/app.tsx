@@ -19,15 +19,16 @@ const Actors = lazy(() => import("./pages/actors.js").then(m => ({ default: m.Ac
 const Security = lazy(() => import("./pages/security.js").then(m => ({ default: m.Security })));
 const Harassment = lazy(() => import("./pages/harassment.js").then(m => ({ default: m.Harassment })));
 const NodeSettings = lazy(() => import("./pages/node-settings.js").then(m => ({ default: m.NodeSettings })));
+const Reports = lazy(() => import("./pages/reports.js").then(m => ({ default: m.Reports })));
 
 import {
-  ToastProvider, ConfirmProvider, ErrorBoundary, KeyboardOverlay, Tooltip,
+  ToastProvider, ConfirmProvider, ErrorBoundary, KeyboardOverlay, Tooltip, TraceLoader,
 } from "./components/ux/index.js";
 import { LoginScreen, logout } from "./lib/auth-gate.js";
 import { OperatorOnboarding, needsOperatorOnboarding } from "./components/operator-onboarding.js";
 import { toggleTheme, getTheme } from "../../shared/design/theme.js";
 
-type Page = "dashboard" | "triage" | "intel" | "dispatches" | "incidents" | "harassment" | "vehicles" | "actors" | "admin" | "security" | "node";
+type Page = "dashboard" | "triage" | "intel" | "dispatches" | "incidents" | "harassment" | "vehicles" | "actors" | "reports" | "admin" | "security" | "node";
 
 const NAV: { key: Page; label: string; shortcut: string; icon: string; desc: string }[] = [
   { key: "dashboard",  label: "Dashboard",  shortcut: "1", icon: "grid",           desc: "Overview stats and status" },
@@ -38,6 +39,7 @@ const NAV: { key: Page; label: string; shortcut: string; icon: string; desc: str
   { key: "harassment", label: "Harassment", shortcut: "6", icon: "alert-triangle", desc: "Phone number reports and records" },
   { key: "vehicles",   label: "Vehicles",   shortcut: "7", icon: "car",            desc: "Vehicle records and search" },
   { key: "actors",     label: "Actors",     shortcut: "8", icon: "user",           desc: "Person profiles and identifiers" },
+  { key: "reports",    label: "Reports",    shortcut: "",  icon: "file-text",      desc: "Vehicle behavior and co-occurrence analysis" },
   { key: "admin",      label: "Admin",      shortcut: "9", icon: "sliders",        desc: "Chapter configuration" },
   { key: "node",       label: "Node",       shortcut: "0", icon: "cpu",            desc: "Node settings, security, and deployment" },
   { key: "security",   label: "Security",   shortcut: "",  icon: "shield",         desc: "Device control and kill switches" },
@@ -115,7 +117,9 @@ export function App() {
             <div className="px-5 py-4 hidden lg:block" style={{ borderBottom: "1px solid var(--border)" }}>
               <div style={{ display: "inline-block", textAlign: "center" as const }}>
                 <span style={{ fontFamily: "'Exo 2', system-ui, sans-serif", fontWeight: 100, fontSize: 18, letterSpacing: "0.22em", color: "var(--accent)", display: "block" }}>TRACE</span>
-                <span style={{ display: "block", height: 1, background: "var(--accent)", opacity: 0.4, margin: "4px auto 0", width: 80 }}></span>
+                <span style={{ display: "block", position: "relative" as const, height: 1, background: "var(--accent)", opacity: 0.4, margin: "4px auto 0", width: 80 }}>
+                  <span style={{ position: "absolute" as const, right: -2, top: -2, width: 5, height: 5, borderRadius: "50%", background: "var(--accent)", opacity: 1 }}></span>
+                </span>
               </div>
               <div className="text-[9px] mt-1 tracking-widest uppercase" style={{ color: "var(--text-muted)" }}>Operator Console</div>
             </div>
@@ -174,6 +178,12 @@ export function App() {
                 <Icon name="alert-circle" size={14} />
                 Report Bug
               </button>
+              <a href="/guide.html#support" target="_blank" rel="noopener"
+                className="w-full text-left text-xs py-1 flex items-center gap-2 transition-colors hover:text-indigo-400"
+                style={{ color: "var(--text-muted)", textDecoration: "none" }}>
+                <Icon name="heart" size={14} />
+                Support TRACE
+              </a>
               <button onClick={logout}
                 className="w-full text-left text-xs py-1 flex items-center gap-2 transition-colors hover:text-red-400"
                 style={{ color: "var(--text-muted)" }}>
@@ -190,7 +200,7 @@ export function App() {
           {/* Main */}
           <main className="flex-1 overflow-auto p-4 lg:p-6 pt-14 lg:pt-6">
             <ErrorBoundary>
-              <Suspense fallback={<div className="flex items-center justify-center h-full" style={{ color: "var(--text-muted)" }}><Icon name="clock" size={24} /><span className="ml-2 text-sm">Loading...</span></div>}>
+              <Suspense fallback={<TraceLoader />}>
               {page === "dashboard" && <Dashboard />}
               {page === "triage"     && <Triage />}
               {page === "intel"      && <Intelligence />}
@@ -199,6 +209,7 @@ export function App() {
               {page === "harassment" && <Harassment />}
               {page === "vehicles"   && <Vehicles />}
               {page === "actors"    && <Actors />}
+              {page === "reports"   && <Reports />}
               {page === "admin"     && <Admin />}
               {page === "node"      && <NodeSettings />}
               {page === "security"  && <Security />}
@@ -223,11 +234,15 @@ export function App() {
                 </div>
                 <div>
                   <h3 className="font-semibold mb-1" style={{ color: "var(--text)" }}>Activity Map</h3>
-                  <p>All sightings on a satellite map. Right-click to drop a dispatch pin. Click sighting markers to see details. Time playback shows patterns hour by hour. Add corridor overlays to trace vehicle movements.</p>
+                  <p>All sightings on a satellite map. Right-click to drop a dispatch pin or save a watchpoint. Click sighting markers for details, watchpoints for vehicle activity. Time playback shows patterns hour by hour. Corridors trace vehicle movements.</p>
                 </div>
                 <div>
                   <h3 className="font-semibold mb-1" style={{ color: "var(--text)" }}>Vehicles & Actors</h3>
-                  <p>Record pages for tracked vehicles and observed persons. Upload photos, set concern levels, view sighting history, record physical identifiers.</p>
+                  <p>Record pages for tracked vehicles and observed persons. Multi-photo gallery, concern levels, sighting map, activity patterns (repeat visits + time-of-day), and which vehicles are frequently seen together.</p>
+                </div>
+                <div>
+                  <h3 className="font-semibold mb-1" style={{ color: "var(--text)" }}>Reports</h3>
+                  <p>Vehicle behavior analysis: which vehicles show up at the same location repeatedly and at what times. Co-occurrence report: which vehicles operate together. Both exportable as plain text for client sharing.</p>
                 </div>
                 <div>
                   <h3 className="font-semibold mb-1" style={{ color: "var(--text)" }}>Admin</h3>
