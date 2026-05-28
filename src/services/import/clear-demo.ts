@@ -18,6 +18,7 @@ import {
   sightingPhotos, sightingFeedback,
   dispatchEvents, dispatchAssignments, dispatchOutcomes,
   incidentVehicles, incidentActors, incidents, incidentEvidence,
+  harassmentReports, knownNumbers,
 } from "../../db/schema/vault-a.js";
 import { eq, or, ilike, sql } from "drizzle-orm";
 
@@ -161,6 +162,24 @@ export async function clearDemoData(chapterId: string): Promise<ClearResult> {
     await opsDb.delete(dispatchAssignments).where(eq(dispatchAssignments.dispatchEventId, d.id));
     await opsDb.delete(dispatchEvents).where(eq(dispatchEvents.id, d.id));
     result.dispatchCleared++;
+  }
+
+  // 8. Clear harassment demo data
+  await opsDb.delete(harassmentReports).where(
+    sql`${harassmentReports.chapterId} = ${chapterId} AND ${harassmentReports.description} ILIKE 'DEMO:%'`
+  );
+  await opsDb.delete(knownNumbers).where(
+    sql`${knownNumbers.chapterId} = ${chapterId} AND ${knownNumbers.operatorTag} ILIKE 'DEMO:%'`
+  );
+
+  // 9. Clear demo incidents
+  const demoIncidents = await opsDb.select({ id: incidents.id }).from(incidents)
+    .where(sql`${incidents.chapterId} = ${chapterId} AND ${incidents.title} ILIKE 'DEMO:%'`);
+  for (const inc of demoIncidents) {
+    await opsDb.delete(incidentEvidence).where(eq(incidentEvidence.incidentId, inc.id));
+    await opsDb.delete(incidentVehicles).where(eq(incidentVehicles.incidentId, inc.id));
+    await opsDb.delete(incidentActors).where(eq(incidentActors.incidentId, inc.id));
+    await opsDb.delete(incidents).where(eq(incidents.id, inc.id));
   }
 
   return result;

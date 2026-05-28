@@ -43,6 +43,15 @@ const ACTOR_PHOTOS = [
   "https://images.unsplash.com/photo-1508153460964-48ffffcb0829?ixid=M3w5MjcxMDh8MHwxfHNlYXJjaHwxfHx3b21hbiUyMHNpbGhvdWV0dGUlMjBjaXR5fGVufDB8Mnx8fDE3Nzk5MzUzNTJ8MA&ixlib=rb-4.1.0&w=200&h=200&fit=crop&q=80",
   "https://images.unsplash.com/photo-1764150319350-70dc5d7aea97?ixid=M3w5MjcxMDh8MHwxfHNlYXJjaHwxfHxtYW4lMjBzdW5nbGFzc2VzJTIwcG9ydHJhaXQlMjBkYXJrfGVufDB8Mnx8fDE3Nzk5MzUzNTN8MA&ixlib=rb-4.1.0&w=200&h=200&fit=crop&q=80",
 ];
+const VEHICLE_PHOTOS = [
+  "https://images.unsplash.com/photo-1712885046114-5ea81a2f7555?ixlib=rb-4.1.0&w=400&h=300&fit=crop&q=80",
+  "https://images.unsplash.com/photo-1766561994175-993a72f407d4?ixlib=rb-4.1.0&w=400&h=300&fit=crop&q=80",
+  "https://images.unsplash.com/photo-1646960700481-c7be5224a7fc?ixlib=rb-4.1.0&w=400&h=300&fit=crop&q=80",
+  "https://images.unsplash.com/photo-1646283181928-59e4244eb1e8?ixlib=rb-4.1.0&w=400&h=300&fit=crop&q=80",
+  "https://images.unsplash.com/photo-1604088304819-1028e3bc7367?ixlib=rb-4.1.0&w=400&h=300&fit=crop&q=80",
+  "https://images.unsplash.com/photo-1590373194581-c506a7cf5a1e?ixlib=rb-4.1.0&w=400&h=300&fit=crop&q=80",
+  "https://images.unsplash.com/photo-1778005979956-f5f87ae0ced2?ixlib=rb-4.1.0&w=400&h=300&fit=crop&q=80",
+];
 
 export async function seedDemoData(chapterId: string, reporterId: string): Promise<SeedResult> {
   const result: SeedResult = { vehiclesCreated: 0, sightingsCreated: 0, actorsCreated: 0, dispatchesCreated: 0, incidentsCreated: 0 };
@@ -148,6 +157,7 @@ export async function seedDemoData(chapterId: string, reporterId: string): Promi
     const [v] = await opsDb.insert(vehicles).values({
       chapterId, plate: d.plate, make: d.make, model: d.model, year: d.year,
       color: d.color, description: d.desc, suspicionLevelId: level.id,
+      photoUrl: VEHICLE_PHOTOS[i] || undefined,
     }).returning();
     cv.push(v);
     result.vehiclesCreated++;
@@ -335,20 +345,28 @@ export async function seedDemoData(chapterId: string, reporterId: string): Promi
   }
 
   // === HARASSMENT REPORTS ===
-  const [num] = await opsDb.insert(knownNumbers).values({
+  let [num] = await opsDb.insert(knownNumbers).values({
     chapterId, phoneNumber: "+15551234567", reportCount: 3,
     operatorTag: "DEMO: Unknown caller",
-  }).returning();
-  await opsDb.insert(harassmentReports).values({
-    chapterId, knownNumberId: num.id, reporterId, phoneNumber: "+15551234567",
-    incidentType: "call", occurredAt: ago(24),
-    description: "DEMO: Three hang-up calls in one hour",
-  });
-  await opsDb.insert(harassmentReports).values({
-    chapterId, knownNumberId: num.id, reporterId, phoneNumber: "+15551234567",
-    incidentType: "text", occurredAt: ago(12),
-    description: "DEMO: Threatening text message received",
-  });
+  }).onConflictDoNothing().returning();
+  if (!num) {
+    // Already exists from previous seed
+    const [existing] = await opsDb.select().from(knownNumbers)
+      .where(sql`${knownNumbers.chapterId} = ${chapterId} AND ${knownNumbers.phoneNumber} = '+15551234567'`);
+    num = existing;
+  }
+  if (num) {
+    await opsDb.insert(harassmentReports).values({
+      chapterId, knownNumberId: num.id, reporterId, phoneNumber: "+15551234567",
+      incidentType: "call", occurredAt: ago(24),
+      description: "DEMO: Three hang-up calls in one hour",
+    });
+    await opsDb.insert(harassmentReports).values({
+      chapterId, knownNumberId: num.id, reporterId, phoneNumber: "+15551234567",
+      incidentType: "text", occurredAt: ago(12),
+      description: "DEMO: Threatening text message received",
+    });
+  }
 
   return result;
 }

@@ -321,7 +321,7 @@ export function Intelligence() {
 
         {/* ── MAP LEGEND (bottom-left floating) ── */}
         <div style={{
-          position: "absolute", bottom: temporalBuckets.length > 0 ? 52 : 8, left: 8, zIndex: 1000,
+          position: "absolute", bottom: temporalBuckets.length > 0 ? 64 : 8, left: 8, zIndex: 1000,
           background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 8,
           padding: "8px 12px", fontSize: 11, maxWidth: 200,
         }}>
