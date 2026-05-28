@@ -6,22 +6,40 @@ import { Icon } from "../icon.js";
 
 export function Tooltip({ content, children, position = "top", delay = 300 }: { content: string; children: ReactNode; position?: "top" | "bottom" | "left" | "right"; delay?: number }) {
   const [visible, setVisible] = useState(false);
+  const [coords, setCoords] = useState<{ top: number; left: number } | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const show = () => { timer.current = setTimeout(() => setVisible(true), delay); };
-  const hide = () => { if (timer.current) clearTimeout(timer.current); setVisible(false); };
-  const pos: Record<string, React.CSSProperties> = {
-    top: { bottom: "calc(100% + 6px)", left: "50%", transform: "translateX(-50%)" },
-    bottom: { top: "calc(100% + 6px)", left: "50%", transform: "translateX(-50%)" },
-    left: { right: "calc(100% + 6px)", top: "50%", transform: "translateY(-50%)" },
-    right: { left: "calc(100% + 6px)", top: "50%", transform: "translateY(-50%)" },
+  const triggerRef = useRef<HTMLSpanElement>(null);
+
+  const show = () => {
+    timer.current = setTimeout(() => {
+      if (triggerRef.current) {
+        const rect = triggerRef.current.getBoundingClientRect();
+        let top = 0, left = 0;
+        if (position === "right") { top = rect.top + rect.height / 2; left = rect.right + 8; }
+        else if (position === "left") { top = rect.top + rect.height / 2; left = rect.left - 8; }
+        else if (position === "bottom") { top = rect.bottom + 8; left = rect.left + rect.width / 2; }
+        else { top = rect.top - 8; left = rect.left + rect.width / 2; }
+        setCoords({ top, left });
+      }
+      setVisible(true);
+    }, delay);
   };
+  const hide = () => { if (timer.current) clearTimeout(timer.current); setVisible(false); };
+
+  const transform: Record<string, string> = {
+    top: "translate(-50%, -100%)", bottom: "translate(-50%, 0)",
+    left: "translate(-100%, -50%)", right: "translate(0, -50%)",
+  };
+
   return (
-    <span style={{ position: "relative", display: "inline-flex" }} onMouseEnter={show} onMouseLeave={hide}>
+    <span ref={triggerRef} style={{ position: "relative", display: "inline-flex" }} onMouseEnter={show} onMouseLeave={hide}>
       {children}
-      {visible && <span role="tooltip" style={{
-        position: "absolute", ...pos[position], padding: "6px 10px", borderRadius: "var(--radius-sm)",
+      {visible && coords && <span role="tooltip" style={{
+        position: "fixed", top: coords.top, left: coords.left,
+        transform: transform[position],
+        padding: "6px 10px", borderRadius: "var(--radius-sm)",
         background: "var(--surface-alt)", color: "var(--text)", fontSize: "var(--text-xs)", lineHeight: 1.4,
-        whiteSpace: "nowrap", boxShadow: "var(--shadow-md)", zIndex: 9990, pointerEvents: "none",
+        whiteSpace: "nowrap", boxShadow: "var(--shadow-md)", zIndex: 99999, pointerEvents: "none",
         border: "1px solid var(--border)",
       }}>{content}</span>}
     </span>
