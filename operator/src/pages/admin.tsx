@@ -1544,6 +1544,7 @@ function ImportAdmin() {
   const [clearing, setClearing] = useState(false);
   const [clearDone, setClearDone] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [seeding, setSeeding] = useState(false);
   const [refreshDone, setRefreshDone] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<any>(null);
@@ -1613,9 +1614,25 @@ function ImportAdmin() {
       <div className="rounded-lg p-4 mb-4" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
         <div className="text-sm font-medium mb-1" style={{ color: "var(--text-sec)" }}>Sample Data</div>
         <p className="text-xs mb-3" style={{ color: "var(--text-muted)" }}>
-          Your database came with sample vehicles and sightings (labeled DEMO/FAKE/TEST). Use these to explore the system before adding real data.
+          Explore TRACE with fake vehicles, sightings, and actors. All sample records are labeled DEMO and can be removed anytime.
         </p>
         <div className="flex gap-2 flex-wrap">
+          <button onClick={async () => {
+            setSeeding(true);
+            try {
+              const res = await fetch(`${API_BASE}/import/seed-demo`, { method: "POST", headers: authHeaders() });
+              if (!res.ok) throw new Error(res.statusText);
+              const data = await res.json();
+              toast(`Created ${data.vehiclesCreated} vehicles, ${data.sightingsCreated} sightings, ${data.actorsCreated} actors`, "success");
+              setHasDemoData(true);
+            } catch (e) { toast("Could not load samples. Try again.", "error"); }
+            setSeeding(false);
+          }}
+            disabled={seeding}
+            className="px-3 py-1.5 rounded text-xs font-medium transition-all duration-200"
+            style={{ background: "var(--accent)", color: "var(--accent-text)", opacity: seeding ? 0.7 : 1 }}>
+            {seeding ? "Loading..." : "Load Sample Data"}
+          </button>
           <button onClick={async () => {
             setRefreshing(true); setRefreshDone(false);
             try {
@@ -1631,17 +1648,12 @@ function ImportAdmin() {
             disabled={refreshing}
             className="px-3 py-1.5 rounded text-xs font-medium transition-all duration-200"
             style={{
-              background: refreshDone ? "rgba(22,163,74,0.15)" : "var(--accent)",
-              color: refreshDone ? "#16A34A" : "var(--accent-text)",
-              border: refreshDone ? "1px solid rgba(22,163,74,0.3)" : "1px solid transparent",
+              background: refreshDone ? "rgba(22,163,74,0.15)" : "var(--surface-alt)",
+              color: refreshDone ? "#16A34A" : "var(--text-sec)",
+              border: refreshDone ? "1px solid rgba(22,163,74,0.3)" : "1px solid var(--border)",
               opacity: refreshing ? 0.7 : 1,
             }}>
-            {refreshing ? (
-              <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-                <span style={{ display: "inline-block", width: 12, height: 12, border: "2px solid currentColor", borderTopColor: "transparent", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
-                Updating...
-              </span>
-            ) : refreshDone ? "\u2713 Done" : "Make Samples Recent"}
+            {refreshing ? "Updating..." : refreshDone ? "\u2713 Done" : "Make Samples Recent"}
           </button>
           <button onClick={async () => {
             setClearing(true); setClearDone(false);
@@ -1671,6 +1683,17 @@ function ImportAdmin() {
               </span>
             ) : clearDone ? "\u2713 Cleared" : "Remove All Samples"}
           </button>
+        </div>
+        <div className="mt-3 space-y-1">
+          <p className="text-[10px]" style={{ color: "var(--text-muted)" }}>
+            <strong style={{ color: "var(--text-sec)" }}>Load Sample Data</strong> creates fake vehicles, sightings, and actors so you can explore every feature without entering real data.
+          </p>
+          <p className="text-[10px]" style={{ color: "var(--text-muted)" }}>
+            <strong style={{ color: "var(--text-sec)" }}>Make Samples Recent</strong> moves the sample sightings to the last 3 days. The Activity Map defaults to a 7-day view, so older samples disappear from the map. Press this to bring them back.
+          </p>
+          <p className="text-[10px]" style={{ color: "var(--text-muted)" }}>
+            <strong style={{ color: "var(--text-sec)" }}>Remove All Samples</strong> permanently deletes all demo vehicles, sightings, actors, and dispatches. Use this before entering real data.
+          </p>
         </div>
         <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       </div>
