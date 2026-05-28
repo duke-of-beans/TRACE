@@ -330,12 +330,12 @@ export function Intelligence() {
           {selectedMarker.data?.plate && (
             <div style={{ fontFamily: "var(--font-mono)", fontWeight: 700, letterSpacing: "0.1em", fontSize: 18, marginBottom: 4 }}>{selectedMarker.data.plate}</div>
           )}
-          {selectedMarker.data?.triageStatus && (
+          {selectedMarker.data?.triaged !== undefined && (
             <div style={{ marginBottom: 8 }}>
               <span style={{ fontSize: 9, padding: "2px 8px", borderRadius: 4, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em",
-                background: selectedMarker.data.triageStatus === "confirmed" ? "rgba(34,197,94,0.15)" : selectedMarker.data.triageStatus === "dismissed" ? "rgba(100,116,139,0.15)" : "rgba(217,119,6,0.15)",
-                color: selectedMarker.data.triageStatus === "confirmed" ? "#22c55e" : selectedMarker.data.triageStatus === "dismissed" ? "#64748b" : "#d97706",
-              }}>{selectedMarker.data.triageStatus}</span>
+                background: selectedMarker.data.triaged ? "rgba(34,197,94,0.15)" : "rgba(217,119,6,0.15)",
+                color: selectedMarker.data.triaged ? "#22c55e" : "#d97706",
+              }}>{selectedMarker.data.triaged ? "Reviewed" : "Pending"}</span>
             </div>
           )}
           {selectedMarker.data?.activityDescription && <p style={{ fontSize: 13, color: "var(--text-sec)", marginBottom: 8, lineHeight: 1.5 }}>{selectedMarker.data.activityDescription}</p>}

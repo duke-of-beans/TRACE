@@ -260,7 +260,7 @@ export async function getTemporalData(opts: {
       locationDescription: sightings.locationDescription,
       direction: sightings.direction,
       observedAt: sightings.observedAt,
-      triageStatus: sightings.triageStatus,
+      triaged: sightings.triaged,
       reporterCallsign: reporters.callsign,
     })
     .from(sightings)
@@ -287,7 +287,7 @@ export async function getTemporalData(opts: {
         locationDescription: s.locationDescription,
         direction: s.direction,
         observedAt: s.observedAt.toISOString(),
-        triageStatus: s.triageStatus,
+        triaged: s.triaged,
         reporterCallsign: s.reporterCallsign,
       }));
 

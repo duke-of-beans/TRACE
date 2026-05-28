@@ -27,7 +27,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   return (
     <ToastContext.Provider value={addToast}>
       {children}
-      <div role="status" aria-live="polite" style={{ position: "fixed", top: 16, right: 16, zIndex: 9999, display: "flex", flexDirection: "column", gap: 8, maxWidth: 380 }}>
+      <div role="status" aria-live="polite" style={{ position: "fixed", top: 16, right: 16, zIndex: 50000, display: "flex", flexDirection: "column", gap: 8, maxWidth: 380 }}>
         {toasts.map((t) => (
           <div key={t.id} onClick={() => setToasts((p) => p.filter((x) => x.id !== t.id))} style={{
             display: "flex", alignItems: "center", gap: 10,

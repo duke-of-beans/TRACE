@@ -112,7 +112,7 @@ function BootstrapScreen({ onAuth }: { onAuth: () => void }) {
               onKeyDown={(e) => e.key === "Enter" && handleSetup()}
               placeholder="6+ characters" autoComplete="off"
               className="w-full rounded-lg px-4 py-3 text-sm transition-colors"
-              style={{ ...inputStyle(), fontFamily: "var(--font-mono, monospace)", letterSpacing: "2px", textAlign: "center" }} />
+              style={{ ...inputStyle(), fontFamily: "var(--font-mono, monospace)", letterSpacing: "2px",  }} />
             <p className="text-[10px] mt-1.5" style={{ color: "var(--text-muted)" }}>
               You will use this callsign and code to log in. Store it securely.
             </p>
@@ -201,7 +201,7 @@ function OperatorLoginScreen({ onAuth }: { onAuth: () => void }) {
               onKeyDown={(e) => e.key === "Enter" && handleLogin()}
               placeholder="Enter access code" autoComplete="off"
               className="w-full rounded-lg px-4 py-3 text-sm transition-colors"
-              style={{ ...inputStyle(), fontFamily: "var(--font-mono, monospace)", letterSpacing: "2px", textAlign: "center" }} />
+              style={{ ...inputStyle(), fontFamily: "var(--font-mono, monospace)", letterSpacing: "2px",  }} />
             <p className="text-[10px] mt-1.5" style={{ color: "var(--text-muted)" }}>
               Provided by your chapter admin.
             </p>
@@ -227,7 +227,7 @@ function OperatorLoginScreen({ onAuth }: { onAuth: () => void }) {
 // --- Shared ---
 function Logo() {
   return (
-    <div style={{ display: "inline-block", textAlign: "center" }}>
+    <div style={{ display: "inline-block",  }}>
       <span style={{ fontFamily: "'Exo 2', system-ui, sans-serif", fontWeight: 100, fontSize: 40, letterSpacing: "0.22em", color: "var(--accent)", display: "block", lineHeight: 1 }}>TRACE</span>
       <span style={{ display: "block", height: 1, background: "var(--accent)", opacity: 0.5, width: 200, margin: "8px auto 0" }}></span>
       <span style={{ display: "block", fontSize: 8, letterSpacing: "0.08em", color: "var(--text-muted)", marginTop: 8, textTransform: "uppercase" as const, whiteSpace: "nowrap" as const }}>Tracking · Reporting · Analysis · Community Evidence</span>
