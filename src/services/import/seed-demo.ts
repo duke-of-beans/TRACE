@@ -35,6 +35,15 @@ export type SeedResult = {
   incidentsCreated: number;
 };
 
+// Unsplash CDN stock photos for realistic demo data
+const ACTOR_PHOTOS = [
+  "https://images.unsplash.com/photo-1630265947548-994d8bf4d895?ixid=M3w5MjcxMDh8MHwxfHNlYXJjaHwxfHxtYW4lMjBkYXJrJTIwcG9ydHJhaXR8ZW58MHwyfHx8MTc3OTkzNTQyOXww&ixlib=rb-4.1.0&w=200&h=200&fit=crop&q=80",
+  "https://images.unsplash.com/photo-1618836827321-db17a0607dfa?ixid=M3w5MjcxMDh8MHwxfHNlYXJjaHwxfHxtYW4lMjBoYXQlMjBteXN0ZXJpb3VzJTIwZGFya3xlbnwwfDJ8fHwxNzc5OTM1MzQ4fDA&ixlib=rb-4.1.0&w=200&h=200&fit=crop&q=80",
+  "https://images.unsplash.com/photo-1763242768397-6fc0ddeb6a10?ixid=M3w5MjcxMDh8MHwxfHNlYXJjaHwxfHxob29kZWQlMjBmaWd1cmUlMjBkYXJrfGVufDB8Mnx8fDE3Nzk5MzUzNTB8MA&ixlib=rb-4.1.0&w=200&h=200&fit=crop&q=80",
+  "https://images.unsplash.com/photo-1508153460964-48ffffcb0829?ixid=M3w5MjcxMDh8MHwxfHNlYXJjaHwxfHx3b21hbiUyMHNpbGhvdWV0dGUlMjBjaXR5fGVufDB8Mnx8fDE3Nzk5MzUzNTJ8MA&ixlib=rb-4.1.0&w=200&h=200&fit=crop&q=80",
+  "https://images.unsplash.com/photo-1764150319350-70dc5d7aea97?ixid=M3w5MjcxMDh8MHwxfHNlYXJjaHwxfHxtYW4lMjBzdW5nbGFzc2VzJTIwcG9ydHJhaXQlMjBkYXJrfGVufDB8Mnx8fDE3Nzk5MzUzNTN8MA&ixlib=rb-4.1.0&w=200&h=200&fit=crop&q=80",
+];
+
 export async function seedDemoData(chapterId: string, reporterId: string): Promise<SeedResult> {
   const result: SeedResult = { vehiclesCreated: 0, sightingsCreated: 0, actorsCreated: 0, dispatchesCreated: 0, incidentsCreated: 0 };
   const now = Date.now();
@@ -217,17 +226,13 @@ export async function seedDemoData(chapterId: string, reporterId: string): Promi
     result.sightingsCreated++;
   }
 
-  // === ACTORS (5 with identifiers, vehicle links, and avatar photos) ===
-  // SVG avatar generator — distinct silhouettes for each actor
-  const avatar = (bg: string, accent: string, initial: string) =>
-    `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200"><rect width="200" height="200" fill="${bg}"/><circle cx="100" cy="76" r="36" fill="${accent}"/><ellipse cx="100" cy="170" rx="56" ry="46" fill="${accent}"/><text x="100" y="88" text-anchor="middle" font-size="32" font-family="sans-serif" fill="${bg}" font-weight="bold">${initial}</text></svg>`)}`;
-
+  // === ACTORS (5 with identifiers, vehicle links, and stock photos) ===
   const aData = [
-    { alias: "FLICKER (DEMO)", desc: "DEMO: Male, 25-30. Linked to DEMO-003 plate swap. Scar on left hand.", levelIdx: 2, photo: avatar("#1e293b", "#818cf8", "F") },
-    { alias: "NINE (DEMO)", desc: "DEMO: Male, 40s. Always wears a black hat. Seen at stash locations.", levelIdx: 1, photo: avatar("#1e293b", "#f59e0b", "N") },
-    { alias: "SHADE (DEMO)", desc: "DEMO: Unknown gender. Hooded figure observed during night operations.", levelIdx: 0, photo: avatar("#1e293b", "#64748b", "S") },
-    { alias: "SPARKS (DEMO)", desc: "DEMO: Female, 20s. Passenger in DEMO-003 and DEMO-005.", levelIdx: 1, photo: avatar("#1e293b", "#ef4444", "K") },
-    { alias: "GHOST (DEMO)", desc: "DEMO: Male, 30s. Frequently seen driving DEMO-001 and DEMO-002.", levelIdx: 2, photo: avatar("#1e293b", "#22c55e", "G") },
+    { alias: "FLICKER (DEMO)", desc: "DEMO: Male, 25-30. Linked to DEMO-003 plate swap. Scar on left hand.", levelIdx: 2, photo: ACTOR_PHOTOS[0] },
+    { alias: "NINE (DEMO)", desc: "DEMO: Male, 40s. Always wears a black hat. Seen at stash locations.", levelIdx: 1, photo: ACTOR_PHOTOS[1] },
+    { alias: "SHADE (DEMO)", desc: "DEMO: Unknown gender. Hooded figure observed during night operations.", levelIdx: 0, photo: ACTOR_PHOTOS[2] },
+    { alias: "SPARKS (DEMO)", desc: "DEMO: Female, 20s. Passenger in DEMO-003 and DEMO-005.", levelIdx: 1, photo: ACTOR_PHOTOS[3] },
+    { alias: "GHOST (DEMO)", desc: "DEMO: Male, 30s. Frequently seen driving DEMO-001 and DEMO-002.", levelIdx: 2, photo: ACTOR_PHOTOS[4] },
   ];
 
   const ca: any[] = [];
