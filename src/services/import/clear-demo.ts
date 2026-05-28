@@ -35,7 +35,7 @@ export async function hasDemoData(chapterId: string): Promise<boolean> {
   const [result] = await opsDb.execute(
     sql`SELECT COUNT(*) as cnt FROM ops.vehicles
         WHERE chapter_id = ${chapterId}
-        AND (description ILIKE 'DEMO:%' OR plate ILIKE 'FAKE-%' OR plate ILIKE 'TEST-%')`
+        AND (description ILIKE 'DEMO:%' OR plate ILIKE 'DEMO-%' OR plate ILIKE 'FAKE-%' OR plate ILIKE 'TEST-%')`
   );
   return Number((result as any).cnt) > 0;
 }
@@ -60,6 +60,7 @@ export async function clearDemoData(chapterId: string): Promise<ClearResult> {
     .where(
       sql`${vehicles.chapterId} = ${chapterId}
         AND (${vehicles.description} ILIKE 'DEMO:%'
+          OR ${vehicles.plate} ILIKE 'DEMO-%'
           OR ${vehicles.plate} ILIKE 'FAKE-%'
           OR ${vehicles.plate} ILIKE 'TEST-%')`
     );
@@ -159,7 +160,7 @@ export async function refreshDemoTimestamps(chapterId: string): Promise<number> 
     .select({ id: sightings.id })
     .from(sightings)
     .where(
-      sql`${sightings.chapterId} = ${chapterId} AND (${sightings.plate} ILIKE 'FAKE%' OR ${sightings.plate} ILIKE 'TEST%' OR ${sightings.plate} ILIKE 'DEMO%')`
+      sql`${sightings.chapterId} = ${chapterId} AND (${sightings.plate} ILIKE 'DEMO%' OR ${sightings.plate} ILIKE 'FAKE%' OR ${sightings.plate} ILIKE 'TEST%')`
     );
 
   const now = Date.now();

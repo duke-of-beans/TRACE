@@ -136,11 +136,17 @@ export function App() {
             </nav>
 
             <div className="px-4 py-3 space-y-2" style={{ borderTop: "1px solid var(--border)" }}>
+              <a href="/docs.html" target="_blank" rel="noopener"
+                className="w-full text-left text-xs py-1 flex items-center gap-2 transition-colors hover:text-indigo-400"
+                style={{ color: "var(--text-muted)", textDecoration: "none" }}>
+                <Icon name="book-open" size={14} />
+                User Guide
+              </a>
               <button onClick={() => setShowGuide(true)}
                 className="w-full text-left text-xs py-1 flex items-center gap-2 transition-colors"
                 style={{ color: "var(--text-muted)" }}>
-                <Icon name="file-text" size={14} />
-                Operator Guide
+                <Icon name="compass" size={14} />
+                Quick Tour
               </button>
               <button onClick={handleToggleTheme}
                 className="w-full text-left text-xs py-1 flex items-center gap-2 transition-colors"
@@ -148,16 +154,10 @@ export function App() {
                 <Icon name="eye" size={14} />
                 {theme === "dark" ? "Light Mode" : "Dark Mode"}
               </button>
-              <a href="/docs.html" target="_blank" rel="noopener"
-                className="w-full text-left text-xs py-1 flex items-center gap-2 transition-colors hover:text-indigo-400"
-                style={{ color: "var(--text-muted)", textDecoration: "none" }}>
-                <Icon name="book-open" size={14} />
-                Operations Guide
-              </a>
               <button onClick={() => setShowBugReport(true)}
                 className="w-full text-left text-xs py-1 flex items-center gap-2 transition-colors"
                 style={{ color: "var(--text-muted)" }}>
-                <Icon name="info" size={14} />
+                <Icon name="alert-circle" size={14} />
                 Report Bug
               </button>
               <button onClick={logout}
