@@ -230,7 +230,7 @@ export function Intelligence() {
         {/* ── FLOATING FILTER BAR (below zoom controls) ── */}
         <div style={{
           position: "absolute", top: 8, left: 48, right: 8, zIndex: 1000,
-          background: "rgba(15,23,42,0.85)", backdropFilter: "blur(8px)",
+          background: "var(--surface)", backdropFilter: "blur(8px)",
           border: "1px solid var(--border)", borderRadius: 10,
           padding: "6px 10px", display: "flex", alignItems: "center", gap: 6,
           flexWrap: "wrap",
@@ -267,7 +267,7 @@ export function Intelligence() {
         }}>
           {corridors.length > 0 && (
             <button onClick={() => setCorridors([])} style={{
-              background: "rgba(15,23,42,0.85)", color: "var(--text-sec)", border: "1px solid var(--border)", borderRadius: 8,
+              background: "var(--surface)", color: "var(--text-sec)", border: "1px solid var(--border)", borderRadius: 8,
               padding: "6px 12px", fontSize: 11, cursor: "pointer", backdropFilter: "blur(8px)",
             }}>Clear corridors</button>
           )}
@@ -280,17 +280,17 @@ export function Intelligence() {
         }}>
           <span style={{
             padding: "4px 10px", borderRadius: 20, fontSize: 10,
-            background: "rgba(15,23,42,0.7)", color: "var(--text-muted)",
+            background: "var(--surface)", color: "var(--text-muted)",
             backdropFilter: "blur(8px)",
           }}>Right-click map to drop a pin</span>
           <span style={{
             padding: "4px 10px", borderRadius: 20, fontSize: 10, fontWeight: 600,
-            background: "rgba(15,23,42,0.85)", color: "var(--text-muted)", border: "1px solid var(--border)",
+            background: "var(--surface)", color: "var(--text-muted)", border: "1px solid var(--border)",
             backdropFilter: "blur(8px)",
           }}>{totalSightings} sightings</span>
           <span style={{
             padding: "4px 10px", borderRadius: 20, fontSize: 10, fontWeight: 600,
-            background: "rgba(15,23,42,0.85)", color: "var(--text-muted)", border: "1px solid var(--border)",
+            background: "var(--surface)", color: "var(--text-muted)", border: "1px solid var(--border)",
             backdropFilter: "blur(8px)",
           }}>{corridors.length} corridors</span>
         </div>
@@ -299,7 +299,7 @@ export function Intelligence() {
         {temporalBuckets.length > 0 && (
           <div style={{
             position: "absolute", bottom: 0, left: 0, right: 0, zIndex: 1000,
-            background: "rgba(15,23,42,0.9)", backdropFilter: "blur(8px)",
+            background: "var(--surface)", backdropFilter: "blur(8px)",
             borderTop: "1px solid var(--border)", padding: "6px 16px",
           }}>
             <TimeSlider
@@ -464,7 +464,7 @@ export function Intelligence() {
       {temporalBuckets.length === 0 && !loading && (
         <div style={{
           position: "absolute", bottom: 16, left: "50%", transform: "translateX(-50%)", zIndex: 1000,
-          background: "rgba(15,23,42,0.85)", backdropFilter: "blur(8px)", border: "1px solid var(--border)",
+          background: "var(--surface)", backdropFilter: "blur(8px)", border: "1px solid var(--border)",
           borderRadius: 8, padding: "8px 20px", fontSize: 12, color: "var(--text-muted)",
         }}>
           No sighting data in this range.{vehicleFilter ? " Remove the vehicle filter." : " Expand the date range."}

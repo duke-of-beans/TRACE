@@ -146,6 +146,23 @@ export async function clearDemoData(chapterId: string): Promise<ClearResult> {
     result.vehiclesCleared++;
   }
 
+  // 7. Clear orphaned dispatches (expired/closed with no remaining linked sighting)
+  const orphanedDispatches = await opsDb
+    .select({ id: dispatchEvents.id })
+    .from(dispatchEvents)
+    .where(
+      sql`${dispatchEvents.chapterId} = ${chapterId}
+        AND ${dispatchEvents.status} IN ('expired', 'closed')
+        AND (${dispatchEvents.sightingId} IS NULL
+          OR ${dispatchEvents.sightingId} NOT IN (SELECT id FROM ops.sightings WHERE chapter_id = ${chapterId}))`
+    );
+  for (const d of orphanedDispatches) {
+    await opsDb.delete(dispatchOutcomes).where(eq(dispatchOutcomes.dispatchEventId, d.id));
+    await opsDb.delete(dispatchAssignments).where(eq(dispatchAssignments.dispatchEventId, d.id));
+    await opsDb.delete(dispatchEvents).where(eq(dispatchEvents.id, d.id));
+    result.dispatchCleared++;
+  }
+
   return result;
 }
 

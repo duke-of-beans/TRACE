@@ -430,7 +430,7 @@ export function IntelMap({
         ref={mapRef}
         style={{
           height: "100%", width: "100%", borderRadius: 8, overflow: "hidden",
-          border: "1px solid #2a2a3e",
+          border: "1px solid var(--border)",
         }}
       />
       {/* Overlay content (panels, floating buttons) */}
@@ -438,17 +438,17 @@ export function IntelMap({
       {/* Tile mode toggle - left side below action buttons */}
       <div style={{
         position: "absolute", top: 160, left: 8, zIndex: 1000,
-        display: "flex", flexDirection: "column", gap: 2, background: "rgba(15,23,42,0.9)",
+        display: "flex", flexDirection: "column", gap: 2, background: "var(--surface)",
         borderRadius: 6, padding: 2, backdropFilter: "blur(8px)",
-        border: "1px solid rgba(255,255,255,0.06)",
+        border: "1px solid var(--border)",
       }}>
         {(["satellite", "dark", "light"] as TileMode[]).map((m) => (
           <button key={m} onClick={() => switchTiles(m)}
             style={{
               padding: "4px 10px", fontSize: 10, border: "none", borderRadius: 4,
               cursor: "pointer", fontWeight: tileMode === m ? 700 : 400,
-              background: tileMode === m ? "#818CF8" : "transparent",
-              color: tileMode === m ? "#0f0f1a" : "#888",
+              background: tileMode === m ? "var(--accent)" : "transparent",
+              color: tileMode === m ? "var(--accent-text)" : "var(--text-muted)",
             }}
           >{m}</button>
         ))}
