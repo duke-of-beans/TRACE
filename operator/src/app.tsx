@@ -57,9 +57,21 @@ export function App() {
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
       const idx = parseInt(e.key) - 1;
       if (idx >= 0 && idx < NAV.length) setPage(NAV[idx].key);
+      if (e.key === "0") setPage("node");
     };
     window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
+
+    // Cross-page navigation via custom event
+    const navHandler = (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      if (detail && NAV.some(n => n.key === detail)) setPage(detail as Page);
+    };
+    window.addEventListener("trace-navigate", navHandler);
+
+    return () => {
+      window.removeEventListener("keydown", handler);
+      window.removeEventListener("trace-navigate", navHandler);
+    };
   }, []);
 
   const handleToggleTheme = () => {
