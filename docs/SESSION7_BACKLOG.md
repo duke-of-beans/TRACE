@@ -77,17 +77,10 @@
   - Operators create by right-clicking map and selecting "Save as watchpoint" or via Admin
 
 ### F6: Vehicle groups
-- **Status:** Backlog
+- **Status:** SHIPPED
 - **Priority:** High
 - **Source:** Client feedback
-- **Details:** Operators need to group vehicles for fast dispatch. "Convoy Team A" = vehicles 1, 2, 3 that always operate together. "High Priority" = the 10 vehicles chapter cares most about. When dispatching, operator picks a group and all vehicles attach instantly.
-- Groups also express co-occurrence intelligence: "these vehicles travel together" becomes a named group.
-- **Implementation:**
-  - New table: vehicle_groups (id, name, chapterId, createdAt)
-  - New table: vehicle_group_members (id, groupId, vehicleId)
-  - Dispatch form: group picker alongside individual vehicle picker
-  - Vehicles page: group management UI (create, add/remove vehicles, delete)
-  - Auto-suggest: when co-occurrence data shows vehicles frequently together, suggest creating a group
+- **Details:** Full stack: schema (vehicle_groups + vehicle_group_members) + migration 0008 + API (CRUD + member management) + operator API client + UI (Groups tab on Vehicles page with create, view, add/remove members, delete). Dispatch form integration is next session.
 
 ### F7: Burst capture review and tagging
 - **Status:** Backlog
@@ -102,11 +95,10 @@
   - Operator dashboard shows "X untagged burst captures" as triage prompt
 
 ### F8: Dashboard widgets as navigation buttons
-- **Status:** Backlog
+- **Status:** SHIPPED
 - **Priority:** Medium
 - **Source:** Session 7 feedback
-- **Details:** Each stat card on the operator dashboard (sightings count, vehicles tracked, active dispatches, pending triage) should be clickable and navigate to the relevant page/tab.
-- **Implementation:** Add onClick handlers to dashboard stat cards that call the page navigation function. Simple wiring - no new components needed.
+- **Details:** All 5 stat cards clickable, navigate to respective pages. Cross-page trace-navigate event listener added to App component.
 
 ---
 
