@@ -8,7 +8,7 @@
  * receives pre-computed data for Leaflet rendering.
  */
 import { opsDb } from "../db/connection.js";
-import { sightings, vehicles, actorVehicles } from "../db/schema/vault-a.js";
+import { sightings, vehicles, actorVehicles, reporters } from "../db/schema/vault-a.js";
 import { eq, and, gte, lte, desc, sql } from "drizzle-orm";
 
 // ---------- Heatmap ----------
@@ -250,6 +250,7 @@ export async function getTemporalData(opts: {
 
   const allSightings = await opsDb
     .select({
+      id: sightings.id,
       lat: sightings.lat,
       lng: sightings.lng,
       vehicleId: sightings.vehicleId,
@@ -259,8 +260,11 @@ export async function getTemporalData(opts: {
       locationDescription: sightings.locationDescription,
       direction: sightings.direction,
       observedAt: sightings.observedAt,
+      triageStatus: sightings.triageStatus,
+      reporterCallsign: reporters.callsign,
     })
     .from(sightings)
+    .leftJoin(reporters, eq(sightings.reporterId, reporters.id))
     .where(and(...conditions))
     .orderBy(sightings.observedAt);
 
@@ -273,6 +277,7 @@ export async function getTemporalData(opts: {
     const points = allSightings
       .filter((s) => s.observedAt >= currentStart && s.observedAt < currentEnd && s.lat)
       .map((s) => ({
+        id: s.id,
         lat: s.lat!,
         lng: s.lng!,
         vehicleId: s.vehicleId,
@@ -282,6 +287,8 @@ export async function getTemporalData(opts: {
         locationDescription: s.locationDescription,
         direction: s.direction,
         observedAt: s.observedAt.toISOString(),
+        triageStatus: s.triageStatus,
+        reporterCallsign: s.reporterCallsign,
       }));
 
     if (points.length > 0) {

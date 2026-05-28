@@ -328,7 +328,15 @@ export function Intelligence() {
             <button onClick={() => setSelectedMarker(null)} style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", fontSize: 16 }}>✕</button>
           </div>
           {selectedMarker.data?.plate && (
-            <div style={{ fontFamily: "var(--font-mono)", fontWeight: 700, letterSpacing: "0.1em", fontSize: 18, marginBottom: 8 }}>{selectedMarker.data.plate}</div>
+            <div style={{ fontFamily: "var(--font-mono)", fontWeight: 700, letterSpacing: "0.1em", fontSize: 18, marginBottom: 4 }}>{selectedMarker.data.plate}</div>
+          )}
+          {selectedMarker.data?.triageStatus && (
+            <div style={{ marginBottom: 8 }}>
+              <span style={{ fontSize: 9, padding: "2px 8px", borderRadius: 4, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em",
+                background: selectedMarker.data.triageStatus === "confirmed" ? "rgba(34,197,94,0.15)" : selectedMarker.data.triageStatus === "dismissed" ? "rgba(100,116,139,0.15)" : "rgba(217,119,6,0.15)",
+                color: selectedMarker.data.triageStatus === "confirmed" ? "#22c55e" : selectedMarker.data.triageStatus === "dismissed" ? "#64748b" : "#d97706",
+              }}>{selectedMarker.data.triageStatus}</span>
+            </div>
           )}
           {selectedMarker.data?.activityDescription && <p style={{ fontSize: 13, color: "var(--text-sec)", marginBottom: 8, lineHeight: 1.5 }}>{selectedMarker.data.activityDescription}</p>}
           {selectedMarker.data?.vehicleDescription && (
@@ -345,8 +353,19 @@ export function Intelligence() {
             {selectedMarker.data?.observedAt && <span>Observed: {new Date(selectedMarker.data.observedAt).toLocaleString()}</span>}
             {selectedMarker.data?.direction && <span>Heading: {selectedMarker.data.direction}</span>}
             <span>Coordinates: {selectedMarker.lat.toFixed(5)}, {selectedMarker.lng.toFixed(5)}</span>
-            {selectedMarker.data?.reporterCallsign && <span>Reporter: {selectedMarker.data.reporterCallsign}</span>}
+            {selectedMarker.data?.reporterCallsign && <span>Reporter: <strong style={{ color: "var(--text-sec)" }}>{selectedMarker.data.reporterCallsign}</strong></span>}
           </div>
+
+          {/* Vehicle link */}
+          {selectedMarker.data?.vehicleId && (
+            <button onClick={() => { window.dispatchEvent(new CustomEvent("trace-navigate", { detail: "vehicles" })); }}
+              style={{ display: "flex", alignItems: "center", gap: 6, width: "100%", padding: "8px 12px", marginBottom: 12,
+                background: "var(--surface-alt)", border: "1px solid var(--border)", borderRadius: 8, cursor: "pointer",
+                fontSize: 12, color: "var(--accent)", textAlign: "left" }}>
+              <span style={{ fontSize: 14 }}>🚗</span>
+              <span>View vehicle record for {selectedMarker.data.plate}</span>
+            </button>
+          )}
 
           {/* Nearby sightings for cluster clicks */}
           {selectedMarker.label === "Cluster" && temporalMarkers.length > 0 && (() => {
