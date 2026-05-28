@@ -33,7 +33,8 @@
   /* Hero - copied verbatim from guide.html */
   .hero { text-align: center; padding: 80px 24px 60px; position: relative; }
   .hero-brand { font-family: 'Exo 2', system-ui, sans-serif; font-weight: 100; font-size: 40px; letter-spacing: 0.22em; color: var(--accent); margin-bottom: 0; line-height: 1; }
-  .hero-rule { height: 1px; background: var(--accent); opacity: 0.5; width: 200px; margin: 8px auto 0; }
+  .hero-rule { height: 1px; background: var(--accent); opacity: 0.5; width: 200px; margin: 8px auto 0; position: relative; }
+  .hero-rule::after { content:''; position:absolute; right:-3px; top:-2px; width:5px; height:5px; border-radius:50%; background:var(--accent); }
   .hero-sub { font-size: 8px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); margin-top: 8px; margin-bottom: 6px; white-space: nowrap; }
   .hero-label { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 24px; }
   .hero-time { display: inline-flex; align-items: center; gap: 8px; background: var(--accent-soft); border: 1px solid var(--border); border-radius: 100px; padding: 8px 20px; font-size: 13px; font-weight: 600; color: var(--accent); }
@@ -47,7 +48,8 @@
   .step { padding:48px 0 32px; }
   .step-header { display:flex; align-items:center; gap:12px; margin-bottom:16px; }
   .step-number { font-family:'Exo 2',system-ui; font-weight:700; font-size:12px; letter-spacing:0.15em; color:var(--accent); white-space:nowrap; }
-  .step-rule { flex:1; height:1px; background:var(--border); }
+  .step-rule { flex:1; height:1px; background:var(--border); position:relative; }
+  .step-rule::after { content:''; position:absolute; right:0; top:-2px; width:4px; height:4px; border-radius:50%; background:var(--border); }
   h2 { font-family:'Exo 2',system-ui; font-weight:600; font-size:18px; letter-spacing:0.04em; color:var(--text); margin-bottom:12px; }
   h3 { font-size:14px; font-weight:600; color:var(--text-sec); margin:24px 0 8px; }
   p { margin:0 0 12px; font-size:14px; color:var(--text-sec); }
@@ -88,15 +90,16 @@
   .ladder-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
   .ladder-label { flex:1; color:var(--text-sec); } .ladder-desc { font-size:9px; color:var(--text-muted); }
 
-  /* Scroll nav */
-  .scroll-nav { position:fixed; right:12px; top:50%; transform:translateY(-50%); z-index:100; display:flex; flex-direction:column; align-items:center; gap:0; }
-  .scroll-nav-track { position:absolute; top:0; bottom:0; width:2px; background:var(--border); border-radius:1px; left:50%; transform:translateX(-50%); z-index:0; }
-  .scroll-nav-fill { width:100%; background:var(--accent); border-radius:1px; transition:height 0.15s; height:0%; }
-  .scroll-nav-dot { position:relative; z-index:1; display:flex; align-items:center; padding:6px 0; text-decoration:none !important; }
-  .scroll-nav-pip { width:8px; height:8px; border-radius:50%; background:var(--border); border:2px solid var(--bg); transition:all 0.2s; }
-  .scroll-nav-dot.active .scroll-nav-pip { background:var(--accent); transform:scale(1.3); }
-  .scroll-nav-label { position:absolute; right:18px; white-space:nowrap; font-size:9px; letter-spacing:0.06em; color:var(--text-muted); opacity:0; transition:opacity 0.2s; pointer-events:none; }
-  .scroll-nav-dot:hover .scroll-nav-label, .scroll-nav-dot.active .scroll-nav-label { opacity:1; }
+  /* Scroll nav — matches guide.html */
+  .scroll-nav { position:fixed; right:16px; top:50%; transform:translateY(-50%); z-index:100; display:flex; flex-direction:column; align-items:flex-end; gap:0; }
+  .scroll-nav-dot { display:flex; align-items:center; gap:8px; padding:6px 0; cursor:pointer; text-decoration:none; }
+  .scroll-nav-label { font-size:10px; letter-spacing:0.05em; color:var(--text-muted); opacity:0; transform:translateX(4px); transition:opacity 0.2s, transform 0.2s; white-space:nowrap; pointer-events:none; }
+  .scroll-nav-dot:hover .scroll-nav-label, .scroll-nav-dot.active .scroll-nav-label { opacity:1; transform:translateX(0); }
+  .scroll-nav-pip { width:6px; height:6px; border-radius:50%; background:var(--border); transition:background 0.2s, transform 0.2s; flex-shrink:0; }
+  .scroll-nav-dot.active .scroll-nav-pip { background:var(--accent); transform:scale(1.5); }
+  .scroll-nav-dot:hover .scroll-nav-pip { background:var(--accent); }
+  .scroll-nav-track { position:absolute; right:2px; top:6px; bottom:6px; width:2px; background:var(--border); border-radius:1px; z-index:-1; }
+  .scroll-nav-fill { position:absolute; top:0; left:0; width:100%; background:var(--accent); border-radius:1px; transition:height 0.15s; }
 
   /* Footer - exact match */
   .footer { text-align:center; padding:48px 24px 32px; color:var(--text-muted); font-size:11px; }
