@@ -311,6 +311,35 @@ export function Intelligence() {
             />
           </div>
         )}
+
+        {/* ── MAP LEGEND (bottom-left floating) ── */}
+        <div style={{
+          position: "absolute", bottom: temporalBuckets.length > 0 ? 52 : 8, left: 8, zIndex: 1000,
+          background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 8,
+          padding: "8px 12px", fontSize: 11, maxWidth: 200,
+        }}>
+          <div style={{ fontWeight: 600, fontSize: 10, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--text-sec)", marginBottom: 6 }}>Legend</div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <div style={{ width: 12, height: 12, borderRadius: "50%", background: "rgba(255,200,0,0.8)", border: "2px solid rgba(255,180,0,0.6)" }} />
+              <span style={{ color: "var(--text-sec)" }}>Sighting</span>
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <div style={{ width: 12, height: 12, borderRadius: "50%", background: "rgba(231,76,60,0.5)", border: "2px dashed rgba(231,76,60,0.6)" }} />
+              <span style={{ color: "var(--text-sec)" }}>Activity cluster</span>
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <div style={{ width: 12, height: 12, background: "linear-gradient(90deg, #3b82f6, #facc15, #ef4444)", borderRadius: 2 }} />
+              <span style={{ color: "var(--text-sec)" }}>Heatmap density</span>
+            </div>
+            {dispatchPins.length > 0 && (
+              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                <div style={{ width: 12, height: 12, background: "var(--accent)", borderRadius: 2, transform: "rotate(45deg)" }} />
+                <span style={{ color: "var(--text-sec)" }}>Dispatch pin</span>
+              </div>
+            )}
+          </div>
+        </div>
       </IntelMap>
 
       {/* ── RIGHT-SIDE DETAIL PANELS (outside IntelMap for z-index) ── */}

@@ -217,13 +217,17 @@ export async function seedDemoData(chapterId: string, reporterId: string): Promi
     result.sightingsCreated++;
   }
 
-  // === ACTORS (5 with identifiers and vehicle links) ===
+  // === ACTORS (5 with identifiers, vehicle links, and avatar photos) ===
+  // SVG avatar generator — distinct silhouettes for each actor
+  const avatar = (bg: string, accent: string, initial: string) =>
+    `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200"><rect width="200" height="200" fill="${bg}"/><circle cx="100" cy="76" r="36" fill="${accent}"/><ellipse cx="100" cy="170" rx="56" ry="46" fill="${accent}"/><text x="100" y="88" text-anchor="middle" font-size="32" font-family="sans-serif" fill="${bg}" font-weight="bold">${initial}</text></svg>`)}`;
+
   const aData = [
-    { alias: "FLICKER (DEMO)", desc: "DEMO: Male, 25-30. Linked to DEMO-003 plate swap. Scar on left hand.", levelIdx: 2 },
-    { alias: "NINE (DEMO)", desc: "DEMO: Male, 40s. Always wears a black hat. Seen at stash locations.", levelIdx: 1 },
-    { alias: "SHADE (DEMO)", desc: "DEMO: Unknown gender. Hooded figure observed during night operations.", levelIdx: 0 },
-    { alias: "SPARKS (DEMO)", desc: "DEMO: Female, 20s. Passenger in DEMO-003 and DEMO-005.", levelIdx: 1 },
-    { alias: "GHOST (DEMO)", desc: "DEMO: Male, 30s. Frequently seen driving DEMO-001 and DEMO-002.", levelIdx: 2 },
+    { alias: "FLICKER (DEMO)", desc: "DEMO: Male, 25-30. Linked to DEMO-003 plate swap. Scar on left hand.", levelIdx: 2, photo: avatar("#1e293b", "#818cf8", "F") },
+    { alias: "NINE (DEMO)", desc: "DEMO: Male, 40s. Always wears a black hat. Seen at stash locations.", levelIdx: 1, photo: avatar("#1e293b", "#f59e0b", "N") },
+    { alias: "SHADE (DEMO)", desc: "DEMO: Unknown gender. Hooded figure observed during night operations.", levelIdx: 0, photo: avatar("#1e293b", "#64748b", "S") },
+    { alias: "SPARKS (DEMO)", desc: "DEMO: Female, 20s. Passenger in DEMO-003 and DEMO-005.", levelIdx: 1, photo: avatar("#1e293b", "#ef4444", "K") },
+    { alias: "GHOST (DEMO)", desc: "DEMO: Male, 30s. Frequently seen driving DEMO-001 and DEMO-002.", levelIdx: 2, photo: avatar("#1e293b", "#22c55e", "G") },
   ];
 
   const ca: any[] = [];
@@ -232,6 +236,7 @@ export async function seedDemoData(chapterId: string, reporterId: string): Promi
     const level = actorLevels.length > 0 ? actorLevels[Math.min(d.levelIdx, actorLevels.length - 1)] : null;
     const [a] = await opsDb.insert(actors).values({
       chapterId, alias: d.alias, physicalDescription: d.desc,
+      photoUrl: d.photo,
       ...(level ? { suspicionLevelId: level.id } : {}),
     }).returning();
     ca.push(a);
