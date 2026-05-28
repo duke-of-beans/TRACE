@@ -136,7 +136,7 @@ export function Harassment() {
               color: filter === f ? "var(--accent-text)" : "var(--text-sec)",
               border: "1px solid " + (filter === f ? "var(--accent)" : "var(--border)"),
             }}>
-            {f === "all" ? "All" : f === "reported_to_le" ? "Reported to LE" : f.charAt(0).toUpperCase() + f.slice(1)}
+            {f === "all" ? "All" : f === "reported_to_le" ? "Reported" : f.charAt(0).toUpperCase() + f.slice(1)}
           </button>
         ))}
       </div>
@@ -195,7 +195,7 @@ export function Harassment() {
                     <span className="text-xs px-2 py-0.5 rounded font-medium" style={{
                       background: selected.status === "active" ? "rgba(217,119,6,0.1)" : selected.status === "resolved" ? "rgba(22,163,74,0.1)" : "rgba(124,58,237,0.1)",
                       color: selected.status === "active" ? "#D97706" : selected.status === "resolved" ? "#16A34A" : "#7C3AED",
-                    }}>{selected.status === "reported_to_le" ? "Reported to LE" : selected.status}</span>
+                    }}>{selected.status === "reported_to_le" ? "Reported" : selected.status}</span>
                     <span className="text-xs" style={{ color: "var(--text-muted)" }}>
                       {selected.reportCount} reports from {selected.reportersAffected} reporters
                     </span>
@@ -257,7 +257,7 @@ export function Harassment() {
                   <option value="active">Active</option>
                   <option value="resolved">Resolved</option>
                   <option value="escalated">Escalated</option>
-                  <option value="reported_to_le">Reported to LE</option>
+                  <option value="reported_to_le">Reported</option>
                 </select>
                 <button onClick={handleSave} disabled={saving}
                   className="px-4 py-2 rounded text-sm font-semibold transition"
