@@ -58,17 +58,55 @@
 - **Source:** Client feedback
 - **Details:** Added "Reopen Dispatch" button on closed/expired dispatch pin detail panels. PATCHes status back to active.
 
-### F5: Watchpoints / hotspot bookmarks
+### F5: Watchpoints / hotspot bookmarks with city hierarchy
 - **Status:** Backlog
 - **Priority:** High
 - **Source:** Client feedback
-- **Details:** Chapters have known hotspots (specific apartment complexes) where vehicles regularly appear. Need saved locations ("watchpoints") that operators can click to instantly see all vehicles sighted nearby and one-click dispatch without retyping addresses.
+- **Details:** Chapters have known hotspots (specific apartment complexes, schools, jails) where vehicles regularly appear. Need saved locations organized by city/area in a tree structure:
+  - Thousand Oaks: Wilbur Apartments (222 Wilbur Dr), Janns Mall (address)
+  - Oxnard: Saviors Elementary (address)
+  - Ventura: County Jail (address)
+- Operators click a hotspot to auto-fill address in dispatch. Two taps instead of typing.
 - **Implementation:**
-  - New table: watchpoints (id, name, lat, lng, radius, chapterId, createdAt)
+  - New table: watchpoints (id, name, lat, lng, radius, chapterId, cityGroup, address, createdAt)
+  - City groups as a grouping field, not a separate table
   - Persistent markers on Activity Map as a distinct layer
   - Click a watchpoint: panel shows all vehicles sighted in zone ranked by frequency, rolling activity summary, one-click "dispatch here" with auto-filled address
   - Dashboard integration: "Oak Ridge: 12 sightings this week (up from 4)" as quick status
-  - Operators create by right-clicking map and selecting "Save as watchpoint" or drawing a zone
+  - Dispatch form: hotspot picker organized by city group for fast selection
+  - Operators create by right-clicking map and selecting "Save as watchpoint" or via Admin
+
+### F6: Vehicle groups
+- **Status:** Backlog
+- **Priority:** High
+- **Source:** Client feedback
+- **Details:** Operators need to group vehicles for fast dispatch. "Convoy Team A" = vehicles 1, 2, 3 that always operate together. "High Priority" = the 10 vehicles chapter cares most about. When dispatching, operator picks a group and all vehicles attach instantly.
+- Groups also express co-occurrence intelligence: "these vehicles travel together" becomes a named group.
+- **Implementation:**
+  - New table: vehicle_groups (id, name, chapterId, createdAt)
+  - New table: vehicle_group_members (id, groupId, vehicleId)
+  - Dispatch form: group picker alongside individual vehicle picker
+  - Vehicles page: group management UI (create, add/remove vehicles, delete)
+  - Auto-suggest: when co-occurrence data shows vehicles frequently together, suggest creating a group
+
+### F7: Burst capture review and tagging
+- **Status:** Backlog
+- **Priority:** High
+- **Source:** Session 7 design
+- **Details:** After burst capture, reporter needs a "review and tag" screen to add metadata (plate, description, vehicle) to each captured photo. Media is already uploaded. This is enrichment after the fact when reporter is safe.
+- **Implementation:**
+  - New screen in PWA: "Review burst" accessible from History page
+  - Shows burst captures in a grid with upload status
+  - Tap a capture to add: plate number, description, vehicle association
+  - PATCH endpoint to update sighting metadata after initial burst submission
+  - Operator dashboard shows "X untagged burst captures" as triage prompt
+
+### F8: Dashboard widgets as navigation buttons
+- **Status:** Backlog
+- **Priority:** Medium
+- **Source:** Session 7 feedback
+- **Details:** Each stat card on the operator dashboard (sightings count, vehicles tracked, active dispatches, pending triage) should be clickable and navigate to the relevant page/tab.
+- **Implementation:** Add onClick handlers to dashboard stat cards that call the page navigation function. Simple wiring - no new components needed.
 
 ---
 
