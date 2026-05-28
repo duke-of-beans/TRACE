@@ -6,14 +6,14 @@
 ## BUGS / POLISH (from this session)
 
 ### B1: Legend overlaps playbar on Activity Map
-- **Status:** Open
+- **Status:** FIXED
 - **Priority:** High
-- **Details:** The floating legend panel covers the time playbar at the bottom of the map. Needs CSS positioning fix - legend should sit above the playbar with clear spacing.
+- **Details:** Legend bottom offset increased from 64 to 80px, z-index lowered to 999. Tooltips added with plain-language descriptions for each layer.
 
 ### B2: Map detail drawer cards default to collapsed
-- **Status:** Open
+- **Status:** FIXED
 - **Priority:** High
-- **Details:** When clicking a sighting marker, the detail cards in the drawer open collapsed. They should default to expanded so operators see the info immediately without extra clicks.
+- **Details:** Leaflet layer control changed from collapsed:true to collapsed:false. All map layers now visible by default when the Activity Map loads.
 
 ### B3: Onboarding changes not deploying
 - **Status:** Open
@@ -53,11 +53,10 @@
 - **Convergence map:** This is the Pattern Learner engine - vehicle behavioral fingerprinting that persists across plate changes.
 
 ### F4: Reopen closed/expired dispatches
-- **Status:** Backlog
+- **Status:** FIXED
 - **Priority:** Medium
 - **Source:** Client feedback
-- **Details:** Currently closed and expired dispatches are terminal states. Need a "Reopen" button that flips status back to active.
-- **Implementation:** Add reopen button to PinDetailPanel for closed/expired pins. API endpoint: PATCH /dispatches/:id/reopen. ~20 minute fix.
+- **Details:** Added "Reopen Dispatch" button on closed/expired dispatch pin detail panels. PATCHes status back to active.
 
 ### F5: Watchpoints / hotspot bookmarks
 - **Status:** Backlog
