@@ -170,7 +170,7 @@ export function IntelMap({
       "Corridors": layers.corridors,
       "Co-occurrence": layers.coOccurrences,
       "Dispatch Pins": layers.dispatchPins,
-    }, { collapsed: true, position: "topright" }).addTo(map);
+    }, { collapsed: false, position: "topright" }).addTo(map);
 
     leafletRef.current = map;
     layersRef.current = layers;

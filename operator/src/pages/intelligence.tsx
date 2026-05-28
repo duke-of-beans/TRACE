@@ -321,26 +321,26 @@ export function Intelligence() {
 
         {/* ── MAP LEGEND (bottom-left floating) ── */}
         <div style={{
-          position: "absolute", bottom: temporalBuckets.length > 0 ? 64 : 8, left: 8, zIndex: 1000,
+          position: "absolute", bottom: temporalBuckets.length > 0 ? 80 : 8, left: 8, zIndex: 999,
           background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 8,
-          padding: "8px 12px", fontSize: 11, maxWidth: 200,
+          padding: "8px 12px", fontSize: 11, maxWidth: 220,
         }}>
           <div style={{ fontWeight: 600, fontSize: 10, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--text-sec)", marginBottom: 6 }}>Legend</div>
           <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 6 }} title="One reporter saw one vehicle at one location">
               <div style={{ width: 12, height: 12, borderRadius: "50%", background: "rgba(255,200,0,0.8)", border: "2px solid rgba(255,180,0,0.6)" }} />
               <span style={{ color: "var(--text-sec)" }}>Sighting</span>
             </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 6 }} title="Multiple sightings near the same spot - reveals staging areas and repeat locations">
               <div style={{ width: 12, height: 12, borderRadius: "50%", background: "rgba(231,76,60,0.5)", border: "2px dashed rgba(231,76,60,0.6)" }} />
               <span style={{ color: "var(--text-sec)" }}>Activity cluster</span>
             </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 6 }} title="Color gradient showing where activity concentrates - hot means busy, cold means quiet">
               <div style={{ width: 12, height: 12, background: "linear-gradient(90deg, #3b82f6, #facc15, #ef4444)", borderRadius: 2 }} />
               <span style={{ color: "var(--text-sec)" }}>Heatmap density</span>
             </div>
             {dispatchPins.length > 0 && (
-              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 6 }} title="Operator-placed marker telling field reporters where to respond">
                 <div style={{ width: 12, height: 12, background: "var(--accent)", borderRadius: 2, transform: "rotate(45deg)" }} />
                 <span style={{ color: "var(--text-sec)" }}>Dispatch pin</span>
               </div>
@@ -494,6 +494,23 @@ export function Intelligence() {
             <button onClick={async () => { await api.closeDispatch(selectedPin.id, "operator_closed").catch(() => {}); setSelectedPin(null); loadDispatchPins(); }}
               style={{ width: "100%", background: "var(--surface-alt)", color: "var(--text-sec)", border: "1px solid var(--border)", borderRadius: 8, padding: "10px 16px", fontSize: 13, cursor: "pointer" }}>
               Close Dispatch
+            </button>
+          )}
+          {(selectedPin.status === "closed" || selectedPin.status === "expired") && (
+            <button onClick={async () => {
+              try {
+                const token = localStorage.getItem("trace_op_token");
+                await fetch(`${getApiBase()}/dispatches/${selectedPin.id}`, {
+                  method: "PATCH",
+                  headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+                  body: JSON.stringify({ status: "active" }),
+                });
+                setSelectedPin(null);
+                loadDispatchPins();
+              } catch {}
+            }}
+              style={{ width: "100%", background: "var(--accent)", color: "var(--accent-text)", border: "none", borderRadius: 8, padding: "10px 16px", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
+              Reopen Dispatch
             </button>
           )}
         </div>
