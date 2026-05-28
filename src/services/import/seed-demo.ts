@@ -152,11 +152,11 @@ export async function seedDemoData(chapterId: string, reporterId: string): Promi
     if (d.levelIdx >= 2 && levels.length >= 3) {
       await opsDb.insert(vehicleConcernHistory).values({
         vehicleId: v.id, fromLevelId: levels[0].id, toLevelId: levels[1].id,
-        reason: "DEMO: Multiple sightings in area", changedBy: reporterId, changedAt: ago(168),
+        reason: "DEMO: Multiple sightings in area", changedBy: reporterId, changedByRole: "operator",
       });
       await opsDb.insert(vehicleConcernHistory).values({
         vehicleId: v.id, fromLevelId: levels[1].id, toLevelId: levels[d.levelIdx].id,
-        reason: "DEMO: Pattern confirmed, escalating", changedBy: reporterId, changedAt: ago(48),
+        reason: "DEMO: Pattern confirmed, escalating", changedBy: reporterId, changedByRole: "operator",
       });
     }
   }
@@ -267,11 +267,11 @@ export async function seedDemoData(chapterId: string, reporterId: string): Promi
   if (actorLevels.length >= 2) {
     await opsDb.insert(actorConcernHistory).values({
       actorId: ca[0].id, fromLevelId: actorLevels[0].id, toLevelId: actorLevels[1].id,
-      reason: "DEMO: Connected to plate swap ring", changedBy: reporterId, changedAt: ago(96),
+      reason: "DEMO: Connected to plate swap ring", changedBy: reporterId, changedByRole: "operator",
     });
     await opsDb.insert(actorConcernHistory).values({
       actorId: ca[4].id, fromLevelId: actorLevels[0].id, toLevelId: actorLevels[1].id,
-      reason: "DEMO: Drives both target vehicles", changedBy: reporterId, changedAt: ago(72),
+      reason: "DEMO: Drives both target vehicles", changedBy: reporterId, changedByRole: "operator",
     });
   }
 
@@ -300,9 +300,9 @@ export async function seedDemoData(chapterId: string, reporterId: string): Promi
       chapterId, incidentTypeId: incTypes[0].id,
       title: "DEMO: Langley Forest Surveillance Pattern",
       description: "DEMO: Coordinated vehicle surveillance identified in Langley Forest subdivision. Primary vehicle (gray Accord, DEMO-001) runs repeated circuits with scout vehicle (black F-150, DEMO-002) arriving 30 minutes prior. Pattern spans 30+ days with escalating frequency.",
-      status: "active", priority: "high",
-      location: "Langley Forest, McLean VA", lat: 38.937, lng: -77.184,
-      reportedAt: ago(48), reportedBy: reporterId,
+      status: "documenting", severity: "elevated",
+      locationDescription: "Langley Forest, McLean VA", lat: 38.937, lng: -77.184,
+      reportedAt: ago(48), reporterId: reporterId,
     }).returning();
     result.incidentsCreated++;
 
@@ -313,31 +313,31 @@ export async function seedDemoData(chapterId: string, reporterId: string): Promi
 
     // Evidence entries
     await opsDb.insert(incidentEvidence).values({
-      incidentId: inc.id, phase: "collection", evidenceType: "observation",
-      title: "DEMO: Corridor analysis", description: "5 sequential sightings of DEMO-001 eastbound on Old Dominion Dr form a clear transit corridor.",
-      addedBy: reporterId, addedAt: ago(24),
+      incidentId: inc.id, phase: "during_incident", evidenceType: "observation",
+      caption: "5 sequential sightings of DEMO-001 eastbound on Old Dominion Dr form a clear transit corridor.",
+      uploadedBy: reporterId,
     });
     await opsDb.insert(incidentEvidence).values({
-      incidentId: inc.id, phase: "analysis", evidenceType: "observation",
-      title: "DEMO: Co-occurrence pattern", description: "DEMO-001 and DEMO-005 observed at the same location within 2 hours on multiple occasions. Possible coordination.",
-      addedBy: reporterId, addedAt: ago(12),
+      incidentId: inc.id, phase: "post_scene", evidenceType: "observation",
+      caption: "DEMO-001 and DEMO-005 observed at the same location within 2 hours on multiple occasions. Possible coordination.",
+      uploadedBy: reporterId,
     });
   }
 
   // === HARASSMENT REPORTS ===
   const [num] = await opsDb.insert(knownNumbers).values({
     chapterId, phoneNumber: "+15551234567", reportCount: 3,
-    label: "DEMO: Unknown caller",
+    operatorTag: "DEMO: Unknown caller",
   }).returning();
   await opsDb.insert(harassmentReports).values({
-    chapterId, knownNumberId: num.id, reporterId,
+    chapterId, knownNumberId: num.id, reporterId, phoneNumber: "+15551234567",
     incidentType: "call", occurredAt: ago(24),
-    notes: "DEMO: Three hang-up calls in one hour",
+    description: "DEMO: Three hang-up calls in one hour",
   });
   await opsDb.insert(harassmentReports).values({
-    chapterId, knownNumberId: num.id, reporterId,
+    chapterId, knownNumberId: num.id, reporterId, phoneNumber: "+15551234567",
     incidentType: "text", occurredAt: ago(12),
-    notes: "DEMO: Threatening text message received",
+    description: "DEMO: Threatening text message received",
   });
 
   return result;
