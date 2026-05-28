@@ -22,7 +22,6 @@ export async function ingest(
   const workbook = XLSX.read(buffer, {
     type: "buffer",
     cellDates: true,
-    bookImages: false, // skip embedded images (saves memory on large files)
   });
 
   const sheetName = sheet || workbook.SheetNames[0];
