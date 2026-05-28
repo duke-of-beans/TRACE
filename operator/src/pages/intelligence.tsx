@@ -40,6 +40,12 @@ export function Intelligence() {
   const [customEnd, setCustomEnd] = useState("");
   const [vehicleFilter, setVehicleFilter] = useState("");
   const [vehicles, setVehicles] = useState<any[]>([]);
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [concernFilter, setConcernFilter] = useState("");
+  const [dispatchFilter, setDispatchFilter] = useState<"all" | "active" | "resolved" | "hidden">("all");
+  const [actorOnly, setActorOnly] = useState(false);
+  const [concernLevels, setConcernLevels] = useState<any[]>([]);
+  const [actors, setActors] = useState<any[]>([]);
 
   // --- Geo data state ---
   const [heatmap, setHeatmap] = useState<HeatmapPoint[]>([]);
@@ -80,6 +86,8 @@ export function Intelligence() {
     api.getVehicles().then((v) => setVehicles(Array.isArray(v) ? v : [])).catch(() => {});
     api.getDispatchEventTypes().then(setEventTypes).catch(() => {});
     api.getReporters().then(setReporters).catch(() => {});
+    api.getSuspicionLevels().then((l) => setConcernLevels(Array.isArray(l) ? l : [])).catch(() => {});
+    api.getActors().then((a) => setActors(Array.isArray(a) ? a : [])).catch(() => {});
     loadDispatchPins();
     loadWatchpoints();
     loadVehicleGroups();
@@ -120,6 +128,38 @@ export function Intelligence() {
     });
     setDispatchPins(enriched);
   }, [rawDispatches, eventTypes]);
+
+  // --- Computed filter values ---
+  const actorVehicleIds = useMemo(() => new Set(actors.map((a: any) => a.vehicleId).filter(Boolean)), [actors]);
+  const vehicleConcernMap = useMemo(() => {
+    const map: Record<string, string> = {};
+    for (const v of vehicles) { if (v.currentLevelId) map[v.id] = v.currentLevelId; }
+    return map;
+  }, [vehicles]);
+
+  const activeFilterCount = [
+    rangePreset !== "7d" ? 1 : 0,
+    vehicleFilter ? 1 : 0,
+    concernFilter ? 1 : 0,
+    dispatchFilter !== "all" ? 1 : 0,
+    actorOnly ? 1 : 0,
+  ].reduce((a, b) => a + b, 0);
+
+  // Filter dispatch pins by status
+  const filteredDispatches = useMemo(() => {
+    if (dispatchFilter === "hidden") return [];
+    if (dispatchFilter === "all") return dispatchPins;
+    return dispatchPins.filter((d: any) =>
+      dispatchFilter === "active" ? d.status === "active" : d.status === "resolved"
+    );
+  }, [dispatchPins, dispatchFilter]);
+
+  // Build set of vehicle IDs passing concern + actor filters
+  const passesVehicleFilters = useCallback((vehicleId: string) => {
+    if (concernFilter && vehicleConcernMap[vehicleId] !== concernFilter) return false;
+    if (actorOnly && !actorVehicleIds.has(vehicleId)) return false;
+    return true;
+  }, [concernFilter, actorOnly, vehicleConcernMap, actorVehicleIds]);
 
   // compute active date range
   const getActiveRange = useCallback(() => {
@@ -252,7 +292,7 @@ export function Intelligence() {
         heatmapData={heatmap}
         corridors={corridors}
         coOccurrences={coOccurrences}
-        dispatchPins={dispatchPins}
+        dispatchPins={filteredDispatches}
         watchpoints={watchpointsList}
         onPlacePin={(lat, lng) => { setPlacingPin({ lat, lng }); setSelectedPin(null); setSelectedMarker(null); setCreatingWatchpoint(null); setSelectedWatchpoint(null); }}
         onSaveWatchpoint={(lat, lng) => { setCreatingWatchpoint({ lat, lng }); setPlacingPin(null); setSelectedPin(null); setSelectedMarker(null); setSelectedWatchpoint(null); }}
@@ -268,38 +308,126 @@ export function Intelligence() {
         }}
         height="100%"
       >
-        {/* ── FLOATING FILTER BAR (below zoom controls) ── */}
-        <div style={{
-          position: "absolute", top: 8, left: 48, right: 8, zIndex: 1000,
+        {/* ── FILTER TRIGGER BUTTON ── */}
+        <button onClick={() => setFilterOpen(!filterOpen)} style={{
+          position: "absolute", top: 8, left: 48, zIndex: 1000,
           background: "var(--surface)", backdropFilter: "blur(8px)",
           border: "1px solid var(--border)", borderRadius: 10,
-          padding: "6px 10px", display: "flex", alignItems: "center", gap: 6,
-          flexWrap: "wrap",
+          padding: "7px 14px", display: "flex", alignItems: "center", gap: 6,
+          cursor: "pointer", fontSize: 12, fontWeight: 600,
+          color: activeFilterCount > 0 ? "var(--accent)" : "var(--text-sec)",
         }}>
-          {presets.map((p) => (
-            <button key={p.key} onClick={() => { setRangePreset(p.key); }}
-              style={{
-                padding: "4px 8px", borderRadius: 6, fontSize: 11, fontWeight: 600, cursor: "pointer",
-                background: rangePreset === p.key ? "var(--accent)" : "transparent",
-                color: rangePreset === p.key ? "var(--accent-text)" : "var(--text-muted)",
-                border: rangePreset === p.key ? "1px solid var(--accent)" : "1px solid transparent",
-                whiteSpace: "nowrap",
-              }}>
-              {p.label}
-            </button>
-          ))}
-          <select value={vehicleFilter} onChange={(e) => setVehicleFilter(e.target.value)}
-            style={{ background: "transparent", border: "1px solid var(--border)", borderRadius: 6, padding: "4px 6px", fontSize: 11, color: "var(--text-sec)", minWidth: 90, maxWidth: 140, colorScheme: "dark" }}>
-            <option value="">All vehicles</option>
-            {vehicles.map((v) => (
-              <option key={v.id} value={v.id}>{v.plate || v.id.slice(0, 8)}</option>
-            ))}
-          </select>
-          <button onClick={loadData} disabled={loading}
-            style={{ padding: "4px 12px", borderRadius: 6, fontSize: 11, fontWeight: 600, background: "var(--accent)", color: "var(--accent-text)", border: "none", cursor: "pointer", opacity: loading ? 0.6 : 1 }}>
-            {loading ? "..." : "Apply"}
-          </button>
-        </div>
+          <Icon name="filter" size={14} />
+          Filters
+          {activeFilterCount > 0 && (
+            <span style={{
+              background: "var(--accent)", color: "var(--accent-text)",
+              width: 18, height: 18, borderRadius: "50%", fontSize: 10, fontWeight: 700,
+              display: "flex", alignItems: "center", justifyContent: "center",
+            }}>{activeFilterCount}</span>
+          )}
+        </button>
+
+        {/* ── FILTER PANEL (collapsible) ── */}
+        {filterOpen && (
+          <div style={{
+            position: "absolute", top: 44, left: 48, zIndex: 1000, width: 280,
+            background: "var(--surface)", backdropFilter: "blur(12px)",
+            border: "1px solid var(--border)", borderRadius: 12,
+            padding: 16, boxShadow: "0 8px 32px rgba(0,0,0,0.3)",
+          }} onClick={(e) => e.stopPropagation()}>
+            {/* TIME */}
+            <div style={{ marginBottom: 14 }}>
+              <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", color: "var(--text-muted)", marginBottom: 6, textTransform: "uppercase" }}>Time range</div>
+              <div style={{ display: "flex", gap: 4 }}>
+                {presets.map((p) => (
+                  <button key={p.key} onClick={() => setRangePreset(p.key)} style={{
+                    flex: 1, padding: "5px 0", borderRadius: 6, fontSize: 11, fontWeight: 600, cursor: "pointer", textAlign: "center",
+                    background: rangePreset === p.key ? "var(--accent)" : "transparent",
+                    color: rangePreset === p.key ? "var(--accent-text)" : "var(--text-muted)",
+                    border: rangePreset === p.key ? "1px solid var(--accent)" : "1px solid var(--border)",
+                  }}>{p.label}</button>
+                ))}
+              </div>
+            </div>
+
+            {/* VEHICLE */}
+            <div style={{ marginBottom: 14 }}>
+              <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", color: "var(--text-muted)", marginBottom: 6, textTransform: "uppercase" }}>Vehicle</div>
+              <select value={vehicleFilter} onChange={(e) => setVehicleFilter(e.target.value)}
+                style={{ width: "100%", background: "var(--bg)", border: "1px solid var(--border)", borderRadius: 6, padding: "6px 8px", fontSize: 12, color: "var(--text-sec)", colorScheme: "dark" }}>
+                <option value="">All vehicles</option>
+                {vehicles.map((v) => (
+                  <option key={v.id} value={v.id}>{v.plate || `${v.color} ${v.make} ${v.model}`.trim() || v.id.slice(0, 8)}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* CONCERN LEVEL */}
+            {concernLevels.length > 0 && (
+              <div style={{ marginBottom: 14 }}>
+                <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", color: "var(--text-muted)", marginBottom: 6, textTransform: "uppercase" }}>Concern level</div>
+                <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
+                  <button onClick={() => setConcernFilter("")} style={{
+                    padding: "4px 10px", borderRadius: 6, fontSize: 11, fontWeight: 600, cursor: "pointer",
+                    background: !concernFilter ? "var(--accent)" : "transparent",
+                    color: !concernFilter ? "var(--accent-text)" : "var(--text-muted)",
+                    border: !concernFilter ? "1px solid var(--accent)" : "1px solid var(--border)",
+                  }}>Any</button>
+                  {concernLevels.sort((a: any, b: any) => a.sortOrder - b.sortOrder).map((l: any) => (
+                    <button key={l.id} onClick={() => setConcernFilter(l.id)} style={{
+                      padding: "4px 10px", borderRadius: 6, fontSize: 11, fontWeight: 600, cursor: "pointer",
+                      background: concernFilter === l.id ? (l.color || "var(--accent)") : "transparent",
+                      color: concernFilter === l.id ? "#fff" : "var(--text-muted)",
+                      border: `1px solid ${concernFilter === l.id ? (l.color || "var(--accent)") : "var(--border)"}`,
+                    }}>{l.label}</button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* DISPATCHES */}
+            <div style={{ marginBottom: 14 }}>
+              <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", color: "var(--text-muted)", marginBottom: 6, textTransform: "uppercase" }}>Dispatches</div>
+              <div style={{ display: "flex", gap: 4 }}>
+                {(["all", "active", "resolved", "hidden"] as const).map((opt) => (
+                  <button key={opt} onClick={() => setDispatchFilter(opt)} style={{
+                    flex: 1, padding: "4px 0", borderRadius: 6, fontSize: 11, fontWeight: 600, cursor: "pointer", textAlign: "center",
+                    textTransform: "capitalize",
+                    background: dispatchFilter === opt ? "var(--accent)" : "transparent",
+                    color: dispatchFilter === opt ? "var(--accent-text)" : "var(--text-muted)",
+                    border: dispatchFilter === opt ? "1px solid var(--accent)" : "1px solid var(--border)",
+                  }}>{opt}</button>
+                ))}
+              </div>
+            </div>
+
+            {/* PEOPLE */}
+            <div style={{ marginBottom: 16 }}>
+              <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", color: "var(--text-muted)", marginBottom: 6, textTransform: "uppercase" }}>People</div>
+              <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", fontSize: 12, color: "var(--text-sec)" }}>
+                <input type="checkbox" checked={actorOnly} onChange={(e) => setActorOnly(e.target.checked)}
+                  style={{ accentColor: "var(--accent)" }} />
+                Only vehicles with linked actors
+              </label>
+            </div>
+
+            {/* ACTIONS */}
+            <div style={{ display: "flex", gap: 8 }}>
+              <button onClick={() => { loadData(); setFilterOpen(false); }} disabled={loading}
+                style={{ flex: 1, padding: "8px 0", borderRadius: 8, fontSize: 12, fontWeight: 700, background: "var(--accent)", color: "var(--accent-text)", border: "none", cursor: "pointer", opacity: loading ? 0.6 : 1 }}>
+                {loading ? "Loading..." : "Apply"}
+              </button>
+              <button onClick={() => {
+                setRangePreset("7d"); setVehicleFilter(""); setConcernFilter("");
+                setDispatchFilter("all"); setActorOnly(false);
+              }}
+                style={{ padding: "8px 16px", borderRadius: 8, fontSize: 12, fontWeight: 600, background: "transparent", color: "var(--text-muted)", border: "1px solid var(--border)", cursor: "pointer" }}>
+                Reset
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* ── LEFT SIDE CONTROLS ── */}
         <div style={{
