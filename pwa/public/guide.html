@@ -443,6 +443,7 @@ applyTheme(getTheme());
   <a class="scroll-nav-dot" href="#step-6"><span class="scroll-nav-label">Install</span><span class="scroll-nav-pip"></span></a>
   <a class="scroll-nav-dot" href="#step-7"><span class="scroll-nav-label">Integrations</span><span class="scroll-nav-pip"></span></a>
   <a class="scroll-nav-dot" href="#complete"><span class="scroll-nav-label">Done</span><span class="scroll-nav-pip"></span></a>
+  <a class="scroll-nav-dot" href="#whats-next"><span class="scroll-nav-label">Next</span><span class="scroll-nav-pip"></span></a>
 </nav>
 
 <div class="hero">
@@ -868,6 +869,45 @@ applyTheme(getTheme());
     <summary style="font-size:13px;font-weight:600;color:var(--text-sec);">How do harassment reports work?</summary>
     <p style="font-size:12px;color:var(--text-muted);margin-top:6px;line-height:1.7;">Reporters submit harassing phone numbers through the Alert tab. Numbers become entities that track how many reporters flagged them. Operators review reports in the Harassment section, tag numbers, and send responses that reporters see when they look up the same number. If Spokeo is configured, operators can identify callers directly.</p>
   </details>
+</div>
+
+<!-- WHAT'S NEXT -->
+<div class="step" id="whats-next" style="margin-top:48px;">
+  <div class="step-header"><span class="step-number" style="background:var(--accent);color:var(--accent-text);">+</span><div class="step-rule"></div></div>
+  <h2>What comes next: Node Settings and sovereign deployment</h2>
+  <p>The setup above gets your chapter running on hosted infrastructure. TRACE also supports running as a sovereign node on your own hardware, where your data never leaves your control.</p>
+
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px 24px;margin:20px 0;">
+    <h3 style="font-size:15px;margin-bottom:12px;">Node Settings (in the Operator Console)</h3>
+    <p style="font-size:13px;color:var(--text-sec);line-height:1.7;margin-bottom:10px;">
+      Open the operator console and click <strong style="color:var(--text)">Node</strong> in the sidebar (or press 0). This page is the source of truth for how your TRACE instance is configured. It covers:
+    </p>
+    <p style="font-size:13px;color:var(--text-sec);line-height:1.7;margin-bottom:4px;">
+      <strong style="color:var(--text)">Reporter access</strong> - How reporters connect to your node (local network, Tailscale private VPN, Cloudflare Tunnel, Tor onion service, or WiFi hotspot for field events).
+    </p>
+    <p style="font-size:13px;color:var(--text-sec);line-height:1.7;margin-bottom:4px;">
+      <strong style="color:var(--text)">Security hardening</strong> - Full-disk encryption, panic wipe, duress passphrase, zero-log mode, and hardware security keys.
+    </p>
+    <p style="font-size:13px;color:var(--text-sec);line-height:1.7;margin-bottom:4px;">
+      <strong style="color:var(--text)">AI engine</strong> - Use the cloud API (default), run AI locally with Ollama (no data leaves your device), or use hybrid mode where local AI handles routine tasks and cloud handles complex ones with your approval.
+    </p>
+    <p style="font-size:13px;color:var(--text-sec);line-height:1.7;margin-bottom:4px;">
+      <strong style="color:var(--text)">Peer sharing</strong> - Connect with other chapters. Share selected intelligence as encrypted files. No central database, no required sharing. Every chapter controls what they share, when, and with whom.
+    </p>
+    <p style="font-size:13px;color:var(--text-sec);line-height:1.7;">
+      <strong style="color:var(--text)">Backup</strong> - Encrypted exports to USB, automatic cloud backup, or cross-chapter mutual aid backup.
+    </p>
+  </div>
+
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px 24px;margin:20px 0;">
+    <h3 style="font-size:15px;margin-bottom:12px;">Sovereign node deployment (coming soon)</h3>
+    <p style="font-size:13px;color:var(--text-sec);line-height:1.7;margin-bottom:10px;">
+      TRACE is being built to run as a single application on your own hardware. Same software whether it is on a laptop, a Raspberry Pi, a mini PC, or a server rack. Your data stays on your device. The Node Settings page in the operator console explains every option with full transparency on costs, requirements, and trade-offs.
+    </p>
+    <p style="font-size:13px;color:var(--text-sec);line-height:1.7;">
+      The hosted deployment (this guide) remains available for chapters that prefer it. Both modes use the same data model and the same operator experience. A chapter can migrate from hosted to self-hosted by exporting their data.
+    </p>
+  </div>
 </div>
 
 </div>

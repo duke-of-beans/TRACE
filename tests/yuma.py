@@ -349,7 +349,7 @@ def test_guide_nav():
     guide = read("pwa/public/guide.html") or ""
 
     nav_hrefs = re.findall(r'scroll-nav-dot.*?href="#([^"]+)"', guide)
-    section_ids = re.findall(r'id="(step-\d+|complete)"', guide)
+    section_ids = re.findall(r'id="(step-\d+|complete|whats-next)"', guide)
 
     for href in nav_hrefs:
         if href in section_ids:
