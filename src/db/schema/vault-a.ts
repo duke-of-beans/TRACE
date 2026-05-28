@@ -764,3 +764,44 @@ export const incidentEvidence = ops.table("incident_evidence", {
   index("incident_evidence_phase").on(t.phase),
   index("incident_evidence_added").on(t.addedAt),
 ]);
+
+// ============================================================
+// VEHICLE GROUPS (fast dispatch, convoy tracking)
+// ============================================================
+export const vehicleGroups = ops.table("vehicle_groups", {
+  id: id(),
+  chapterId: uuid("chapter_id").notNull().references(() => chapters.id),
+  name: varchar("name", { length: 128 }).notNull(),
+  description: text("description"),
+  createdAt: createdAt(),
+}, (t) => [
+  uniqueIndex("vehicle_groups_chapter_name").on(t.chapterId, t.name),
+]);
+
+export const vehicleGroupMembers = ops.table("vehicle_group_members", {
+  id: id(),
+  groupId: uuid("group_id").notNull().references(() => vehicleGroups.id, { onDelete: "cascade" }),
+  vehicleId: uuid("vehicle_id").notNull().references(() => vehicles.id),
+  addedAt: timestamp("added_at", { withTimezone: true }).defaultNow(),
+}, (t) => [
+  uniqueIndex("vgm_group_vehicle").on(t.groupId, t.vehicleId),
+  index("vgm_vehicle").on(t.vehicleId),
+]);
+
+// ============================================================
+// WATCHPOINTS (saved hotspot locations with city grouping)
+// ============================================================
+export const watchpoints = ops.table("watchpoints", {
+  id: id(),
+  chapterId: uuid("chapter_id").notNull().references(() => chapters.id),
+  name: varchar("name", { length: 128 }).notNull(),
+  address: text("address"),
+  cityGroup: varchar("city_group", { length: 64 }),
+  lat: real("lat").notNull(),
+  lng: real("lng").notNull(),
+  radiusMeters: integer("radius_meters").default(200),
+  createdAt: createdAt(),
+}, (t) => [
+  index("watchpoints_chapter").on(t.chapterId),
+  index("watchpoints_city").on(t.chapterId, t.cityGroup),
+]);

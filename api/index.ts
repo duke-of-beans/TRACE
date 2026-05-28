@@ -22,6 +22,8 @@ import { importRouter } from "../src/api/import/index.js";
 import { platesRouter } from "../src/api/plates/index.js";
 import { harassmentRouter } from "../src/api/harassment/index.js";
 import { incidentsRouter, publicIncidentsRouter } from "../src/api/incidents/index.js";
+import { vehicleGroupsRouter } from "../src/api/vehicle-groups/index.js";
+import { watchpointsRouter } from "../src/api/watchpoints/index.js";
 import { authMiddleware, operatorOnly } from "../src/middleware/auth.js";
 import { auditMiddleware } from "../src/middleware/audit.js";
 
@@ -66,6 +68,8 @@ app.route("/tag-definitions", tagRouter);
 app.route("/plates", platesRouter);
 app.route("/harassment-reports", harassmentRouter);
 app.route("/incidents", incidentsRouter);
+app.route("/vehicle-groups", vehicleGroupsRouter);
+app.route("/watchpoints", watchpointsRouter);
 
 // Feedback
 app.post("/feedback", async (c) => {

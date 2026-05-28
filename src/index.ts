@@ -24,6 +24,8 @@ import { importRouter } from "./api/import/index.js";
 import { platesRouter } from "./api/plates/index.js";
 import { harassmentRouter } from "./api/harassment/index.js";
 import { incidentsRouter, publicIncidentsRouter } from "./api/incidents/index.js";
+import { vehicleGroupsRouter } from "./api/vehicle-groups/index.js";
+import { watchpointsRouter } from "./api/watchpoints/index.js";
 import { closeAll } from "./db/connection.js";
 import { authMiddleware, operatorOnly, adminOnly } from "./middleware/auth.js";
 import { auditMiddleware } from "./middleware/audit.js";
@@ -111,6 +113,8 @@ api.route("/tag-definitions", tagRouter);
 api.route("/plates", platesRouter);
 api.route("/harassment-reports", harassmentRouter);
 api.route("/incidents", incidentsRouter);
+api.route("/vehicle-groups", vehicleGroupsRouter);
+api.route("/watchpoints", watchpointsRouter);
 
 // Feedback — any authenticated user can submit
 api.post("/feedback", async (c) => {
