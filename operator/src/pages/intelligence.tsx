@@ -54,6 +54,13 @@ export function Intelligence() {
   const [eventTypes, setEventTypes] = useState<any[]>([]);
   const [selectedPin, setSelectedPin] = useState<any>(null);
   const [selectedMarker, setSelectedMarker] = useState<MapMarker | null>(null);
+  const [markerVehicle, setMarkerVehicle] = useState<any>(null);
+
+  // Fetch vehicle detail when marker is selected
+  useEffect(() => {
+    if (!selectedMarker?.data?.vehicleId) { setMarkerVehicle(null); return; }
+    api.getVehicle(selectedMarker.data.vehicleId).then(setMarkerVehicle).catch(() => setMarkerVehicle(null));
+  }, [selectedMarker?.data?.vehicleId]);
   const [temporalBuckets, setTemporalBuckets] = useState<TemporalBucket[]>([]);
   const [sliderIndex, setSliderIndex] = useState(0);
   const [playing, setPlaying] = useState(false);
@@ -368,7 +375,45 @@ export function Intelligence() {
             </div>
           )}
           {selectedMarker.data?.activityDescription && <p style={{ fontSize: 13, color: "var(--text-sec)", marginBottom: 8, lineHeight: 1.5 }}>{selectedMarker.data.activityDescription}</p>}
-          {selectedMarker.data?.vehicleDescription && (
+
+          {/* Vehicle card with photo */}
+          {markerVehicle && (
+            <div style={{ background: "var(--surface-alt)", border: "1px solid var(--border)", borderRadius: 8, padding: 10, marginBottom: 12 }}>
+              <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+                {markerVehicle.photoUrl && (
+                  <img src={markerVehicle.photoUrl} alt="" style={{ width: 48, height: 48, borderRadius: 6, objectFit: "cover" }} />
+                )}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontFamily: "var(--font-mono)", fontWeight: 700, fontSize: 14 }}>{markerVehicle.plate}</div>
+                  <div style={{ fontSize: 11, color: "var(--text-muted)" }}>
+                    {[markerVehicle.color, markerVehicle.year, markerVehicle.make, markerVehicle.model].filter(Boolean).join(" ")}
+                  </div>
+                </div>
+              </div>
+              {markerVehicle.concernHistory?.length > 0 && (
+                <div style={{ marginTop: 6, fontSize: 10, color: "var(--text-muted)" }}>
+                  {markerVehicle.recentSightings?.length || 0} sightings on record
+                </div>
+              )}
+              {markerVehicle.linkedActors?.length > 0 && (
+                <div style={{ marginTop: 8, borderTop: "1px solid var(--border)", paddingTop: 8 }}>
+                  <div style={{ fontSize: 10, fontWeight: 600, color: "var(--text-sec)", marginBottom: 4 }}>Linked actors</div>
+                  <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                    {markerVehicle.linkedActors.map((a: any) => (
+                      <div key={a.actorId} onClick={() => { window.dispatchEvent(new CustomEvent("trace-navigate", { detail: "actors" })); }}
+                        style={{ display: "flex", alignItems: "center", gap: 4, padding: "3px 8px", borderRadius: 6,
+                          background: "var(--surface)", border: "1px solid var(--border)", cursor: "pointer", fontSize: 11 }}>
+                        {a.photoUrl && <img src={a.photoUrl} alt="" style={{ width: 18, height: 18, borderRadius: "50%", objectFit: "cover" }} />}
+                        <span style={{ color: "var(--accent)" }}>{a.alias || "Unknown"}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {selectedMarker.data?.vehicleDescription && !markerVehicle && (
             <div style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 8, padding: "6px 10px", background: "var(--surface-alt)", borderRadius: 6 }}>
               {selectedMarker.data.vehicleDescription}
             </div>

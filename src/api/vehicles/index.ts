@@ -84,7 +84,7 @@ vehiclesRouter.get("/:id", async (c) => {
     activityDescription: sightings.activityDescription, locationDescription: sightings.locationDescription })
     .from(sightings).where(eq(sightings.vehicleId, id))
     .orderBy(desc(sightings.observedAt)).limit(20);
-  const linkedActors = await opsDb.select({ actorId: actorVehicles.actorId, alias: actors.alias })
+  const linkedActors = await opsDb.select({ actorId: actorVehicles.actorId, alias: actors.alias, photoUrl: actors.photoUrl })
     .from(actorVehicles).innerJoin(actors, eq(actorVehicles.actorId, actors.id))
     .where(eq(actorVehicles.vehicleId, id));
 

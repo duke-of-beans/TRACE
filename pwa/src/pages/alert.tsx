@@ -20,6 +20,7 @@ export function Alert() {
   const [phone, setPhone] = useState("");
   const [type, setType] = useState("call");
   const [description, setDescription] = useState("");
+  const [evidenceFiles, setEvidenceFiles] = useState<Array<{ name: string; dataUri: string }>>([]);
   const [occurredAt, setOccurredAt] = useState(
     new Date().toISOString().slice(0, 16)
   );
@@ -51,6 +52,7 @@ export function Alert() {
         incidentType: type,
         description: description || undefined,
         occurredAt: new Date(occurredAt).toISOString(),
+        evidenceRefs: evidenceFiles.map(f => ({ type: "screenshot", key: f.dataUri.slice(0, 100), size: f.dataUri.length })),
       });
       setSubmitResult(result);
       setSubmitted(true);
@@ -92,6 +94,7 @@ export function Alert() {
             setPhone(""); setType("call"); setDescription("");
             setOccurredAt(new Date().toISOString().slice(0, 16));
             setSubmitted(false); setSubmitResult(null); setLookupResult(null);
+            setEvidenceFiles([]);
           }} class="btn btn-secondary btn-full" style={{ marginTop: "var(--sp-4)" }}>
             Report Another Number
           </button>
@@ -180,6 +183,42 @@ export function Alert() {
           onInput={(e) => setDescription((e.target as HTMLTextAreaElement).value)}
           class="input" style={{ minHeight: 80 }}
         />
+      </div>
+
+      {/* Evidence / Screenshots */}
+      <div style={{ marginBottom: "var(--sp-4)" }}>
+        <label class="section-label">Evidence <span style={{ fontWeight: 400, color: "var(--text-muted)" }}>(optional)</span></label>
+        <p style={{ fontSize: "var(--text-xs)", color: "var(--text-muted)", marginBottom: "var(--sp-2)" }}>
+          Screenshots of texts, call logs, or voicemail transcripts.
+        </p>
+        <div style={{ display: "flex", gap: "var(--sp-2)", flexWrap: "wrap", marginBottom: evidenceFiles.length > 0 ? "var(--sp-2)" : 0 }}>
+          {evidenceFiles.map((f, i) => (
+            <div key={i} style={{ position: "relative", width: 64, height: 64 }}>
+              <img src={f.dataUri} alt="" style={{ width: 64, height: 64, objectFit: "cover", borderRadius: "var(--radius-sm)", border: "1px solid var(--border)" }} />
+              <button onClick={() => setEvidenceFiles(ev => ev.filter((_, j) => j !== i))}
+                style={{ position: "absolute", top: -6, right: -6, width: 18, height: 18, borderRadius: "50%", background: "var(--danger)", color: "#fff", border: "none", fontSize: 10, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>✕</button>
+            </div>
+          ))}
+        </div>
+        {evidenceFiles.length < 4 && (
+          <label style={{ display: "inline-flex", alignItems: "center", gap: "var(--sp-2)", padding: "var(--sp-2) var(--sp-3)",
+            borderRadius: "var(--radius)", border: "1px dashed var(--border)", cursor: "pointer", fontSize: "var(--text-sm)", color: "var(--text-sec)" }}>
+            <Icon name="paperclip" size={16} />
+            <span>Attach file</span>
+            <input type="file" accept="image/*" multiple style={{ display: "none" }} onChange={(e) => {
+              const files = (e.target as HTMLInputElement).files;
+              if (!files) return;
+              Array.from(files).slice(0, 4 - evidenceFiles.length).forEach(file => {
+                const reader = new FileReader();
+                reader.onload = () => {
+                  setEvidenceFiles(prev => [...prev, { name: file.name, dataUri: reader.result as string }]);
+                };
+                reader.readAsDataURL(file);
+              });
+              (e.target as HTMLInputElement).value = "";
+            }} />
+          </label>
+        )}
       </div>
 
       {error && <p class="error-text">{error}</p>}
