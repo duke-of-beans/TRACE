@@ -230,6 +230,9 @@ export function App() {
                   <p className="text-xs" style={{ color: "var(--text-muted)" }}>
                     Press number keys 1-9 to switch pages. Press ? for the keyboard shortcut overlay.
                   </p>
+                  <p className="text-xs mt-2" style={{ color: "var(--text-muted)" }}>
+                    For detailed walkthroughs of every feature, open the <strong style={{ color: "var(--accent)" }}>User Guide</strong> from the sidebar below.
+                  </p>
                 </div>
               </div>
             </div>

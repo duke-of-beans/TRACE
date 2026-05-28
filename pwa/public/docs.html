@@ -125,6 +125,7 @@
   <a class="scroll-nav-dot" href="#incidents"><span class="scroll-nav-label">Incidents</span><span class="scroll-nav-pip"></span></a>
   <a class="scroll-nav-dot" href="#safety"><span class="scroll-nav-label">Safety</span><span class="scroll-nav-pip"></span></a>
   <a class="scroll-nav-dot" href="#admin"><span class="scroll-nav-label">Admin</span><span class="scroll-nav-pip"></span></a>
+  <a class="scroll-nav-dot" href="#faq"><span class="scroll-nav-label">FAQ</span><span class="scroll-nav-pip"></span></a>
 </nav>
 
 <div class="hero">
@@ -132,7 +133,7 @@
   <div class="hero-rule"></div>
   <div class="hero-sub">Tracking · Reporting · Analysis · Community Evidence</div>
   <div class="hero-label">Operations Guide</div>
-  <div class="hero-time">How to use every feature. Written for everyone.</div>
+  <div class="hero-time">How to use every feature in TRACE.</div>
 </div>
 
 <div class="container">
@@ -475,6 +476,62 @@
   <div class="callout">
     <strong>Bug reports</strong> go straight to the development team. Click "Report Bug" in the sidebar, describe the problem, and it creates an issue automatically. Your data is scrubbed for privacy before it's sent.
   </div>
+</div>
+
+<!-- ============================================ -->
+<div class="step" id="faq">
+  <div class="step-header"><span class="step-number">FAQ</span><div class="step-rule"></div></div>
+  <h2>Common questions</h2>
+
+  <details style="margin-bottom:10px;border:1px solid var(--border);border-radius:6px;padding:10px 14px;">
+    <summary style="font-size:13px;font-weight:600;color:var(--text-sec);">How do I add a new reporter?</summary>
+    <p style="font-size:12px;color:var(--text-muted);margin-top:6px;line-height:1.7;">Admin tab, Reporters section. Click Generate Invite Code. Give that code to the reporter in person or over an encrypted channel like Signal. They enter it in the app to join your chapter.</p>
+  </details>
+
+  <details style="margin-bottom:10px;border:1px solid var(--border);border-radius:6px;padding:10px 14px;">
+    <summary style="font-size:13px;font-weight:600;color:var(--text-sec);">Can reporters see each other's identities?</summary>
+    <p style="font-size:12px;color:var(--text-muted);margin-top:6px;line-height:1.7;">No. Reporters only see their own callsign and dispatches. They cannot see other reporters, operator identities, or the full vehicle database. The system separates identity data from operational data at the database level.</p>
+  </details>
+
+  <details style="margin-bottom:10px;border:1px solid var(--border);border-radius:6px;padding:10px 14px;">
+    <summary style="font-size:13px;font-weight:600;color:var(--text-sec);">What happens if a reporter's phone is lost?</summary>
+    <p style="font-size:12px;color:var(--text-muted);margin-top:6px;line-height:1.7;">Go to the Security page and use the remote kill or nuke function on their device. Kill disables the app permanently. Nuke wipes all local data. The phone's PIN lock also prevents casual access.</p>
+  </details>
+
+  <details style="margin-bottom:10px;border:1px solid var(--border);border-radius:6px;padding:10px 14px;">
+    <summary style="font-size:13px;font-weight:600;color:var(--text-sec);">The Activity Map shows no sightings</summary>
+    <p style="font-size:12px;color:var(--text-muted);margin-top:6px;line-height:1.7;">The map defaults to a 7-day window. If your sightings are older, try the 30d or 90d filter, or use the All button. If you loaded sample data and still see nothing, go to Admin, Import, and press "Make Samples Recent" to move them into the current time window.</p>
+  </details>
+
+  <details style="margin-bottom:10px;border:1px solid var(--border);border-radius:6px;padding:10px 14px;">
+    <summary style="font-size:13px;font-weight:600;color:var(--text-sec);">How do I escalate a vehicle's concern level?</summary>
+    <p style="font-size:12px;color:var(--text-muted);margin-top:6px;line-height:1.7;">Open the vehicle's record from the Vehicles page. Click the current concern level to see the full ladder, then select the new level. You will be asked for a reason, which gets logged in the vehicle's history.</p>
+  </details>
+
+  <details style="margin-bottom:10px;border:1px solid var(--border);border-radius:6px;padding:10px 14px;">
+    <summary style="font-size:13px;font-weight:600;color:var(--text-sec);">Can I use TRACE without integrations?</summary>
+    <p style="font-size:12px;color:var(--text-muted);margin-top:6px;line-height:1.7;">Yes. All core features work without any API keys. Integrations like CarAPI and Spokeo add automatic plate lookups and caller identification, but they are optional and cost money per lookup.</p>
+  </details>
+
+  <details style="margin-bottom:10px;border:1px solid var(--border);border-radius:6px;padding:10px 14px;">
+    <summary style="font-size:13px;font-weight:600;color:var(--text-sec);">What does the panic button do?</summary>
+    <p style="font-size:12px;color:var(--text-muted);margin-top:6px;line-height:1.7;">It triggers an emergency action configured by the operator. Accessible from any screen in the reporter app. Typically set to wipe local data, send a distress signal, or both. The exact behavior depends on your chapter's configuration.</p>
+  </details>
+
+  <details style="margin-bottom:10px;border:1px solid var(--border);border-radius:6px;padding:10px 14px;">
+    <summary style="font-size:13px;font-weight:600;color:var(--text-sec);">How do I create an incident?</summary>
+    <p style="font-size:12px;color:var(--text-muted);margin-top:6px;line-height:1.7;">Go to the Incidents page and click New Incident. Fill in a title, description, and link relevant vehicles and actors. You can then collect evidence, generate witness forms, and produce printable reports.</p>
+  </details>
+
+  <details style="margin-bottom:10px;border:1px solid var(--border);border-radius:6px;padding:10px 14px;">
+    <summary style="font-size:13px;font-weight:600;color:var(--text-sec);">Is there a cost?</summary>
+    <p style="font-size:12px;color:var(--text-muted);margin-top:6px;line-height:1.7;">TRACE itself is free. The database (Neon) and hosting (Vercel) have free tiers that cover most chapters. Optional integrations like CarAPI charge per lookup (about 30 cents each). You control all accounts and can delete everything at any time.</p>
+  </details>
+
+  <details style="margin-bottom:10px;border:1px solid var(--border);border-radius:6px;padding:10px 14px;">
+    <summary style="font-size:13px;font-weight:600;color:var(--text-sec);">How do I get help?</summary>
+    <p style="font-size:12px;color:var(--text-muted);margin-top:6px;line-height:1.7;">Use the Report Bug button in the operator console sidebar. Describe the problem and it gets filed automatically. For setup issues, refer to the <a href="/guide.html">Setup Guide</a>.</p>
+  </details>
 </div>
 
 </div><!-- end container -->
