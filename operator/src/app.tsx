@@ -226,6 +226,10 @@ export function App() {
                   <p>View connected reporters, suspend or kill devices remotely. The kill signal triggers on the reporter's next check-in.</p>
                 </div>
                 <div>
+                  <h3 className="font-semibold mb-1" style={{ color: "var(--text)" }}>Node Settings</h3>
+                  <p>Configure how your TRACE node runs: networking (local, Tailscale, Cloudflare, Tor), security hardening (disk encryption, panic wipe, logging), AI engine (cloud, local via Ollama, or hybrid), peer sharing with other chapters, and backup strategies. The Setup Guide tab is the full reference for all deployment options.</p>
+                </div>
+                <div>
                   <h3 className="font-semibold mb-1" style={{ color: "var(--text)" }}>Reporting Issues</h3>
                   <p>If something breaks or behaves unexpectedly, report it on the <a href="https://github.com/duke-of-beans/TRACE/issues" target="_blank" rel="noopener" style={{ color: "var(--accent)" }}>TRACE GitHub Issues page</a>. Include what you were doing, what happened, and what you expected. Screenshots help. Your reporters can tell you about issues they encounter and you can relay them, or they can file directly.</p>
                 </div>

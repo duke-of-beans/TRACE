@@ -54,7 +54,7 @@ const STEPS = [
   {
     icon: "compass", title: "Try it out",
     body: "The system has demo data. Vehicles are FAKE-001 through TEST-005, actors are GHOST, SPARKS, and NINE. Explore freely, clear demo data from Admin when ready.",
-    detail: "All demo data is prefixed DEMO, FAKE, or TEST. The Activity Map shows sightings on a satellite view. Try the triage keyboard shortcuts.",
+    detail: "All demo data is prefixed DEMO, FAKE, or TEST. The Activity Map shows sightings on a satellite view. Try the triage keyboard shortcuts. When you are ready to configure networking, security, local AI, or peer sharing, open Node Settings (key 0).",
   },
 ];
 
