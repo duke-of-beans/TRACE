@@ -252,7 +252,7 @@ export function Submit() {
   }
 
   return (
-    <div>
+    <div style={{ paddingBottom: 24 }}>
       {/* Wipe confirmation overlay */}
       {wipeConfirm && (
         <div style={{

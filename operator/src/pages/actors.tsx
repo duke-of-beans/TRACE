@@ -49,13 +49,11 @@ export function Actors() {
   return (
     <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
       <div className="w-full lg:w-80 lg:flex-shrink-0">
-        <div className="flex justify-between items-center mb-4">
-          <div className="flex items-center gap-2">
-            <h2 className="text-lg font-semibold">Actors</h2>
-        <p className="text-xs mb-3" style={{ color: "var(--text-muted)" }}>Persons observed in connection with tracked vehicles or incidents. Click a name to view their full record. Use aliases only.</p>
-            <HelpTip text="Known individuals linked to tracked vehicles. Profiles persist across vehicle retirements." />
-          </div>
+        <div className="flex justify-between items-center mb-2">
+          <h2 className="text-lg font-semibold">Actors</h2>
+          <HelpTip text="Known individuals linked to tracked vehicles. Profiles persist across vehicle retirements." />
         </div>
+        <p className="text-xs mb-3" style={{ color: "var(--text-muted)" }}>Persons observed in connection with tracked vehicles or incidents. Click a name to view their full record. Use aliases only.</p>
 
         <button onClick={() => setShowCreate(!showCreate)}
           className="w-full mb-3 px-3 py-2 rounded-lg text-sm border border-dashed border-trace-border text-trace-accent hover:bg-trace-surface transition flex items-center justify-center gap-2">

@@ -94,24 +94,23 @@ export function Incidents() {
   // ---- LIST VIEW ----
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex flex-wrap justify-between items-start gap-3 mb-3">
         <h1 className="text-2xl font-bold">Incidents</h1>
-      {/* helptext-incidents */}
-      <p className="text-xs mb-4" style={{ color: "var(--text-muted)" }}>Structured reports for events beyond routine sightings. File incidents, link actors and vehicles, collect evidence, and generate observation records for authorities. Share public witness forms for community input.</p>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-shrink-0">
           <button onClick={load} className="text-xs flex items-center gap-1" style={{ color: "var(--accent)" }}>
             <Icon name="clock" size={14} /> Refresh
           </button>
           <button onClick={() => setView("create")}
-            className="text-xs px-3 py-1.5 rounded-lg font-medium flex items-center gap-1"
+            className="whitespace-nowrap text-sm px-4 py-2 rounded-lg font-semibold flex items-center gap-1"
             style={{ background: "var(--accent)", color: "var(--accent-text)" }}>
             <Icon name="plus" size={14} /> File Incident
           </button>
         </div>
       </div>
+      <p className="text-sm mb-5" style={{ color: "var(--text-muted)" }}>Structured reports for events beyond routine sightings. Link actors and vehicles, collect evidence, and generate observation records.</p>
 
       {/* Stats row */}
-      <div className="grid grid-cols-4 gap-3 mb-6">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
         {[
           { label: "Total", value: stats.total, color: "var(--text)" },
           { label: "Open", value: stats.open, color: "#D97706" },
