@@ -16,6 +16,11 @@ export function Vehicles() {
   const [selected, setSelected] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [adding, setAdding] = useState(false);
+  const [viewMode, setViewMode] = useState<"list" | "groups">("list");
+  const [groups, setGroups] = useState<any[]>([]);
+  const [selectedGroup, setSelectedGroup] = useState<any>(null);
+  const [creatingGroup, setCreatingGroup] = useState(false);
+  const [newGroupName, setNewGroupName] = useState("");
   const toast = useToast();
 
   const load = () => {
@@ -26,7 +31,13 @@ export function Vehicles() {
       .finally(() => setLoading(false));
   };
 
-  useEffect(() => { load(); }, []);
+  const loadGroups = () => {
+    api.getVehicleGroups()
+      .then((g) => setGroups(Array.isArray(g) ? g : []))
+      .catch(() => {});
+  };
+
+  useEffect(() => { load(); loadGroups(); }, []);
 
   const handleSearch = async () => {
     if (search.length < 2) { toast("Enter at least 2 characters", "info"); return; }
@@ -61,6 +72,22 @@ export function Vehicles() {
     <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
       <div className="w-full lg:w-80 lg:flex-shrink-0">
         <p className="text-xs mb-3" style={{ color: "var(--text-muted)" }}>Every vehicle your chapter tracks. Search by plate, make, or model. Click to view full record with sighting history and linked actors.</p>
+
+        {/* View toggle: All Vehicles | Groups */}
+        <div className="flex gap-1 mb-3 p-1 rounded-lg" style={{ background: "var(--bg)", border: "1px solid var(--border)" }}>
+          <button onClick={() => setViewMode("list")}
+            className="flex-1 px-3 py-1.5 rounded text-xs font-medium transition-colors"
+            style={{ background: viewMode === "list" ? "var(--accent)" : "transparent", color: viewMode === "list" ? "var(--accent-text)" : "var(--text-sec)" }}>
+            All Vehicles
+          </button>
+          <button onClick={() => { setViewMode("groups"); loadGroups(); }}
+            className="flex-1 px-3 py-1.5 rounded text-xs font-medium transition-colors"
+            style={{ background: viewMode === "groups" ? "var(--accent)" : "transparent", color: viewMode === "groups" ? "var(--accent-text)" : "var(--text-sec)" }}>
+            Groups {groups.length > 0 && <span style={{ opacity: 0.7 }}>({groups.length})</span>}
+          </button>
+        </div>
+
+        {viewMode === "list" ? (<>
         <div className="flex gap-2 mb-3">
           <input placeholder="Search plate or description..." value={search}
             onChange={(e) => setSearch(e.target.value.toUpperCase())}
@@ -101,10 +128,151 @@ export function Vehicles() {
             ))}
           </div>
         )}
+        </>) : (
+          /* Groups view */
+          <div>
+            <button onClick={() => setCreatingGroup(true)}
+              className="w-full mb-3 px-3 py-2 rounded-lg text-sm border border-dashed border-trace-border text-trace-accent hover:bg-trace-surface transition flex items-center justify-center gap-2">
+              <Icon name="plus" size={14} /> New Group
+            </button>
+
+            {creatingGroup && (
+              <div className="mb-3 p-3 rounded-lg" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+                <input placeholder="Group name (e.g. Convoy Team A)" value={newGroupName}
+                  onChange={(e) => setNewGroupName(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && newGroupName.trim()) {
+                      api.createVehicleGroup({ name: newGroupName.trim() })
+                        .then(() => { loadGroups(); setNewGroupName(""); setCreatingGroup(false); toast("Group created", "success"); })
+                        .catch(() => toast("Failed to create group", "error"));
+                    }
+                  }}
+                  className={inputCls} autoFocus />
+                <div className="flex gap-2 mt-2">
+                  <button onClick={() => {
+                    if (!newGroupName.trim()) return;
+                    api.createVehicleGroup({ name: newGroupName.trim() })
+                      .then(() => { loadGroups(); setNewGroupName(""); setCreatingGroup(false); toast("Group created", "success"); })
+                      .catch(() => toast("Failed to create group", "error"));
+                  }} className="flex-1 px-3 py-1.5 rounded text-xs font-semibold" style={{ background: "var(--accent)", color: "var(--accent-text)" }}>Create</button>
+                  <button onClick={() => { setCreatingGroup(false); setNewGroupName(""); }} className="px-3 py-1.5 rounded text-xs" style={{ color: "var(--text-muted)" }}>Cancel</button>
+                </div>
+              </div>
+            )}
+
+            {groups.length === 0 && !creatingGroup && (
+              <div className="text-center py-8">
+                <div style={{ color: "var(--text-muted)" }}><Icon name="car" size={32} /></div>
+                <p className="text-sm mt-2 font-medium">No groups yet</p>
+                <p className="text-xs mt-1" style={{ color: "var(--text-muted)" }}>Group vehicles for fast dispatch. Create a group and add vehicles to it.</p>
+              </div>
+            )}
+
+            <div className="space-y-2 max-h-[50vh] lg:max-h-[calc(100vh-14rem)] overflow-auto">
+              {groups.map((g) => (
+                <button key={g.id} onClick={() => setSelectedGroup(selectedGroup?.id === g.id ? null : g)}
+                  className={`w-full text-left p-3 rounded-lg border transition-colors ${
+                    selectedGroup?.id === g.id ? "border-trace-accent bg-trace-surface" : "border-trace-border bg-trace-bg hover:bg-trace-surface"
+                  }`}>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="font-semibold text-sm">{g.name}</div>
+                      <div className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>
+                        {g.memberCount || 0} vehicle{(g.memberCount || 0) !== 1 ? "s" : ""}
+                      </div>
+                    </div>
+                    <div className="flex -space-x-2">
+                      {(g.members || []).slice(0, 4).map((m: any) => (
+                        m.photoUrl ? (
+                          <img key={m.vehicleId} src={m.photoUrl} alt="" className="w-7 h-7 rounded border-2" style={{ borderColor: "var(--surface)", objectFit: "cover" }} />
+                        ) : (
+                          <div key={m.vehicleId} className="w-7 h-7 rounded border-2 flex items-center justify-center" style={{ borderColor: "var(--surface)", background: "var(--bg)" }}>
+                            <Icon name="car" size={10} />
+                          </div>
+                        )
+                      ))}
+                      {(g.members || []).length > 4 && (
+                        <div className="w-7 h-7 rounded border-2 flex items-center justify-center text-[9px] font-bold" style={{ borderColor: "var(--surface)", background: "var(--bg)", color: "var(--text-muted)" }}>
+                          +{g.members.length - 4}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="flex-1">
-        {adding ? (
+        {viewMode === "groups" && selectedGroup ? (
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h2 className="text-lg font-bold">{selectedGroup.name}</h2>
+                <p className="text-xs" style={{ color: "var(--text-muted)" }}>{selectedGroup.memberCount || 0} vehicles in this group</p>
+              </div>
+              <button onClick={async () => {
+                await api.deleteVehicleGroup(selectedGroup.id).catch(() => {});
+                setSelectedGroup(null);
+                loadGroups();
+                toast("Group deleted", "success");
+              }} className="text-xs px-3 py-1.5 rounded" style={{ color: "var(--danger)", border: "1px solid var(--border)" }}>Delete Group</button>
+            </div>
+
+            {/* Members */}
+            <div className="space-y-2 mb-6">
+              {(selectedGroup.members || []).map((m: any) => (
+                <div key={m.vehicleId} className="flex items-center gap-3 p-3 rounded-lg" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+                  {m.photoUrl ? (
+                    <img src={m.photoUrl} alt="" className="w-10 h-10 rounded object-cover" />
+                  ) : (
+                    <div className="w-10 h-10 rounded flex items-center justify-center" style={{ background: "var(--bg)", border: "1px solid var(--border)" }}>
+                      <Icon name="car" size={14} />
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <div className="font-mono font-bold tracking-wider text-sm">{m.plate}</div>
+                    <div className="text-xs" style={{ color: "var(--text-muted)" }}>{[m.color, m.make, m.model].filter(Boolean).join(" ")}</div>
+                  </div>
+                  <button onClick={async () => {
+                    await api.removeFromVehicleGroup(selectedGroup.id, m.vehicleId);
+                    loadGroups();
+                    const updated = groups.find((g: any) => g.id === selectedGroup.id);
+                    if (updated) setSelectedGroup({ ...updated, members: (updated.members || []).filter((x: any) => x.vehicleId !== m.vehicleId), memberCount: (updated.memberCount || 1) - 1 });
+                    toast("Removed from group", "info");
+                  }} className="text-xs px-2 py-1 rounded" style={{ color: "var(--text-muted)", border: "1px solid var(--border)" }}>Remove</button>
+                </div>
+              ))}
+            </div>
+
+            {/* Add vehicles */}
+            <div className="rounded-lg p-4" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+              <p className="text-xs font-semibold mb-2" style={{ color: "var(--text-sec)" }}>Add vehicles to this group</p>
+              <div className="space-y-1 max-h-48 overflow-auto">
+                {vehicles
+                  .filter((v) => !(selectedGroup.members || []).some((m: any) => m.vehicleId === v.id))
+                  .slice(0, 20)
+                  .map((v) => (
+                  <button key={v.id} onClick={async () => {
+                    await api.addToVehicleGroup(selectedGroup.id, [v.id]);
+                    loadGroups();
+                    setTimeout(() => {
+                      const updated = groups.find((g: any) => g.id === selectedGroup.id);
+                      if (updated) setSelectedGroup(updated);
+                      else loadGroups();
+                    }, 300);
+                    toast(`Added ${v.plate} to group`, "success");
+                  }} className="w-full text-left flex items-center gap-2 px-2 py-1.5 rounded text-xs hover:bg-trace-bg transition">
+                    <span className="font-mono font-bold">{v.plate}</span>
+                    <span style={{ color: "var(--text-muted)" }}>{[v.color, v.make, v.model].filter(Boolean).join(" ")}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        ) : adding ? (
           <AddVehicleForm onCreated={handleCreated} onCancel={() => setAdding(false)} />
         ) : selected ? (
           <ErrorBoundary fallbackMessage="Failed to render vehicle record">

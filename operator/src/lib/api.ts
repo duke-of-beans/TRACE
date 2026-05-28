@@ -166,4 +166,27 @@ export const api = {
   getIncidentRecord: (id: string) => request<any>(`/incidents/${id}/record`),
   rapidCapture: (data: any) =>
     request("/incidents/rapid", { method: "POST", body: JSON.stringify(data) }),
+
+  // Vehicle Groups
+  getVehicleGroups: () => request<any[]>("/vehicle-groups"),
+  createVehicleGroup: (data: { name: string; description?: string; vehicleIds?: string[] }) =>
+    request("/vehicle-groups", { method: "POST", body: JSON.stringify(data) }),
+  updateVehicleGroup: (id: string, data: any) =>
+    request(`/vehicle-groups/${id}`, { method: "PATCH", body: JSON.stringify(data) }),
+  deleteVehicleGroup: (id: string) =>
+    request(`/vehicle-groups/${id}`, { method: "DELETE" }),
+  addToVehicleGroup: (groupId: string, vehicleIds: string[]) =>
+    request(`/vehicle-groups/${groupId}/members`, { method: "POST", body: JSON.stringify({ vehicleIds }) }),
+  removeFromVehicleGroup: (groupId: string, vehicleId: string) =>
+    request(`/vehicle-groups/${groupId}/members/${vehicleId}`, { method: "DELETE" }),
+
+  // Watchpoints
+  getWatchpoints: () => request<any>("/watchpoints"),
+  createWatchpoint: (data: any) =>
+    request("/watchpoints", { method: "POST", body: JSON.stringify(data) }),
+  updateWatchpoint: (id: string, data: any) =>
+    request(`/watchpoints/${id}`, { method: "PATCH", body: JSON.stringify(data) }),
+  deleteWatchpoint: (id: string) =>
+    request(`/watchpoints/${id}`, { method: "DELETE" }),
+  getWatchpointActivity: (id: string) => request<any>(`/watchpoints/${id}/activity`),
 };
