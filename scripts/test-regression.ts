@@ -127,7 +127,7 @@ const tests: Record<string, () => Promise<void>> = {
       method: "POST",
       headers: headers(auth.sessionToken),
       body: JSON.stringify({
-        lat: 34.27, lng: -118.78, plate: "CHAIN-001",
+        lat: 38.940, lng: -77.180, plate: "CHAIN-001",
         activityDescription: "YUMA chain test sighting",
         observedAt: new Date().toISOString(),
       }),
