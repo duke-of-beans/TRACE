@@ -13,8 +13,8 @@ const STEPS = [
   },
   {
     icon: "grid", title: "Your workspace",
-    body: "The sidebar navigates between Triage, Activity Map, Dispatches, Harassment, Vehicles, Actors, Admin, and Security. Number keys 1-9 switch pages. Press ? for all shortcuts.",
-    detail: "Dashboard (1). Triage (2): incoming sightings. Activity Map (3): geospatial view. Dispatches (4). Harassment (5): phone reports. Vehicles (6)/Actors (7): case files. Admin (8). Security (9).",
+    body: "The sidebar navigates between Dashboard, Triage, Activity Map, Vehicles, Actors, Reports, and more. Number keys 1-9 switch pages instantly. Press ? for all shortcuts.",
+    detail: "Dashboard (1). Triage (2): incoming sightings. Activity Map (3): geospatial view with filters. Dispatches (4). Harassment (5): phone reports. Vehicles (6)/Actors (7): case files. Reports (R): behavior and co-occurrence. Admin (8). Security (9).",
   },
   {
     icon: "zap", title: "Triage incoming sightings",
@@ -22,9 +22,14 @@ const STEPS = [
     detail: "Shortcuts: A (approve), F (flag), D (dismiss), E (escalate), N/P (next/previous). New sightings appear in real time.",
   },
   {
+    icon: "map-pin", title: "Activity Map",
+    body: "Every sighting on a satellite map with heatmap, corridors, and co-occurrence zones. Set watchpoints to monitor specific locations. The Filters panel lets you slice by time, vehicle, concern level, dispatches, and linked actors.",
+    detail: "Right-click the map to drop a dispatch pin or save a watchpoint. Watchpoints track which vehicles pass through an area. Use the time slider to replay patterns hour by hour.",
+  },
+  {
     icon: "car", title: "Vehicle tracking",
-    body: "Every vehicle starts at the lowest concern level. As sightings accumulate, promote through the ladder. Levels and rules are fully configurable in Admin.",
-    detail: "Each vehicle has a record: plate, description, sighting history, map of locations, linked actors. Concern levels and auto-promotion rules editable in Admin.",
+    body: "Every vehicle starts at the lowest concern level. As sightings accumulate, promote through the ladder. Each vehicle record shows photos, a sighting map, activity patterns, and which other vehicles it is frequently seen with.",
+    detail: "Multi-photo gallery with primary selection. Behavior report shows repeat visit locations and time-of-day patterns. Co-occurrence pairs flag possible coordination between vehicles.",
   },
   {
     icon: "user", title: "Invite reporters",
@@ -32,14 +37,14 @@ const STEPS = [
     detail: "Invite codes: XXXX-XXXX format, single-use, valid 7 days. Real identities are encrypted in a separate vault inaccessible during normal operations.",
   },
   {
+    icon: "file-text", title: "Reports",
+    body: "Two analytical reports. Behavior: which vehicles show up at the same location repeatedly. Co-occurrence: which vehicles operate together within a time window. Both can be copied as plain text for sharing.",
+    detail: "Filter by date range and vehicle. Behavior clusters sightings by location and surfaces time-of-day patterns. Co-occurrence finds vehicle pairs seen near each other within configurable distance and time thresholds.",
+  },
+  {
     icon: "shield", title: "Remote device controls",
     body: "Lost phone? Compromised reporter? Suspend blocks access (reversible). Kill erases TRACE data from the device. Both take effect on next check-in.",
     detail: "Nuke All: wipe every device in the chapter (double-confirmed). Auto-wipe: devices that go offline for 72 hours erase themselves automatically.",
-  },
-  {
-    icon: "alert-triangle", title: "Harassment reports",
-    body: "Reporters can submit harassing phone numbers through the app. You review them, investigate, and respond.",
-    detail: "The Harassment page (key 6) shows reported numbers grouped as records. Each number tracks how many reporters flagged it. Tags and responses are visible to reporters when they look up the same number.",
   },
   {
     icon: "sliders", title: "Integrations",
@@ -47,14 +52,9 @@ const STEPS = [
     detail: "CarAPI resolves plates to make, model, year, and color. Spokeo identifies phone numbers. Keys are encrypted server-side. Each lookup is metered and visible in Admin.",
   },
   {
-    icon: "info", title: "Report issues",
-    body: "Something break? File it. Your reporters can tell you about issues they hit, and you relay or have them file directly.",
-    detail: "github.com/duke-of-beans/TRACE/issues. Include what happened, what you expected, and screenshots if possible. Every report is read.",
-  },
-  {
     icon: "compass", title: "Try it out",
-    body: "The system has demo data. Vehicles are FAKE-001 through TEST-005, actors are GHOST, SPARKS, and NINE. Explore freely, clear demo data from Admin when ready.",
-    detail: "All demo data is prefixed DEMO, FAKE, or TEST. The Activity Map shows sightings on a satellite view. Try the triage keyboard shortcuts. When you are ready to configure networking, security, local AI, or peer sharing, open Node Settings (key 0).",
+    body: "Explore the Activity Map filters, check the Reports page, review vehicle records with their photo galleries and pattern data. When ready, clear demo data from Admin and start real operations.",
+    detail: "Node Settings (key 0) is where you configure networking, security, local AI, or peer sharing when you are ready to go deeper.",
   },
 ];
 

@@ -18,22 +18,27 @@ const STEPS = [
   {
     icon: "lock", title: "Your data is encrypted",
     body: "Everything stored on your phone is scrambled using your PIN. Without it, nothing is readable.",
-    detail: "AES-256-GCM encryption. The key is derived from your PIN via PBKDF2. Without the PIN, stored data is irrecoverable ciphertext.",
+    detail: "AES-256-GCM encryption. The key is derived from your PIN. Without the PIN, stored data cannot be recovered.",
   },
   {
     icon: "camera", title: "Photos stay off your camera roll",
     body: "Photos taken through TRACE go straight into encrypted storage. Camera model and device info are stripped automatically.",
-    detail: "EXIF metadata (camera make, model, serial, lens data) is destroyed before storage or transmission. GPS and timestamp are preserved for the sighting record only.",
+    detail: "EXIF metadata (camera make, model, serial) is destroyed before storage. GPS and timestamp are kept for the sighting record only.",
+  },
+  {
+    icon: "camera", title: "Burst capture mode",
+    body: "Need to snap photos fast? Hold the shutter button. TRACE captures multiple images in rapid succession. Tag them with plates and descriptions later from your History tab.",
+    detail: "Burst photos are stored encrypted like regular sightings. The History tab shows a Burst section where you can review untagged captures, add plates, and write descriptions at your own pace.",
   },
   {
     icon: "radio", title: "Works without a signal",
     body: "No connection? Reports save on your phone and send automatically when you reconnect.",
-    detail: "Reports are encrypted and queued in IndexedDB. They upload automatically when connectivity returns. Queue count is visible in Settings.",
+    detail: "Reports are encrypted and queued locally. They upload automatically when connectivity returns. Queue count is visible in Settings.",
   },
   {
     icon: "alert-triangle", title: "Emergency wipe",
     body: "One button, two taps, everything gone. Find it on the Report screen and in Settings.",
-    detail: "Wipe destroys the encryption key first (making stored data unreadable), then clears all storage, caches, and service workers. Cannot be undone.",
+    detail: "Wipe destroys the encryption key first (making stored data unreadable), then clears all storage and caches. Cannot be undone.",
   },
   {
     icon: "radio", title: "Report harassment",
@@ -43,12 +48,12 @@ const STEPS = [
   {
     icon: "clock", title: "Automatic check-in",
     body: "The app contacts the server in the background. If it cannot connect for 3 days, it clears itself as a precaution.",
-    detail: "Background sync contacts the server periodically. If contact fails for 72 hours, auto-wipe triggers. Grace period warnings appear before the deadline.",
+    detail: "If contact fails for 72 hours, auto-wipe triggers. Warning messages appear before the deadline so you can reconnect in time.",
   },
   {
     icon: "user", title: "You are a callsign, not a name",
-    body: "Your operator knows you by your callsign only. Your real identity is encrypted separately and inaccessible during normal operations.",
-    detail: "Operators see callsigns only. Real identities are stored in a separate database vault. The operator can revoke access remotely but cannot access your PIN or decrypt your device.",
+    body: "Your operator knows you by your callsign only. Your real identity is encrypted separately and cannot be accessed during normal operations.",
+    detail: "Operators see callsigns only. Real identities are stored in a separate encrypted vault. The operator can revoke your access remotely but cannot see your PIN or read your device.",
   },
   {
     icon: "info", title: "Something not working?",

@@ -121,7 +121,7 @@ function StatusTab() {
         <div className="grid grid-cols-2 gap-3 text-xs">
           <div className="rounded px-3 py-2" style={{ background: "var(--bg)" }}>
             <span style={mutedText}>Database</span>
-            <p className="font-medium mt-0.5">SQLCipher AES-256</p>
+            <p className="font-medium mt-0.5">Encrypted (AES-256)</p>
           </div>
           <div className="rounded px-3 py-2" style={{ background: "var(--bg)" }}>
             <span style={mutedText}>Deployment</span>
@@ -158,7 +158,7 @@ function ReporterTab() {
     <div>
       <h3 className={sectionTitle}>How reporters reach this node</h3>
       <ConfigRow icon="globe" title="Public URL" status="on" statusLabel="Active"
-        description="Reporters access TRACE through a web URL. Currently hosted on Vercel with automatic TLS.">
+        description="Reporters access TRACE through a web link. Currently hosted on Vercel with automatic HTTPS (encrypted connection).">
         <p className="text-xs" style={secText}>
           Current URL: <span className="font-mono" style={{ color: "var(--accent)" }}>your-chapter.trace.community</span>
         </p>
@@ -169,7 +169,7 @@ function ReporterTab() {
         </p>
       </ConfigRow>
       <ConfigRow icon="wifi" title="WiFi hotspot mode" status="off" statusLabel="Not available"
-        description="Broadcast a local WiFi network so reporters can connect directly  -  no internet needed. For enforcement events and field deployment."
+        description="Broadcast a local WiFi network so reporters can connect directly without internet. For enforcement events and field work."
         locked>
         <p className="text-xs" style={mutedText}>Requires a sovereign node running Linux (Raspberry Pi, laptop, mini PC). Not available in hosted mode.</p>
       </ConfigRow>
@@ -192,13 +192,12 @@ function SecurityTab() {
     <div>
       <h3 className={sectionTitle}>Data protection</h3>
       <ConfigRow icon="lock" title="Database encryption" status="on" statusLabel="Always on"
-        description="All TRACE data is encrypted at rest using AES-256 (SQLCipher). This cannot be disabled  -  it's built into the foundation."
+        description="All TRACE data is scrambled using strong encryption (AES-256). This cannot be disabled - it is built into the foundation."
         locked />
       <ConfigRow icon="hard-drive" title="Full-disk encryption" status="unknown" statusLabel="Check your OS"
-        description="Encrypts the entire device, not just the TRACE database. Protects temp files, logs, and swap space from forensic extraction.">
+        description="Encrypts the entire device, not just the TRACE database. Protects temporary files and system data if the device is physically seized.">
         <p className="text-xs" style={secText}>
-          <strong className="font-medium">How to check:</strong> On macOS, look for FileVault in System Settings → Privacy.
-          On Windows, look for BitLocker. On Linux, check if your drive uses LUKS (run <code className="px-1 py-0.5 rounded text-[10px]" style={{ background: "var(--bg)" }}>lsblk -f</code>).
+          <strong className="font-medium">How to check:</strong> On macOS, look for FileVault in System Settings. On Windows, search for BitLocker. On Linux, ask whoever set it up - if you are not sure, it is probably not on.
         </p>
         <p className="text-xs mt-2" style={secText}>
           <strong className="font-medium">Recommended for:</strong> Every dedicated TRACE device (Raspberry Pi, mini PC, server).
@@ -216,8 +215,7 @@ function SecurityTab() {
           </p>
         </div>
         <p className="text-xs" style={mutedText}>
-          Available in sovereign node mode. Configurable as a hidden URL, keyboard shortcut,
-          or physical button (GPIO on Raspberry Pi).
+          Available in sovereign node mode. Can be triggered by a hidden web address, keyboard shortcut, or a physical button wired to the device.
         </p>
       </ConfigRow>
       <ConfigRow icon="eye" title="Duress passphrase" status="off" statusLabel="Disabled"
@@ -233,7 +231,7 @@ function SecurityTab() {
 
       <h3 className={sectionTitle} style={{ marginTop: 16 }}>Logging</h3>
       <ConfigRow icon="file" title="Application logs" status="on" statusLabel="7-day retention"
-        description="TRACE keeps application logs for 7 days to help diagnose problems. IP addresses are automatically redacted.">
+        description="TRACE keeps short-term records of what happened (not content, just events) for 7 days to help find problems. IP addresses are automatically removed.">
         <p className="text-xs" style={secText}>
           <strong className="font-medium">Zero-log mode</strong> disables all logging entirely. Use only in high-threat
           situations  -  without logs, you can't detect problems or unauthorized access.
@@ -316,16 +314,14 @@ function PeersTab() {
       <ConfigRow icon="send" title="Manual file sharing" status="on" statusLabel="Default"
         description="Export selected intelligence as an encrypted .trace file. Send it however you want  -  Signal, email, USB. The other chapter imports it.">
         <p className="text-xs" style={secText}>
-          The .trace file is encrypted to the recipient's public key. It's safe on any transport  - 
-          the encryption is the protection, not the channel. To share, you'll need the other chapter's
-          public key (exchanged at a meeting or over a trusted channel).
+          The .trace file is locked so only the intended recipient can open it. It is safe to send over any channel - Signal, email, USB drive. The encryption protects it, not the delivery method.
         </p>
       </ConfigRow>
-      <ConfigRow icon="radio" title="LoRa / Meshtastic alerts" status="off" statusLabel="No radio"
-        description="Send short text alerts (sighting notifications, ~200 characters) to nearby chapters via LoRa radio. No internet needed.">
+      <ConfigRow icon="radio" title="LoRa radio alerts" status="off" statusLabel="No radio"
+        description="Send short text alerts (like sighting notifications) to nearby chapters using a small radio. No internet or cell service needed.">
         <p className="text-xs" style={secText}>
-          Requires a Meshtastic-compatible radio ($25-$40) connected via USB or Bluetooth.
-          LoRa is for short alerts only  -  not database sync. Think of it as encrypted walkie-talkie.
+          Requires a small radio device ($25-$40) connected via USB or Bluetooth.
+          LoRa is for short alerts only, not full data sharing. Think of it as an encrypted walkie-talkie for chapter-to-chapter pings.
         </p>
       </ConfigRow>
 
@@ -374,7 +370,7 @@ function BackupTab() {
         </p>
       </ConfigRow>
       <ConfigRow icon="cloud" title="Encrypted cloud backup" status="off" statusLabel="Not configured"
-        description="Automatically upload encrypted backups to a cloud provider (any  -  Google Drive, Backblaze, etc.). The provider sees only ciphertext.">
+        description="Automatically upload encrypted backups to any cloud storage (Google Drive, Backblaze, etc.). The provider only sees scrambled data they cannot read.">
         <p className="text-xs" style={secText}>
           Available in sovereign node mode. Typical cost: $0-5/month (Backblaze B2 at $0.005/GB).
           A TRACE backup is typically under 1 GB.
@@ -488,11 +484,11 @@ function GuideTab() {
       {guideSection === "network" && (
         <div className="space-y-3">
           {[
-            { title: "Local network only", status: "Most secure", desc: "Reporters must be on the same WiFi. The node is invisible from the internet. Zero attack surface. Perfect for chapters that meet regularly." },
-            { title: "Tailscale (private mesh VPN)", status: "Recommended", desc: "Reporters install a small app. Only enrolled devices can connect. Based on WireGuard. Free for up to 100 devices. Your node stays hidden from the public internet." },
-            { title: "Cloudflare Tunnel (public URL)", status: "Easiest for reporters", desc: "Reporters open a link in any browser. No app install. Cloudflare proxies traffic and hides your IP. Trade-off: Cloudflare (a US company) can see the traffic." },
-            { title: "Tor onion service", status: "Maximum anonymity", desc: "A .onion address through the Tor network. Nobody  -  not your ISP, not any company  -  can see who's connecting. Slower (2-10 second latency). Reporters need Tor Browser." },
-            { title: "WiFi hotspot (enforcement events)", status: "No internet needed", desc: "The node broadcasts its own WiFi. Reporters connect directly. A captive portal opens TRACE. Works with zero infrastructure. Range: ~30-100m." },
+            { title: "Local network only", status: "Most secure", desc: "Reporters must be on the same WiFi. The node is completely invisible from the internet. Perfect for chapters that meet regularly in the same location." },
+            { title: "Tailscale (private network)", status: "Recommended", desc: "Reporters install a small free app. Only enrolled devices can connect. Your node stays hidden from the public internet. Free for up to 100 devices." },
+            { title: "Cloudflare Tunnel (public link)", status: "Easiest for reporters", desc: "Reporters open a link in any browser. No app needed. Cloudflare hides your real location. Trade-off: Cloudflare (a US company) can see the traffic." },
+            { title: "Tor hidden service", status: "Maximum anonymity", desc: "A special .onion address through the Tor network. Nobody - not your internet provider, not any company - can see who connects. Slower, but untraceable. Reporters need Tor Browser." },
+            { title: "WiFi hotspot (field events)", status: "No internet needed", desc: "The node creates its own WiFi. Reporters connect their phones directly. Works with zero infrastructure. Range: about 30-100 meters." },
           ].map((net) => (
             <div key={net.title} className={card} style={cardBg}>
               <div className="flex items-center gap-2 mb-1">
